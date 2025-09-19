@@ -7,3 +7,8 @@ count.txt
 .env
 .nitro
 .tanstack
+.pnpm-store
+
+# Supabase data directories
+supabase/volumes/db/data/
+supabase/volumes/db/data-dev/

@@ -9,8 +9,50 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SetupRouteImport } from './routes/setup'
+import { Route as PhieuRouteImport } from './routes/phieu'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LinhKienRouteImport } from './routes/linh-kien'
+import { Route as KhachHangRouteImport } from './routes/khach-hang'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SetupRoute = SetupRouteImport.update({
+  id: '/setup',
+  path: '/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhieuRoute = PhieuRouteImport.update({
+  id: '/phieu',
+  path: '/phieu',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LinhKienRoute = LinhKienRouteImport.update({
+  id: '/linh-kien',
+  path: '/linh-kien',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KhachHangRoute = KhachHangRouteImport.update({
+  id: '/khach-hang',
+  path: '/khach-hang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +61,130 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/dashboard': typeof DashboardRoute
+  '/khach-hang': typeof KhachHangRoute
+  '/linh-kien': typeof LinhKienRoute
+  '/login': typeof LoginRoute
+  '/phieu': typeof PhieuRoute
+  '/setup': typeof SetupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/dashboard': typeof DashboardRoute
+  '/khach-hang': typeof KhachHangRoute
+  '/linh-kien': typeof LinhKienRoute
+  '/login': typeof LoginRoute
+  '/phieu': typeof PhieuRoute
+  '/setup': typeof SetupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/dashboard': typeof DashboardRoute
+  '/khach-hang': typeof KhachHangRoute
+  '/linh-kien': typeof LinhKienRoute
+  '/login': typeof LoginRoute
+  '/phieu': typeof PhieuRoute
+  '/setup': typeof SetupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/khach-hang'
+    | '/linh-kien'
+    | '/login'
+    | '/phieu'
+    | '/setup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/khach-hang'
+    | '/linh-kien'
+    | '/login'
+    | '/phieu'
+    | '/setup'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/dashboard'
+    | '/khach-hang'
+    | '/linh-kien'
+    | '/login'
+    | '/phieu'
+    | '/setup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  DashboardRoute: typeof DashboardRoute
+  KhachHangRoute: typeof KhachHangRoute
+  LinhKienRoute: typeof LinhKienRoute
+  LoginRoute: typeof LoginRoute
+  PhieuRoute: typeof PhieuRoute
+  SetupRoute: typeof SetupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/setup': {
+      id: '/setup'
+      path: '/setup'
+      fullPath: '/setup'
+      preLoaderRoute: typeof SetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phieu': {
+      id: '/phieu'
+      path: '/phieu'
+      fullPath: '/phieu'
+      preLoaderRoute: typeof PhieuRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/linh-kien': {
+      id: '/linh-kien'
+      path: '/linh-kien'
+      fullPath: '/linh-kien'
+      preLoaderRoute: typeof LinhKienRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/khach-hang': {
+      id: '/khach-hang'
+      path: '/khach-hang'
+      fullPath: '/khach-hang'
+      preLoaderRoute: typeof KhachHangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +197,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  DashboardRoute: DashboardRoute,
+  KhachHangRoute: KhachHangRoute,
+  LinhKienRoute: LinhKienRoute,
+  LoginRoute: LoginRoute,
+  PhieuRoute: PhieuRoute,
+  SetupRoute: SetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

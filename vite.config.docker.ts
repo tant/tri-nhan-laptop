@@ -2,23 +2,22 @@ import { defineConfig } from 'vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite'
-import path from 'path'
 
-// https://vitejs.dev/config/
+// Docker-specific Vite config
 export default defineConfig({
   plugins: [
     TanStackRouterVite({ autoCodeSplitting: true }),
     viteReact(),
     tailwindcss(),
   ],
-  // @ts-ignore - Vitest config
-  test: {
-    globals: true,
-    environment: 'jsdom',
-  },
   resolve: {
     alias: {
-      '@': path.resolve(process.cwd(), 'src'),
+      '@': '/app/src',
     },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'esbuild',
   },
 })

@@ -1,0 +1,360 @@
+x-env: &default-env
+  env_file: .env.supabase
+
+services:
+  # React App (Development mode)
+  app-dev:
+    <<: *default-env
+    image: node:20-alpine
+    working_dir: /app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: sh -c "apk add --no-cache npm && npm install -g pnpm && pnpm install && pnpm dev --host 0.0.0.0"
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - app-network
+    depends_on:
+      kong-dev:
+        condition: service_healthy
+
+  # ===== SUPABASE SERVICES (DEVELOPMENT) =====
+  
+  # Supabase Studio - Database Management UI
+  studio-dev:
+    <<: *default-env
+    container_name: supabase-studio-dev
+    image: supabase/studio:2025.06.30-sha-6f5982d
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    depends_on:
+      meta-dev:
+        condition: service_started
+    environment:
+      STUDIO_PG_META_URL: http://meta-dev:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION}
+      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT}
+      
+      SUPABASE_URL: http://kong-dev:8000
+      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+    networks:
+      - app-network
+
+  # Kong API Gateway - Entry point for all API requests
+  kong-dev:
+    <<: *default-env
+    container_name: supabase-kong-dev
+    image: kong:2.8.1
+    restart: unless-stopped
+    ports:
+      - "${KONG_HTTP_PORT}:8000"
+      - "${KONG_HTTPS_PORT}:8443"
+    volumes:
+      - ./supabase/volumes/api/kong-dev.yml:/home/kong/kong.yml:ro
+    depends_on:
+      auth-dev:
+        condition: service_healthy
+      rest-dev:
+        condition: service_started
+      storage-dev:
+        condition: service_healthy
+      functions-dev:
+        condition: service_started
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    networks:
+      - app-network
+
+  # Auth Service - User authentication & authorization
+  auth-dev:
+    <<: *default-env
+    container_name: supabase-auth-dev
+    image: supabase/gotrue:v2.177.0
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
+      timeout: 10s
+      interval: 10s
+      retries: 10
+      start_period: 30s
+    depends_on:
+      db-dev:
+        condition: service_healthy
+      db-fix-dev:
+        condition: service_completed_successfully
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}
+
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP}
+
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP}
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS}
+      GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM}
+
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME}
+      GOTRUE_MAILER_URLPATHS_INVITE: ${MAILER_URLPATHS_INVITE}
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: ${MAILER_URLPATHS_CONFIRMATION}
+      GOTRUE_MAILER_URLPATHS_RECOVERY: ${MAILER_URLPATHS_RECOVERY}
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${MAILER_URLPATHS_EMAIL_CHANGE}
+
+      GOTRUE_EXTERNAL_PHONE_ENABLED: ${ENABLE_PHONE_SIGNUP}
+      GOTRUE_SMS_AUTOCONFIRM: ${ENABLE_PHONE_AUTOCONFIRM}
+    networks:
+      - app-network
+
+  # REST API - Auto-generated REST API from database schema
+  rest-dev:
+    <<: *default-env
+    container_name: supabase-rest-dev
+    image: postgrest/postgrest:v12.2.12
+    restart: unless-stopped
+    depends_on:
+      db-dev:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}
+      PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS}
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY}
+    networks:
+      - app-network
+
+  # Realtime - Real-time subscriptions
+  realtime-dev:
+    <<: *default-env
+    container_name: realtime-dev.supabase-realtime-dev
+    image: supabase/realtime:v2.34.47
+    restart: unless-stopped
+    depends_on:
+      db-dev:
+        condition: service_healthy
+      db-fix-dev:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-sSfL", "--head", "-o", "/dev/null", "-H", "Authorization: Bearer ${ANON_KEY}", "http://localhost:4000/api/tenants/realtime-dev/health"]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      PORT: 4000
+      DB_HOST: db-dev
+      DB_PORT: ${POSTGRES_PORT}
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB}
+      DB_AFTER_CONNECT_QUERY: 'SET search_path TO _realtime'
+      DB_ENC_KEY: supabaserealtime
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      DNS_NODES: "''"
+      RLIMIT_NOFILE: "10000"
+      APP_NAME: realtime
+      SEED_SELF_HOST: true
+      RUN_JANITOR: true
+    networks:
+      - app-network
+
+  # Storage - File storage & management
+  storage-dev:
+    <<: *default-env
+    container_name: supabase-storage-dev
+    image: supabase/storage-api:v1.25.7
+    restart: unless-stopped
+    volumes:
+      - ./supabase/volumes/storage:/var/lib/storage
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://storage-dev:5000/status"]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    depends_on:
+      db-dev:
+        condition: service_healthy
+      rest-dev:
+        condition: service_started
+      imgproxy-dev:
+        condition: service_started
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest-dev:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: file
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      TENANT_ID: stub
+      REGION: stub
+      GLOBAL_S3_BUCKET: stub
+      ENABLE_IMAGE_TRANSFORMATION: "true"
+      IMGPROXY_URL: http://imgproxy-dev:5001
+    networks:
+      - app-network
+
+  # Image Proxy - Image transformation & optimization
+  imgproxy-dev:
+    <<: *default-env
+    container_name: supabase-imgproxy-dev
+    image: darthsim/imgproxy:v3.8.0
+    restart: unless-stopped
+    volumes:
+      - ./supabase/volumes/storage:/var/lib/storage
+    healthcheck:
+      test: ["CMD", "imgproxy", "health"]
+      timeout: 5s
+      interval: 5s
+      retries: 3
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION}
+    networks:
+      - app-network
+
+  # Meta - Database schema management
+  meta-dev:
+    <<: *default-env
+    container_name: supabase-meta-dev
+    image: supabase/postgres-meta:v0.91.0
+    restart: unless-stopped
+    depends_on:
+      db-dev:
+        condition: service_healthy
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db-dev
+      PG_META_DB_PORT: ${POSTGRES_PORT}
+      PG_META_DB_NAME: ${POSTGRES_DB}
+      PG_META_DB_USER: supabase_admin
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - app-network
+
+  # Edge Functions - Serverless functions
+  functions-dev:
+    <<: *default-env
+    container_name: supabase-edge-functions-dev
+    image: supabase/edge-runtime:v1.69.6
+    restart: unless-stopped
+    volumes:
+      - ./supabase/volumes/functions:/home/deno/functions
+    depends_on:
+      db-dev:
+        condition: service_healthy
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_URL: http://kong-dev:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db-dev:${POSTGRES_PORT}/${POSTGRES_DB}
+      VERIFY_JWT: "${FUNCTIONS_VERIFY_JWT}"
+    command: ["start", "--main-service", "/home/deno/functions/main"]
+    networks:
+      - app-network
+
+  # Database Fix Helper - Runs fixes after DB is ready
+  db-fix-dev:
+    <<: *default-env
+    image: postgres:15-alpine
+    container_name: supabase-db-fix-dev
+    depends_on:
+      db-dev:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Waiting for database to fully initialize...' &&
+        sleep 15 &&
+        echo 'Applying database fixes...' &&
+        PGPASSWORD=$$POSTGRES_PASSWORD psql -h db-dev -U postgres -d postgres -c \"
+          -- Create realtime schema
+          CREATE SCHEMA IF NOT EXISTS _realtime;
+          GRANT ALL ON SCHEMA _realtime TO postgres, supabase_admin;
+          GRANT USAGE ON SCHEMA _realtime TO authenticator, anon, authenticated, service_role;
+        \" &&
+        echo 'Database fixes completed successfully'
+      "
+    restart: "no"
+    networks:
+      - app-network
+
+  # PostgreSQL Database
+  db-dev:
+    <<: *default-env
+    container_name: supabase-db-dev
+    image: supabase/postgres:15.8.1.060
+    restart: unless-stopped
+    ports:
+      - "5433:5432"  # Different port for dev to avoid conflicts
+    volumes:
+      - ./supabase/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql
+      - ./supabase/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql
+      - ./supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql
+      - ./supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql
+      - ./supabase/volumes/db/init-scripts/99-set-service-passwords.sh:/docker-entrypoint-initdb.d/init-scripts/99-set-service-passwords.sh
+      - ./supabase/volumes/db/data-dev:/var/lib/postgresql/data  # Separate data for dev
+      - db-config-dev:/etc/postgresql-custom
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: 5432
+      POSTGRES_PORT: 5432
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      POSTGRES_DB: ${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: ${JWT_EXPIRY}
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "log_min_messages=fatal"]
+    networks:
+      - app-network
+
+volumes:
+  db-config-dev:
+
+networks:
+  app-network:
+    driver: bridge
