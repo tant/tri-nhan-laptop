@@ -29,28 +29,53 @@ rebuild: ## Rebuild and restart production environment
 # Development Commands
 .PHONY: dev
 dev: ## Start development environment (React dev server + Supabase)
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d
+	docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d || true
+	@echo "⏳ Waiting for services to initialize..."
+	@sleep 10
+	@echo "🔧 Running service fixes..."
+	@./fix-supabase-services.sh
 
 .PHONY: dev-down
 dev-down: ## Stop development environment
 	docker compose -f docker-compose.dev.yml --env-file .env.supabase down
 
+.PHONY: backend-only
+backend-only: ## Start only Supabase services (for local React development)
+	docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d db-dev auth-dev rest-dev kong-dev storage-dev studio-dev meta-dev realtime-dev functions-dev imgproxy-dev || true
+	@echo "⏳ Waiting for services to initialize..."
+	@sleep 10
+	@echo "🔧 Running service fixes..."
+	@./fix-supabase-services.sh
+	@echo ""
+	@echo "🎯 Supabase services running! Now run 'pnpm dev' for local React development"
+	@echo "🌐 React will be available at: http://localhost:5173"
+
 .PHONY: dev-logs
 dev-logs: ## Show development logs
 	docker compose -f docker-compose.dev.yml --env-file .env.supabase logs -f
+
+.PHONY: fix-services
+fix-services: ## Fix common Supabase service issues
+	@./fix-supabase-services.sh
 
 # Database Commands
 .PHONY: db-reset
 db-reset: ## Reset database (WARNING: This will delete all data!)
 	docker compose --env-file .env.supabase down -v
-	docker compose --env-file .env.supabase up -d db
-	@echo "Database reset complete!"
+	docker compose -f docker-compose.dev.yml --env-file .env.supabase down -v
+	@echo "Database reset complete! Run 'make dev' or 'make up' to start fresh."
 
 .PHONY: db-backup
-db-backup: ## Backup database
+db-backup: ## Backup database (production)
 	@mkdir -p backups
-	docker compose --env-file .env.supabase exec db pg_dump -U postgres postgres > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
-	@echo "Database backup created in backups/"
+	docker compose --env-file .env.supabase exec db pg_dump -U postgres postgres > backups/backup_prod_$(shell date +%Y%m%d_%H%M%S).sql
+	@echo "Production database backup created in backups/"
+
+.PHONY: db-backup-dev
+db-backup-dev: ## Backup development database
+	@mkdir -p backups
+	docker compose -f docker-compose.dev.yml --env-file .env.supabase exec db-dev pg_dump -U postgres postgres > backups/backup_dev_$(shell date +%Y%m%d_%H%M%S).sql
+	@echo "Development database backup created in backups/"
 
 # Supabase Studio
 .PHONY: studio
@@ -78,12 +103,13 @@ fix-permissions: ## Fix ownership of database volumes (run after containers crea
 	@echo "Database permissions fixed. Directories can now be deleted without sudo."
 
 .PHONY: status
-status: ## Show status of all services
+status: ## Show status of all services (development)
+	docker compose -f docker-compose.dev.yml --env-file .env.supabase ps
+
+.PHONY: status-prod
+status-prod: ## Show status of production services
 	docker compose --env-file .env.supabase ps
 
-.PHONY: install-client
-install-client: ## Install Supabase JavaScript client
-	pnpm add @supabase/supabase-js
 
 # Environment setup
 .PHONY: setup
@@ -94,10 +120,6 @@ setup: ## Initial setup - create directories and install dependencies
 	mkdir -p supabase/volumes/db/data-dev
 	@echo "Setup complete! Now run 'make dev' to start development environment"
 
-.PHONY: setup-admin
-setup-admin: ## Setup admin user after services are running
-	@echo "Setting up admin user..."
-	./setup-admin.sh
 
 # Quick commands
 .PHONY: start

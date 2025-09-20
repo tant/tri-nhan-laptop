@@ -24,21 +24,20 @@ This setup includes a complete Supabase backend for a laptop repair shop managem
    # Ensure .env.supabase file exists with correct configuration
    ```
 
-2. **Start development environment**:
+2. **Start development environment** (fully automated):
    ```bash
-   docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d
+   make dev
    ```
 
-3. **Set database passwords** (required after first startup):
-   ```bash
-   # Wait for database to be healthy, then set service passwords
-   docker exec supabase-db-dev bash -c "cd /docker-entrypoint-initdb.d/init-scripts && ./99-set-service-passwords.sh"
+   This command automatically:
+   - Starts all Docker containers
+   - Initializes the database with proper roles and permissions
+   - Sets service user passwords
+   - Fixes JWT function ownership
+   - Restarts services as needed
+   - No manual intervention required!
 
-   # Restart auth service to connect with passwords
-   docker restart supabase-auth-dev
-   ```
-
-4. **Access services**:
+3. **Access services**:
    - React App (Dev): http://localhost:3000 (if using dev container)
    - Supabase Studio: http://localhost:3010
    - Kong API Gateway: http://localhost:8000
@@ -130,28 +129,21 @@ The included schema (`repair_shop_schema.sql`) provides:
 
 Install Supabase client:
 ```bash
-make install-client
-# or manually: pnpm add @supabase/supabase-js
+pnpm add @supabase/supabase-js
 ```
 
 ### Admin User Setup
 
-1. **Create the admin user** (first time setup):
-```javascript
-// Sign up the admin user
-const { data, error } = await supabase.auth.signUp({
-  email: 'admin@laptop-repair-shop.local',
-  password: 'AdminPass123!',
-  options: {
-    data: {
-      full_name: 'Shop Manager',
-      role: 'shop_owner'
-    }
-  }
-})
-```
+The admin user is automatically created during database initialization using the environment variables in `.env.supabase`:
 
-2. **Admin can create staff users**:
+- **Email**: `SHOP_ADMIN_EMAIL` (default: admin@laptop-repair-shop.local)
+- **Password**: `SHOP_ADMIN_PASSWORD` (default: AdminPass123!)
+- **Name**: `SHOP_ADMIN_NAME` (default: Shop Manager)
+- **Role**: `SHOP_ADMIN_ROLE` (default: shop_owner)
+
+The admin user is ready to use immediately after running `make dev`.
+
+**Admin can create staff users**:
 ```javascript
 // Call user management function
 const { data, error } = await supabase.functions.invoke('user-management', {
@@ -245,16 +237,13 @@ PostgreSQL (5432/5433)
 
 ### Common Issues and Solutions
 
-#### 1. **Auth Service Fails to Start (Password Authentication Error)**
-**Symptoms**: `password authentication failed for user "supabase_auth_admin"`
+#### 1. **Auth Service Fails to Start (Legacy Issue)**
+**Note**: This issue is now automatically fixed by the `make dev` automation.
 
-**Solution**: The database service users need passwords set manually after first startup:
+If you encounter this manually, you can run:
 ```bash
-# Wait for database to be healthy
-docker exec supabase-db-dev bash -c "cd /docker-entrypoint-initdb.d/init-scripts && ./99-set-service-passwords.sh"
-
-# Restart auth service
-docker restart supabase-auth-dev
+# Manual fix (usually not needed)
+./fix-supabase-services.sh
 ```
 
 #### 2. **Permission Denied on Database Volumes**
@@ -317,20 +306,14 @@ docker logs supabase-db-dev | grep ERROR
 #### 8. **Clean Reinitialization Process**
 For a completely fresh start:
 ```bash
-# 1. Stop everything
-docker compose --env-file .env.supabase down -v --remove-orphans
-docker compose -f docker-compose.dev.yml --env-file .env.supabase down -v --remove-orphans
+# 1. Full cleanup
+make clean
 
-# 2. Clean data directories
-docker run --rm -v "$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "rm -rf /data/data /data/data-dev && mkdir -p /data/data /data/data-dev && chown -R 1000:1000 /data/data /data/data-dev"
-
-# 3. Start fresh
-docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d
-
-# 4. Set passwords (after database is healthy)
-docker exec supabase-db-dev bash -c "cd /docker-entrypoint-initdb.d/init-scripts && ./99-set-service-passwords.sh"
-docker restart supabase-auth-dev
+# 2. Start fresh (fully automated)
+make dev
 ```
+
+The automation handles all initialization automatically.
 
 ### Verification Commands
 

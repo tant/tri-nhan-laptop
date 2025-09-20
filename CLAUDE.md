@@ -10,8 +10,11 @@ This is a Vietnamese laptop repair shop management system built with React 19, T
 
 ### Development
 ```bash
-# Start development environment (React dev server + Supabase services)
+# Full Docker development (React + Supabase in containers)
 make dev
+
+# Backend-only development (Supabase in Docker, React locally)
+make backend-only    # Then run: pnpm dev
 
 # Stop development environment
 make dev-down
@@ -73,8 +76,8 @@ make clean
 
 ### shadcn/ui Components
 ```bash
-# Add new shadcn components
-npx shadcn@latest add [component-name]
+# Add new shadcn components (use pnpx for consistency with pnpm)
+pnpx shadcn@latest add [component-name]
 ```
 
 ## Architecture
@@ -148,7 +151,7 @@ The application has 8 main pages for the laptop repair shop workflow:
 4. Import and use the page component in the route file
 
 ### Adding New UI Components
-1. Use shadcn to add base components: `npx shadcn@latest add [component]`
+1. Use shadcn to add base components: `pnpx shadcn@latest add [component]`
 2. Create custom components in `src/components/` if needed
 3. Follow the existing patterns for Vietnamese localization
 
@@ -161,6 +164,14 @@ The application has 8 main pages for the laptop repair shop workflow:
 - **Development**: Uses `docker-compose.dev.yml` with `.env.supabase`
 - **Production**: Uses `docker-compose.yml` with `.env.supabase`
 - Database data is separated between dev and production volumes
+- Database initialization is automated via Docker init scripts
+
+### First-Time Setup
+The database initialization is fully automated when starting Docker:
+1. Run `make dev` to start all services
+2. Database init scripts run automatically (roles, schemas, passwords)
+3. Service fixes are automatically applied via `fix-supabase-services.sh`
+4. No manual intervention required for fresh installations
 
 ## Code Quality
 - **TypeScript**: Strict mode enabled with comprehensive type checking
@@ -180,3 +191,9 @@ The application uses Vietnamese language throughout:
 - All pages are designed with real business workflows in mind
 - Authentication is currently stub implementation - needs Supabase Auth integration
 - File permissions may require `make fix-permissions` if developing on Linux/WSL
+
+# important-instruction-reminders
+Do what has been asked; nothing more, nothing less.
+NEVER create files unless they're absolutely necessary for achieving your goal.
+ALWAYS prefer editing an existing file to creating a new one.
+NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.

@@ -94,8 +94,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      db-fix:
-        condition: service_completed_successfully
     environment:
       GOTRUE_API_HOST: 0.0.0.0
       GOTRUE_API_PORT: 9999
@@ -163,8 +161,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      db-fix:
-        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-sSfL", "--head", "-o", "/dev/null", "-H", "Authorization: Bearer ${ANON_KEY}", "http://localhost:4000/api/tenants/realtime-dev/health"]
       timeout: 5s
@@ -289,30 +285,6 @@ services:
     networks:
       - app-network
 
-  # Database Fix Helper - Runs fixes after DB is ready
-  db-fix:
-    <<: *default-env
-    image: postgres:15-alpine
-    container_name: supabase-db-fix
-    depends_on:
-      db:
-        condition: service_healthy
-    command: >
-      sh -c "
-        echo 'Waiting for database to fully initialize...' &&
-        sleep 15 &&
-        echo 'Applying database fixes...' &&
-        PGPASSWORD=$$POSTGRES_PASSWORD psql -h db -U postgres -d postgres -c \"
-          -- Create realtime schema
-          CREATE SCHEMA IF NOT EXISTS _realtime;
-          GRANT ALL ON SCHEMA _realtime TO postgres, supabase_admin;
-          GRANT USAGE ON SCHEMA _realtime TO authenticator, anon, authenticated, service_role;
-        \" &&
-        echo 'Database fixes completed successfully'
-      "
-    restart: "no"
-    networks:
-      - app-network
 
   # PostgreSQL Database (Internal only)
   db:
@@ -324,10 +296,12 @@ services:
     expose:
       - "5432"
     volumes:
+      - ./supabase/volumes/db/00-create-supabase-admin.sql:/docker-entrypoint-initdb.d/00-create-supabase-admin.sql
       - ./supabase/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql
       - ./supabase/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql
-      - ./supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql
+      - ./supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/98-roles.sql
       - ./supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql
+      - ./supabase/volumes/db/init-scripts/98-create-admin-user.sh:/docker-entrypoint-initdb.d/init-scripts/98-create-admin-user.sh
       - ./supabase/volumes/db/init-scripts/99-set-service-passwords.sh:/docker-entrypoint-initdb.d/init-scripts/99-set-service-passwords.sh
       - ./supabase/volumes/db/data:/var/lib/postgresql/data
       - db-config:/etc/postgresql-custom

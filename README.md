@@ -1,310 +1,431 @@
-Welcome to your new TanStack app! 
+# 🔧 Vietnamese Laptop Repair Shop Management System
 
-# Getting Started
+A modern, full-stack management system for Vietnamese laptop repair shops built with **React 19**, **TypeScript**, **TanStack Router**, and **Supabase**. Features a complete Docker containerized backend with real-time capabilities and Vietnamese localization.
 
-To run this application:
+## 🌟 Features
 
+### 🏪 Business Management
+- **Customer Portal** - Customers can lookup repair tickets by phone number
+- **Repair Ticket Management** - Complete CRUD operations for repair tracking
+- **Parts Inventory** - Stock management with low-stock alerts
+- **Customer Database** - Comprehensive customer information management
+- **Staff Dashboard** - Overview with statistics and daily summaries
+- **Admin Panel** - System administration and user management
+
+### 🛠️ Technical Features
+- **Real-time Updates** - Live data synchronization across all clients
+- **Role-based Access Control** - Shop owner, manager, technician, and staff roles
+- **File Storage** - Upload repair images and documents
+- **Vietnamese Localization** - All UI text and business terminology in Vietnamese
+- **Mobile-First Design** - Responsive design optimized for tablets and mobile devices
+- **Dark/Light Mode** - Theme switching support
+
+### 🏗️ Architecture
+- **Frontend**: React 19 with TanStack Router for file-based routing
+- **Backend**: Complete Supabase stack (PostgreSQL, Auth, Storage, Real-time)
+- **UI Framework**: shadcn/ui components with Tailwind CSS v4
+- **Development**: Docker containers with hot-reload and development tools
+- **Type Safety**: Full TypeScript coverage with strict mode
+
+## 🚀 Quick Start
+
+### Prerequisites
+- **Docker & Docker Compose** - For running the complete stack
+- **Node.js 20+** & **pnpm** - For frontend development
+- **Git** - For version control
+
+### 1. Clone and Setup
 ```bash
+git clone <repository-url>
+cd try-vite
+
+# Create required directories
+make setup
+
+# Start development environment (includes database initialization)
+make dev
+```
+
+### 2. Access the Application
+The `make dev` command now automatically handles all initialization and service fixes:
+- **React App (Development)**: http://localhost:3000
+- **Supabase Studio (Database UI)**: http://localhost:3010
+- **API Gateway**: http://localhost:8000
+
+## 📖 Available Commands
+
+### Development Workflow
+```bash
+# Start development environment (React dev server + Supabase services)
+make dev
+
+# Stop development environment
+make dev-down
+
+# Show development logs
+make dev-logs
+
+# Quick aliases
+make start    # Same as make dev
+make stop     # Same as make dev-down
+```
+
+### Frontend Development
+
+**Option 1: Docker Development (Recommended)**
+```bash
+# Start full development environment with hot reload
+make dev
+
+# Your code changes in src/ automatically reflect in the browser
+# React app runs at http://localhost:3000
+```
+
+**Option 2: Local Development (Alternative)**
+```bash
+# If you previously ran "make dev", stop it first:
+make dev-down
+
+# 1. Start only Supabase backend services (excludes React app container)
+make backend-only
+
+# 2. Install dependencies locally and run React app on host
 pnpm install
-pnpm start
+pnpm dev  # Runs on http://localhost:5173 (Vite default port)
+
+# 3. Development commands
+pnpm build    # Build for production
+pnpm test     # Run tests
+pnpm lint     # Lint with Biome
+pnpm format   # Format with Biome
+pnpm check    # Check both lint and format
 ```
 
-# Building For Production
+**Note**: This avoids port conflicts by running React locally (port 5173) while Supabase services run in Docker.
 
-To build this application for production:
+### 🔄 Switching Between Development Modes
 
+**From Docker to Local Development:**
 ```bash
-pnpm build
+make dev-down        # Stop Docker development
+make backend-only    # Start only backend services
+pnpm dev            # Start React locally
 ```
 
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
-
+**From Local to Docker Development:**
 ```bash
+# Stop local React (Ctrl+C in terminal)
+make dev-down        # Stop backend services
+make dev            # Start full Docker development
+```
+
+### Production Deployment
+```bash
+# Start production environment
+make up
+
+# Stop production environment
+make down
+
+# Rebuild production environment
+make rebuild
+```
+
+### Database Management
+```bash
+# Open Supabase Studio (database UI)
+make studio   # Opens http://localhost:3010
+
+# Reset database (WARNING: deletes all data)
+make db-reset
+
+# Backup database
+make db-backup
+
+# Clean all Docker resources
+make clean
+```
+
+### Component Development
+```bash
+# Add new shadcn/ui components
+pnpx shadcn@latest add [component-name]
+
+# Examples:
+pnpx shadcn@latest add button
+pnpx shadcn@latest add dialog
+pnpx shadcn@latest add table
+```
+
+## 🏗️ Project Architecture
+
+### Frontend Structure
+```
+src/
+├── routes/                 # File-based routing (TanStack Router)
+│   ├── __root.tsx         # Root layout with header and navigation
+│   ├── index.tsx          # Home page (customer portal)
+│   ├── dashboard.tsx      # Management dashboard
+│   ├── phieu.tsx          # Repair tickets management
+│   ├── linh-kien.tsx      # Parts inventory
+│   ├── khach-hang.tsx     # Customer management
+│   ├── login.tsx          # Staff authentication
+│   ├── setup.tsx          # Initial system setup
+│   └── admin.tsx          # System administration
+├── components/
+│   ├── pages/             # Page components for business logic
+│   ├── ui/                # shadcn/ui component library
+│   ├── Header.tsx         # Main navigation header
+│   └── AppInitializer.tsx # App-wide initialization
+├── lib/
+│   └── utils.ts           # Utility functions
+└── hooks/                 # Custom React hooks
+```
+
+### Backend Services (Docker)
+The application runs in a multi-container Docker environment:
+
+- **app-dev**: React development server (port 3000)
+- **supabase-kong-dev**: API Gateway (ports 8000/8443)
+- **supabase-auth-dev**: User authentication service
+- **supabase-rest-dev**: Auto-generated REST API from database schema
+- **supabase-db-dev**: PostgreSQL database (port 5433)
+- **supabase-studio-dev**: Database management UI (port 3010)
+- **supabase-storage-dev**: File storage service
+- **realtime-dev**: Real-time subscriptions
+- **functions-dev**: Edge functions runtime
+
+### Database Schema
+The system includes a comprehensive database schema for laptop repair shops:
+
+#### Core Tables
+- **`user_profiles`** - Staff management with role-based permissions
+- **`customers`** - Customer information and contact details
+- **`repairs`** - Repair tickets with status tracking
+- **`repair_status_logs`** - Audit trail for status changes
+- **`parts`** - Inventory management with stock levels
+- **`repair_parts`** - Parts used in specific repairs
+
+#### User Roles
+- **shop_owner**: Complete system access, can manage all users
+- **manager**: Staff management and financial reporting access
+- **technician**: Repair handling with limited inventory access
+- **staff**: Basic repair ticket operations
+
+## 🛠️ Development Workflow
+
+### Adding New Routes
+1. Create a new file in `src/routes/` (e.g., `src/routes/new-page.tsx`)
+2. TanStack Router automatically generates the route configuration
+3. Create corresponding page component in `src/components/pages/`
+4. Import and use the page component in the route file
+
+### Adding New UI Components
+1. Use shadcn to add base components: `pnpx shadcn@latest add [component]`
+2. Create custom components in `src/components/` if needed
+3. Follow existing patterns for Vietnamese localization
+
+### Database Changes
+1. Access Supabase Studio at http://localhost:3010
+2. Make schema changes through the UI or SQL editor
+3. The REST API is automatically updated via PostgREST
+
+### Code Quality Standards
+- **TypeScript**: Strict mode enabled with comprehensive type checking
+- **Biome**: Used for linting and formatting (replaces ESLint/Prettier)
+- **Vitest**: Test runner with jsdom environment for React components
+- **Path Aliases**: `@/*` maps to `src/*` for clean imports
+
+## 🌍 Vietnamese Localization
+
+The application is fully localized for Vietnamese laptop repair shops:
+
+- **UI Language**: All text, labels, and messages in Vietnamese
+- **Business Terminology**: Specific vocabulary for laptop repair industry
+- **Date/Currency**: Vietnamese formatting conventions
+- **Mock Data**: Vietnamese names, addresses, and realistic business data
+
+## 📱 Application Pages
+
+### 1. Home (/) - Customer Portal
+- Customers can lookup repair tickets by phone number
+- Clean, simple interface for non-technical users
+- Shows repair status and estimated completion
+
+### 2. Setup (/setup) - Initial Configuration
+- First-time system setup with admin account creation
+- Configures basic shop information
+- Creates initial user roles and permissions
+
+### 3. Login (/login) - Staff Authentication
+- Staff login with role-based access control
+- Integration with Supabase Auth
+- Automatic redirection based on user role
+
+### 4. Dashboard (/dashboard) - Management Overview
+- Daily statistics and performance metrics
+- Recent repairs and pending tasks
+- Quick access to all major functions
+
+### 5. Repair Tickets (/phieu) - Ticket Management
+- Complete CRUD operations for repair tickets
+- Status tracking and update history
+- Parts assignment and labor tracking
+
+### 6. Parts Inventory (/linh-kien) - Stock Management
+- Inventory tracking with real-time stock levels
+- Low-stock alerts and reorder points
+- Parts usage history and supplier information
+
+### 7. Customer Management (/khach-hang) - Customer Database
+- Customer information and contact management
+- Repair history and service records
+- Customer communication tracking
+
+### 8. Admin (/admin) - System Administration
+- User management and role assignment
+- System settings and configuration
+- Shop information and preferences
+
+## 🔧 Environment Configuration
+
+### Development vs Production
+
+**Development Environment** (`make dev`):
+- Uses `docker-compose.dev.yml` with `.env.supabase`
+- React dev server with hot reload
+- Database on port 5433 (to avoid conflicts)
+- Separate data volumes for development
+
+**Production Environment** (`make up`):
+- Uses `docker-compose.yml` with `.env.supabase`
+- Built React app served by nginx on port 3001
+- Database on standard port 5432
+- Optimized containers for production
+
+### Key Environment Variables
+```bash
+# Database
+POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+POSTGRES_DB=postgres
+
+# JWT & Authentication
+JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# API Configuration
+SUPABASE_PUBLIC_URL=http://localhost:8000
+KONG_HTTP_PORT=8000
+
+# Shop Admin Account
+SHOP_ADMIN_EMAIL=admin@laptop-repair-shop.local
+SHOP_ADMIN_PASSWORD=AdminPass123!
+SHOP_ADMIN_NAME=Shop Manager
+SHOP_ADMIN_ROLE=shop_owner
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Manual Service Fixes (Legacy)
+**Note**: These manual steps are no longer needed as they're automated in `make dev`
+
+If you encounter service issues, you can manually run the fix script:
+```bash
+# Manual service fixes (usually not needed)
+./fix-supabase-services.sh
+```
+
+#### Permission Denied on Database Volumes
+**Problem**: Cannot delete database directories without sudo
+
+**Solution**:
+```bash
+make fix-permissions
+# or manually:
+docker run --rm -v "$(pwd)/supabase/volumes/db:/data" alpine:latest chown -R 1000:1000 /data/data /data/data-dev
+```
+
+#### Port Conflicts
+**Problem**: `port is already allocated` error
+
+**Solution**:
+```bash
+# Stop conflicting services
+make dev-down  # Stop development environment
+make down      # Stop production environment
+
+# Check what's using ports
+docker ps
+netstat -tulpn | grep :3000
+```
+
+#### Clean Reinitialization
+For a completely fresh start:
+```bash
+# Full cleanup
+make clean
+
+# Clean database data
+make clean-data
+
+# Start fresh
+make dev
+```
+
+## 📝 Contributing
+
+### Development Setup
+1. **Fork and clone** the repository
+2. **Install dependencies**: `pnpm install`
+3. **Start development environment**: `make dev`
+4. **Set up database** (first time): See initialization steps above
+5. **Make changes** following the code quality standards
+6. **Test thoroughly** with `pnpm test` and `pnpm check`
+7. **Submit pull request** with clear description
+
+### Code Standards
+- **TypeScript**: Use strict typing, avoid `any`
+- **React**: Follow React 19 best practices with hooks
+- **Styling**: Use Tailwind CSS utilities, avoid custom CSS
+- **Components**: Prefer shadcn/ui components, create custom sparingly
+- **Vietnamese**: All user-facing text must be in Vietnamese
+- **Comments**: Code should be self-documenting, minimal comments
+
+### Testing
+```bash
+# Run all tests
 pnpm test
-```
 
-## Styling
+# Run tests in watch mode
+pnpm test --watch
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
-
-```bash
-pnpm lint
-pnpm format
+# Check code quality
 pnpm check
 ```
 
+## 📄 License
 
-## Shadcn
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+## 🙏 Acknowledgments
 
-```bash
-pnpx shadcn@latest add button
-```
+- **TanStack** - For the excellent router and development tools
+- **Supabase** - For the complete backend-as-a-service platform
+- **shadcn/ui** - For the beautiful and accessible component library
+- **Tailwind CSS** - For the utility-first CSS framework
+- **Biome** - For fast and reliable linting and formatting
 
+## 📞 Support
 
+For support and questions:
+1. **Check the documentation** in `/supabase/README.md` for detailed backend setup
+2. **Review the CLAUDE.md** file for development guidelines
+3. **Search existing issues** in the repository
+4. **Create a new issue** with detailed description and reproduction steps
 
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+---
 
-### Adding A Route
-
-To add a new route to your application just add another a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-pnpm add @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-pnpm add @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+**Built with ❤️ for Vietnamese laptop repair shops**

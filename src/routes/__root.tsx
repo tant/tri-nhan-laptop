@@ -1,14 +1,19 @@
-import { Outlet, createRootRoute } from '@tanstack/react-router'
+import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanstackDevtools } from '@tanstack/react-devtools'
 
 import Header from '../components/Header'
-import { AppInitializer } from '../components/AppInitializer'
 
-export const Route = createRootRoute({
-  component: () => (
-    <AppInitializer>
-      <Header />
+const RootComponent = () => {
+  const location = useLocation()
+
+  // Routes that don't need header (like homepage and login)
+  const routesWithoutHeader = ['/', '/login']
+  const showHeader = !routesWithoutHeader.includes(location.pathname)
+
+  return (
+    <>
+      {showHeader && <Header />}
       <Outlet />
       <TanstackDevtools
         config={{
@@ -21,6 +26,10 @@ export const Route = createRootRoute({
           },
         ]}
       />
-    </AppInitializer>
-  ),
+    </>
+  )
+}
+
+export const Route = createRootRoute({
+  component: RootComponent,
 })
