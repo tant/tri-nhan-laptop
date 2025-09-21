@@ -56,7 +56,7 @@ export function useCustomerPortal() {
 		try {
 			// Find repair by ticket number and verify customer phone
 			const { data: repairData, error: repairError } = await supabase
-				.from("repairs")
+				.from("repair_tickets")
 				.select(`
 					*,
 					customer:customers!inner(*)
@@ -94,11 +94,11 @@ export function useCustomerPortal() {
 				.from("repair_parts")
 				.select(`
 					id,
-					quantity_used,
-					total_cost,
+					quantity,
+					unit_price,
 					part:parts(name)
 				`)
-				.eq("repair_id", repairData.id);
+				.eq("repair_ticket_id", repairData.id);
 
 			if (partsError) {
 				console.warn("Could not load parts used:", partsError);
@@ -108,8 +108,8 @@ export function useCustomerPortal() {
 			const transformedParts = (partsUsed || []).map(part => ({
 				id: part.id,
 				part_name: (part.part as any)?.name || "Unknown Part",
-				quantity_used: part.quantity_used,
-				total_cost: part.total_cost
+				quantity_used: part.quantity,
+				total_cost: part.quantity * part.unit_price
 			}));
 
 			const repairInfo: CustomerRepairInfo = {
@@ -143,7 +143,7 @@ export function useCustomerPortal() {
 		try {
 			// Find repairs by customer email and phone
 			const { data: repairData, error: repairError } = await supabase
-				.from("repairs")
+				.from("repair_tickets")
 				.select(`
 					*,
 					customer:customers!inner(*)
@@ -179,18 +179,18 @@ export function useCustomerPortal() {
 					.from("repair_parts")
 					.select(`
 						id,
-						quantity_used,
-						total_cost,
+						quantity,
+						unit_price,
 						part:parts(name)
 					`)
-					.eq("repair_id", repairData.id)
+					.eq("repair_ticket_id", repairData.id)
 			]);
 
 			const transformedParts = (partsUsedResult.data || []).map(part => ({
 				id: part.id,
 				part_name: (part.part as any)?.name || "Unknown Part",
-				quantity_used: part.quantity_used,
-				total_cost: part.total_cost
+				quantity_used: part.quantity,
+				total_cost: part.quantity * part.unit_price
 			}));
 
 			const repairInfo: CustomerRepairInfo = {
@@ -221,15 +221,16 @@ export function useCustomerPortal() {
 	const getServiceHistory = useCallback(async (customerPhone: string) => {
 		try {
 			const { data, error } = await supabase
-				.from("repairs")
+				.from("repair_tickets")
 				.select(`
 					id,
 					device_type,
-					device_model,
+					brand,
+					model,
 					issue_description,
 					status,
 					created_at,
-					completed_at,
+					completed_date,
 					final_cost,
 					customer:customers!inner(phone)
 				`)
@@ -365,10 +366,11 @@ export function useCustomerPortal() {
 
 	// Validate ticket number format
 	const isValidTicketNumber = useCallback((ticketNumber: string) => {
-		// Accept both old format (MS001) and new format (TNL-YYMMDD-XXX)
-		const oldFormat = /^MS\d+$/;
-		const newFormat = /^[A-Z]{2,4}-\d{6}-\d{3,4}$/;
-		return oldFormat.test(ticketNumber) || newFormat.test(ticketNumber);
+		// Accept multiple formats: TK001, MS001, TNL-YYMMDD-XXX
+		const tkFormat = /^TK\d+$/;  // Our sample data format
+		const msFormat = /^MS\d+$/;  // Legacy format
+		const newFormat = /^[A-Z]{2,4}-\d{6}-\d{3,4}$/; // Full format
+		return tkFormat.test(ticketNumber) || msFormat.test(ticketNumber) || newFormat.test(ticketNumber);
 	}, []);
 
 	// Validate phone number

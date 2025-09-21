@@ -309,7 +309,7 @@ export function HomePage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Thiết Bị</Label>
-                    <p className="text-lg">{repairInfo.device_type} - {repairInfo.device_model}</p>
+                    <p className="text-lg">{repairInfo.device_type} - {repairInfo.brand} {repairInfo.model}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Vấn Đề</Label>
