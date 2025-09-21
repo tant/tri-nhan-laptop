@@ -3,6 +3,8 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanstackDevtools } from '@tanstack/react-devtools'
 import { SidebarProvider, Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar'
 import { LayoutDashboardIcon, WrenchIcon, PackageIcon, UsersIcon, SettingsIcon } from 'lucide-react'
+import { ErrorBoundary } from '@/components/error-boundary'
+import { NetworkStatus } from '@/components/network-status'
 
 const RootComponent = () => {
   const location = useLocation()
@@ -41,59 +43,64 @@ const RootComponent = () => {
 
   if (shouldShowSidebar) {
     return (
-      <SidebarProvider>
-        <div className="flex h-screen w-full">
-          <Sidebar>
-            <SidebarHeader>
-              <div className="flex items-center gap-2 px-4 py-2">
-                <WrenchIcon className="size-6" />
-                <span className="font-semibold">Laptop Repair</span>
-              </div>
-            </SidebarHeader>
-            <SidebarContent>
-              <SidebarMenu>
-                {sidebarItems.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild>
-                      <Link to={item.url} className="flex items-center gap-2">
-                        <item.icon className="size-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarContent>
-          </Sidebar>
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <header className="border-b bg-background p-4">
-              <div className="flex items-center gap-4">
-                <SidebarTrigger />
-                <h1 className="font-semibold">Hệ thống quản lý sửa chữa laptop</h1>
-              </div>
-            </header>
-            <main className="flex-1 overflow-auto">
-              <Outlet />
-            </main>
+      <ErrorBoundary>
+        <SidebarProvider>
+          <div className="flex h-screen w-full">
+            <Sidebar>
+              <SidebarHeader>
+                <div className="flex items-center gap-2 px-4 py-2">
+                  <WrenchIcon className="size-6" />
+                  <span className="font-semibold">Laptop Repair</span>
+                </div>
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarMenu>
+                  {sidebarItems.map((item) => (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton asChild>
+                        <Link to={item.url} className="flex items-center gap-2">
+                          <item.icon className="size-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarContent>
+            </Sidebar>
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <header className="border-b bg-background p-4">
+                <div className="flex items-center gap-4">
+                  <SidebarTrigger />
+                  <h1 className="font-semibold">Hệ thống quản lý sửa chữa laptop</h1>
+                </div>
+              </header>
+              <main className="flex-1 overflow-auto">
+                <ErrorBoundary>
+                  <Outlet />
+                </ErrorBoundary>
+              </main>
+            </div>
           </div>
-        </div>
-        <TanstackDevtools
-          config={{
-            position: 'bottom-left',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-      </SidebarProvider>
+          <TanstackDevtools
+            config={{
+              position: 'bottom-left',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+          <NetworkStatus />
+        </SidebarProvider>
+      </ErrorBoundary>
     )
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <Outlet />
       <TanstackDevtools
         config={{
@@ -106,7 +113,8 @@ const RootComponent = () => {
           },
         ]}
       />
-    </>
+      <NetworkStatus />
+    </ErrorBoundary>
   )
 }
 

@@ -161,8 +161,8 @@ The application has 8 main pages for the laptop repair shop workflow:
 3. The REST API is automatically updated via PostgREST
 
 ### Environment Configuration
-- **Development**: Uses `docker-compose.dev.yml` with `.env.supabase`
-- **Production**: Uses `docker-compose.yml` with `.env.supabase`
+- **Development**: Uses `docker-compose.dev.yml` with `.env`
+- **Production**: Uses `docker-compose.yml` with `.env`
 - Database data is separated between dev and production volumes
 - Database initialization is automated via Docker init scripts
 

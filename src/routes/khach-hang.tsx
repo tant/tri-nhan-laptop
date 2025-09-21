@@ -1,7 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { CustomersPage } from '@/components/pages/CustomersPage'
+import { createFileRoute } from "@tanstack/react-router";
+import { CustomersPage } from "@/components/pages/CustomersPage";
+import { ProtectedRoute } from "@/components/protected-route";
 
-export const Route = createFileRoute('/khach-hang')({
-  component: CustomersPage,
-  // TODO: Add authentication check here
-})
+function ProtectedCustomers() {
+	return (
+		<ProtectedRoute>
+			<CustomersPage />
+		</ProtectedRoute>
+	);
+}
+
+export const Route = createFileRoute("/khach-hang")({
+	component: ProtectedCustomers,
+});

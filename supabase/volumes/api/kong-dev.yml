@@ -1,55 +1,20 @@
 _format_version: "1.1"
 
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+  - username: service_role
+    keyauth_credentials:
+      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+acls:
+  - consumer: anon
+    group: anon
+  - consumer: service_role
+    group: service_role
+
 services:
-  - name: auth-v1-open
-    url: http://auth-dev:9999/verify
-    routes:
-      - name: auth-v1-open
-        strip_path: true
-        paths:
-          - /auth/v1/verify
-    plugins:
-      - name: cors
-  - name: auth-v1-open-callback
-    url: http://auth-dev:9999/callback
-    routes:
-      - name: auth-v1-open-callback
-        strip_path: true
-        paths:
-          - /auth/v1/callback
-    plugins:
-      - name: cors
-  - name: auth-v1-open-authorize
-    url: http://auth-dev:9999/authorize
-    routes:
-      - name: auth-v1-open-authorize
-        strip_path: true
-        paths:
-          - /auth/v1/authorize
-    plugins:
-      - name: cors
-
-  - name: auth-v1
-    _comment: "GoTrue: /auth/v1/* -> http://auth-dev:9999/*"
-    url: http://auth-dev:9999/
-    routes:
-      - name: auth-v1-all
-        strip_path: true
-        paths:
-          - /auth/v1/
-    plugins:
-      - name: cors
-      - name: key-auth
-        config:
-          hide_credentials: false
-      - name: acl
-        config:
-          hide_groups_header: true
-          allow:
-            - auth
-            - anon
-            - service_role
-
   - name: rest-v1
     _comment: "PostgREST: /rest/v1/* -> http://rest-dev:3000/*"
     url: http://rest-dev:3000/
@@ -58,39 +23,69 @@ services:
         strip_path: true
         paths:
           - /rest/v1/
-    plugins:
-      - name: cors
-      - name: key-auth
-        config:
-          hide_credentials: true
-      - name: acl
-        config:
-          hide_groups_header: true
-          allow:
-            - auth
-            - anon
-            - service_role
+        plugins:
+          - name: cors
+            config:
+              origins:
+                - "*"
+              methods:
+                - GET
+                - HEAD
+                - PUT
+                - PATCH
+                - POST
+                - DELETE
+              headers:
+                - "*"
+              exposed_headers:
+                - "*"
+              credentials: true
+              max_age: 3600
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow:
+                - anon
+                - service_role
 
-  - name: realtime-v1
-    _comment: "Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*"
-    url: http://realtime-dev:4000/socket/
+  - name: auth-v1
+    _comment: "GoTrue: /auth/v1/* -> http://auth-dev:9999/*"
+    url: http://auth-dev:9999
     routes:
-      - name: realtime-v1-all
+      - name: auth-v1-all
         strip_path: true
         paths:
-          - /realtime/v1/
-    plugins:
-      - name: cors
-      - name: key-auth
-        config:
-          hide_credentials: false
-      - name: acl
-        config:
-          hide_groups_header: true
-          allow:
-            - auth
-            - anon
-            - service_role
+          - /auth/v1/
+        plugins:
+          - name: cors
+            config:
+              origins:
+                - "*"
+              methods:
+                - GET
+                - HEAD
+                - PUT
+                - PATCH
+                - POST
+                - DELETE
+              headers:
+                - "*"
+              exposed_headers:
+                - "*"
+              credentials: true
+              max_age: 3600
+          - name: key-auth
+            config:
+              hide_credentials: false
+          - name: acl
+            config:
+              hide_groups_header: true
+              allow:
+                - anon
+                - service_role
 
   - name: storage-v1
     _comment: "Storage: /storage/v1/* -> http://storage-dev:5000/*"
@@ -100,29 +95,24 @@ services:
         strip_path: true
         paths:
           - /storage/v1/
-    plugins:
-      - name: cors
-
-  - name: functions-v1
-    _comment: "Edge Functions: /functions/v1/* -> http://functions-dev:9000/*"
-    url: http://functions-dev:9000/
-    routes:
-      - name: functions-v1-all
-        strip_path: true
-        paths:
-          - /functions/v1/
-    plugins:
-      - name: cors
-
-consumers:
-  - username: anon
-    keyauth_credentials:
-      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-    acls:
-      - group: anon
-  - username: service_role
-    keyauth_credentials:
-      - key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-    acls:
-      - group: service_role
-      - group: auth
+        plugins:
+          - name: cors
+            config:
+              origins:
+                - "*"
+              methods:
+                - GET
+                - HEAD
+                - PUT
+                - PATCH
+                - POST
+                - DELETE
+              headers:
+                - "*"
+              exposed_headers:
+                - "*"
+              credentials: true
+              max_age: 3600
+          - name: key-auth
+            config:
+              hide_credentials: false

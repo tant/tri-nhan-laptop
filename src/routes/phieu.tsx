@@ -1,7 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { RepairTicketsPage } from '@/components/pages/RepairTicketsPage'
+import { createFileRoute } from "@tanstack/react-router";
+import { RepairTicketsPage } from "@/components/pages/RepairTicketsPage";
+import { ProtectedRoute } from "@/components/protected-route";
 
-export const Route = createFileRoute('/phieu')({
-  component: RepairTicketsPage,
-  // TODO: Add authentication check here
-})
+function ProtectedRepairTickets() {
+	return (
+		<ProtectedRoute>
+			<RepairTicketsPage />
+		</ProtectedRoute>
+	);
+}
+
+export const Route = createFileRoute("/phieu")({
+	component: ProtectedRepairTickets,
+});

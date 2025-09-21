@@ -1,26 +1,44 @@
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { LogIn, Laptop } from "lucide-react"
+import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LogIn, Laptop } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { SupabaseErrorAlert } from "@/components/error-boundary";
 
 function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const { signIn } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      window.location.href = "/dashboard"
-    }, 1000)
-  }
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const { error } = await signIn(email, password);
+
+      if (error) {
+        setError(error);
+      } else {
+        // Navigate to dashboard on successful login
+        navigate({ to: "/dashboard" });
+      }
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <form className={cn("flex flex-col gap-6", className)} {...props} onSubmit={handleLogin}>
@@ -33,13 +51,25 @@ function LoginForm({
           Nhập thông tin đăng nhập để truy cập hệ thống quản lý tiệm sửa laptop
         </p>
       </div>
+      {error && (
+        <SupabaseErrorAlert
+          error={error}
+          onDismiss={() => setError(null)}
+          onRetry={() => {
+            setError(null);
+            if (email && password) {
+              handleLogin({ preventDefault: () => {} } as React.FormEvent);
+            }
+          }}
+        />
+      )}
       <div className="grid gap-6">
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
-            placeholder="admin@trinhanlaptop.vn"
+            placeholder={import.meta.env.VITE_DEMO_ADMIN_EMAIL || "admin@trinhanlaptop.vn"}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"

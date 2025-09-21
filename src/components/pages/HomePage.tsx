@@ -5,85 +5,87 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Search, Phone, Laptop, Wrench, Zap, Shield, MapPin, Clock, Mail, MessageCircle, CheckCircle, AlertCircle } from "lucide-react"
+import { Search, Phone, Laptop, Wrench, Zap, Shield, MapPin, Clock, Mail, MessageCircle, CheckCircle, AlertCircle, History, Star } from "lucide-react"
+import { useCustomerPortal } from "@/hooks/use-customer-portal"
+import { ServiceHistoryDisplay } from "@/components/customer-portal/service-history-display"
+import { FeedbackDialog } from "@/components/customer-portal/feedback-dialog"
 
-interface RepairStatus {
-  ticketNumber: string
-  customerName: string
-  deviceModel: string
-  issueDescription: string
-  currentStatus: 'received' | 'diagnosing' | 'repairing' | 'completed' | 'ready_pickup'
-  estimatedCompletion: Date
-  totalCost?: number
-  completedServices: string[]
-  nextSteps: string
-}
+// Interface for repair status - now using real data types
 
 export function HomePage() {
   const [ticketNumber, setTicketNumber] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("")
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchResult, setSearchResult] = useState<RepairStatus | null>(null)
-  const [error, setError] = useState("")
+  const [email, setEmail] = useState("")
+  const [searchMethod, setSearchMethod] = useState<"ticket" | "email">("ticket")
+  const [showServiceHistory, setShowServiceHistory] = useState(false)
+  const [showFeedback, setShowFeedback] = useState(false)
 
-  const validateTicketNumber = (ticket: string) => {
-    const pattern = /^MS\d+$/
-    return pattern.test(ticket)
-  }
+  const {
+    loading: isSearching,
+    error: searchError,
+    repairInfo,
+    lookupRepair,
+    lookupRepairByEmail,
+    // getServiceHistory - imported but used in modal
+    getVietnameseStatus,
+    formatCurrency,
+    isValidTicketNumber,
+    isValidPhoneNumber,
+    isValidEmail
+  } = useCustomerPortal()
 
-  const validatePhoneNumber = (phone: string) => {
-    const pattern = /^(09|03|07|08|05)\d{8}$/
-    return pattern.test(phone)
-  }
+  const [localError, setLocalError] = useState("")
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    setError("")
+    setLocalError("")
 
-    if (!validateTicketNumber(ticketNumber)) {
-      setError("Số phiếu không đúng định dạng (MS + số)")
-      return
-    }
-
-    if (!validatePhoneNumber(phoneNumber)) {
-      setError("Số điện thoại không đúng định dạng")
-      return
-    }
-
-    setIsSearching(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      setIsSearching(false)
-      // Mock search result
-      if (ticketNumber === "MS001" && phoneNumber.includes("123")) {
-        setSearchResult({
-          ticketNumber: "MS001",
-          customerName: "Nguyễn Văn A",
-          deviceModel: "MacBook Pro 13\" 2021",
-          issueDescription: "Màn hình bị nứt, bàn phím không hoạt động",
-          currentStatus: 'repairing',
-          estimatedCompletion: new Date('2024-12-25'),
-          totalCost: 1500000,
-          completedServices: ["Chẩn đoán lỗi", "Đặt hàng linh kiện"],
-          nextSteps: "Thay màn hình mới, kiểm tra bàn phím"
-        })
-      } else {
-        setError("Không tìm thấy phiếu sửa chữa với thông tin này")
-        setSearchResult(null)
+    // Validate based on search method
+    if (searchMethod === "ticket") {
+      if (!isValidTicketNumber(ticketNumber)) {
+        setLocalError("Số phiếu không đúng định dạng (MS + số hoặc TNL-YYMMDD-XXX)")
+        return
       }
-    }, 1000)
+      if (!isValidPhoneNumber(phoneNumber)) {
+        setLocalError("Số điện thoại không đúng định dạng")
+        return
+      }
+
+      try {
+        await lookupRepair(ticketNumber, phoneNumber)
+      } catch (error) {
+        setLocalError((error as Error).message)
+      }
+    } else {
+      if (!isValidEmail(email)) {
+        setLocalError("Email không đúng định dạng")
+        return
+      }
+      if (!isValidPhoneNumber(phoneNumber)) {
+        setLocalError("Số điện thoại không đúng định dạng")
+        return
+      }
+
+      try {
+        await lookupRepairByEmail(email, phoneNumber)
+      } catch (error) {
+        setLocalError((error as Error).message)
+      }
+    }
   }
 
-  const getStatusBadge = (status: RepairStatus['currentStatus']) => {
-    const statusMap = {
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { text: string; variant: "secondary" | "outline" | "default"; icon: any }> = {
       received: { text: "Đã tiếp nhận", variant: "secondary" as const, icon: Search },
-      diagnosing: { text: "Đang chẩn đoán", variant: "outline" as const, icon: Wrench },
-      repairing: { text: "Đang sửa chữa", variant: "default" as const, icon: Wrench },
+      diagnosed: { text: "Đã chẩn đoán", variant: "outline" as const, icon: Wrench },
+      waiting_parts: { text: "Chờ linh kiện", variant: "outline" as const, icon: Clock },
+      in_progress: { text: "Đang sửa chữa", variant: "default" as const, icon: Wrench },
       completed: { text: "Hoàn thành", variant: "default" as const, icon: CheckCircle },
-      ready_pickup: { text: "Sẵn sàng giao", variant: "default" as const, icon: Phone }
+      ready_for_pickup: { text: "Sẵn sàng giao", variant: "default" as const, icon: Phone },
+      delivered: { text: "Đã giao", variant: "default" as const, icon: CheckCircle },
+      cancelled: { text: "Đã hủy", variant: "outline" as const, icon: AlertCircle }
     }
-    return statusMap[status]
+    return statusMap[status] || { text: status, variant: "outline" as const, icon: AlertCircle }
   }
 
   return (
@@ -159,19 +161,64 @@ export function HomePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 p-6">
+                  {/* Search Method Toggle */}
+                  <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setSearchMethod("ticket")}
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        searchMethod === "ticket"
+                          ? "bg-white text-[#299fce] shadow-sm"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      Tra cứu bằng số phiếu
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSearchMethod("email")}
+                      className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                        searchMethod === "email"
+                          ? "bg-white text-[#299fce] shadow-sm"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      Tra cứu bằng email
+                    </button>
+                  </div>
+
                   <form onSubmit={handleSearch} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="ticket" className="text-[#1E282A] font-medium">Số phiếu sửa chữa</Label>
-                      <Input
-                        id="ticket"
-                        type="text"
-                        placeholder="MS001, MS002..."
-                        value={ticketNumber}
-                        onChange={(e) => setTicketNumber(e.target.value)}
-                        className="border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"
-                        required
-                      />
-                    </div>
+                    {searchMethod === "ticket" ? (
+                      <div className="space-y-2">
+                        <Label htmlFor="ticket" className="text-[#1E282A] font-medium">Số phiếu sửa chữa</Label>
+                        <Input
+                          id="ticket"
+                          type="text"
+                          placeholder="MS001 hoặc TNL-241221-001..."
+                          value={ticketNumber}
+                          onChange={(e) => setTicketNumber(e.target.value)}
+                          className="border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"
+                          required
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="text-[#1E282A] font-medium">Email khách hàng</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="example@email.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="pl-10 border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"
+                            required
+                          />
+                        </div>
+                      </div>
+                    )}
+
                     <div className="space-y-2">
                       <Label htmlFor="phone" className="text-[#1E282A] font-medium">Số điện thoại</Label>
                       <div className="relative">
@@ -188,23 +235,27 @@ export function HomePage() {
                       </div>
                     </div>
 
-                    {error && (
+                    {(localError || searchError) && (
                       <Alert variant="destructive">
                         <AlertCircle className="h-4 w-4" />
-                        <AlertDescription>{error}</AlertDescription>
+                        <AlertDescription>{localError || searchError?.message}</AlertDescription>
                       </Alert>
                     )}
 
                     <Button
                       type="submit"
-                      disabled={!ticketNumber || !phoneNumber || isSearching}
+                      disabled={
+                        (searchMethod === "ticket" && (!ticketNumber || !phoneNumber)) ||
+                        (searchMethod === "email" && (!email || !phoneNumber)) ||
+                        isSearching
+                      }
                       className="w-full bg-[#299fce] hover:bg-[#299fce]/90 text-white py-3"
                     >
                       {isSearching ? "Đang tra cứu..." : "TRA CỨU"}
                     </Button>
 
                     <p className="text-sm text-[#6c757d] flex items-center gap-2">
-                      💡 Số phiếu được cung cấp khi gửi máy
+                      💡 {searchMethod === "ticket" ? "Số phiếu được cung cấp khi gửi máy" : "Sử dụng email và số điện thoại đã đăng ký"}
                     </p>
                   </form>
                 </CardContent>
@@ -215,82 +266,148 @@ export function HomePage() {
       </section>
 
       {/* Search Result */}
-      {searchResult && (
+      {repairInfo && (
         <section className="py-8">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 space-y-6">
+            {/* Main Repair Info */}
             <Card className="shadow-xl border-green-200 bg-green-50">
               <CardHeader>
-                <CardTitle className="text-green-800 flex items-center gap-2">
-                  <CheckCircle className="h-6 w-6" />
-                  Thông Tin Phiếu Sửa Chữa
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-green-800 flex items-center gap-2">
+                    <CheckCircle className="h-6 w-6" />
+                    Thông Tin Phiếu Sửa Chữa
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowServiceHistory(true)}
+                    >
+                      <History className="h-4 w-4 mr-2" />
+                      Lịch sử
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowFeedback(true)}
+                    >
+                      <Star className="h-4 w-4 mr-2" />
+                      Đánh giá
+                    </Button>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Số Phiếu</Label>
-                    <p className="font-mono text-lg font-bold">{searchResult.ticketNumber}</p>
+                    <p className="font-mono text-lg font-bold">{repairInfo.ticket_number || `TNL-${repairInfo.id.slice(0, 8)}`}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Khách Hàng</Label>
-                    <p className="text-lg">{searchResult.customerName}</p>
+                    <p className="text-lg">{repairInfo.customer.name}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Thiết Bị</Label>
-                    <p className="text-lg">{searchResult.deviceModel}</p>
+                    <p className="text-lg">{repairInfo.device_type} - {repairInfo.device_model}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Vấn Đề</Label>
-                    <p className="text-lg">{searchResult.issueDescription}</p>
+                    <p className="text-lg">{repairInfo.issue_description}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Tình Trạng</Label>
                     <div className="mt-1">
                       {(() => {
-                        const statusInfo = getStatusBadge(searchResult.currentStatus)
+                        const statusInfo = getStatusBadge(repairInfo.status)
                         const IconComponent = statusInfo.icon
                         return (
                           <Badge variant={statusInfo.variant} className="text-sm">
                             <IconComponent className="w-3 h-3 mr-1" />
-                            {statusInfo.text}
+                            {getVietnameseStatus(repairInfo.status)}
                           </Badge>
                         )
                       })()}
                     </div>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Dự Kiến Hoàn Thành</Label>
-                    <p className="text-lg">{searchResult.estimatedCompletion.toLocaleDateString('vi-VN')}</p>
+                    <Label className="text-sm font-medium text-gray-600">Ngày Tiếp Nhận</Label>
+                    <p className="text-lg">{new Date(repairInfo.created_at).toLocaleDateString('vi-VN')}</p>
                   </div>
                 </div>
 
-                {searchResult.totalCost && (
+                {(repairInfo.estimated_cost || repairInfo.final_cost) && (
                   <div className="border-t pt-4">
-                    <Label className="text-sm font-medium text-gray-600">Chi Phí Dự Kiến</Label>
+                    <Label className="text-sm font-medium text-gray-600">
+                      {repairInfo.final_cost ? "Chi Phí Thực Tế" : "Chi Phí Dự Kiến"}
+                    </Label>
                     <p className="text-2xl font-bold text-[#299fce]">
-                      {searchResult.totalCost.toLocaleString('vi-VN')} VNĐ
+                      {formatCurrency(repairInfo.final_cost || repairInfo.estimated_cost || 0)}
                     </p>
                   </div>
                 )}
 
-                <div className="border-t pt-4">
-                  <Label className="text-sm font-medium text-gray-600">Tiến Độ Hoàn Thành</Label>
-                  <ul className="mt-2 space-y-1">
-                    {searchResult.completedServices.map((service) => (
-                      <li key={service} className="flex items-center gap-2 text-green-700">
-                        <CheckCircle className="h-4 w-4" />
-                        {service}
-                      </li>
-                    ))}
-                  </ul>
-                  <p className="mt-3 text-[#6c757d]">
-                    <strong>Bước tiếp theo:</strong> {searchResult.nextSteps}
-                  </p>
-                </div>
+                {/* Status History */}
+                {repairInfo.status_history && repairInfo.status_history.length > 0 && (
+                  <div className="border-t pt-4">
+                    <Label className="text-sm font-medium text-gray-600">Lịch Sử Trạng Thái</Label>
+                    <div className="mt-2 space-y-2">
+                      {repairInfo.status_history.slice(-3).map((log, index) => (
+                        <div key={index} className="flex items-center gap-2 text-sm">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <span className="font-medium">{getVietnameseStatus(log.new_status)}</span>
+                          <span className="text-gray-500">-</span>
+                          <span className="text-gray-600">
+                            {new Date(log.created_at).toLocaleDateString('vi-VN')}
+                          </span>
+                          {log.notes && (
+                            <span className="text-gray-500">• {log.notes}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Parts Used */}
+                {repairInfo.parts_used && repairInfo.parts_used.length > 0 && (
+                  <div className="border-t pt-4">
+                    <Label className="text-sm font-medium text-gray-600">Linh Kiện Đã Sử Dụng</Label>
+                    <div className="mt-2 space-y-2">
+                      {repairInfo.parts_used.map((part, index) => (
+                        <div key={index} className="flex justify-between items-center text-sm">
+                          <span>{part.part_name} (x{part.quantity_used})</span>
+                          <span className="font-medium">{formatCurrency(part.total_cost)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </section>
+      )}
+
+      {/* Service History Modal */}
+      {showServiceHistory && (
+        <ServiceHistoryDisplay
+          customerPhone={phoneNumber}
+          onClose={() => setShowServiceHistory(false)}
+        />
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedback && repairInfo && (
+        <FeedbackDialog
+          repairId={repairInfo.id}
+          customerPhone={phoneNumber}
+          onClose={() => setShowFeedback(false)}
+          onSubmitSuccess={() => {
+            setShowFeedback(false)
+            // Could show a success message here
+          }}
+        />
       )}
 
       {/* Services Section */}

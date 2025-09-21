@@ -10,26 +10,26 @@ help: ## Show this help message
 # Production Commands
 .PHONY: up
 up: ## Start production environment (React + Supabase)
-	docker compose --env-file .env.supabase up -d
+	docker compose --env-file .env up -d
 
 .PHONY: down
 down: ## Stop all services
-	docker compose --env-file .env.supabase down
+	docker compose --env-file .env down
 
 .PHONY: logs
 logs: ## Show logs from all services
-	docker compose --env-file .env.supabase logs -f
+	docker compose --env-file .env logs -f
 
 .PHONY: rebuild
 rebuild: ## Rebuild and restart production environment
-	docker compose --env-file .env.supabase down
-	docker compose --env-file .env.supabase build --no-cache
-	docker compose --env-file .env.supabase up -d
+	docker compose --env-file .env down
+	docker compose --env-file .env build --no-cache
+	docker compose --env-file .env up -d
 
 # Development Commands
 .PHONY: dev
 dev: ## Start development environment (React dev server + Supabase)
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d || true
+	docker compose -f docker-compose.dev.yml --env-file .env up -d || true
 	@echo "⏳ Waiting for services to initialize..."
 	@sleep 10
 	@echo "🔧 Running service fixes..."
@@ -37,11 +37,11 @@ dev: ## Start development environment (React dev server + Supabase)
 
 .PHONY: dev-down
 dev-down: ## Stop development environment
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase down
+	docker compose -f docker-compose.dev.yml --env-file .env down
 
 .PHONY: backend-only
 backend-only: ## Start only Supabase services (for local React development)
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d db-dev auth-dev rest-dev kong-dev storage-dev studio-dev meta-dev realtime-dev functions-dev imgproxy-dev || true
+	docker compose -f docker-compose.dev.yml --env-file .env up -d db-dev auth-dev rest-dev kong-dev storage-dev studio-dev meta-dev realtime-dev functions-dev imgproxy-dev || true
 	@echo "⏳ Waiting for services to initialize..."
 	@sleep 10
 	@echo "🔧 Running service fixes..."
@@ -52,7 +52,7 @@ backend-only: ## Start only Supabase services (for local React development)
 
 .PHONY: dev-logs
 dev-logs: ## Show development logs
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase logs -f
+	docker compose -f docker-compose.dev.yml --env-file .env logs -f
 
 .PHONY: fix-services
 fix-services: ## Fix common Supabase service issues
@@ -61,20 +61,20 @@ fix-services: ## Fix common Supabase service issues
 # Database Commands
 .PHONY: db-reset
 db-reset: ## Reset database (WARNING: This will delete all data!)
-	docker compose --env-file .env.supabase down -v
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase down -v
+	docker compose --env-file .env down -v
+	docker compose -f docker-compose.dev.yml --env-file .env down -v
 	@echo "Database reset complete! Run 'make dev' or 'make up' to start fresh."
 
 .PHONY: db-backup
 db-backup: ## Backup database (production)
 	@mkdir -p backups
-	docker compose --env-file .env.supabase exec db pg_dump -U postgres postgres > backups/backup_prod_$(shell date +%Y%m%d_%H%M%S).sql
+	docker compose --env-file .env exec db pg_dump -U postgres postgres > backups/backup_prod_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "Production database backup created in backups/"
 
 .PHONY: db-backup-dev
 db-backup-dev: ## Backup development database
 	@mkdir -p backups
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase exec db-dev pg_dump -U postgres postgres > backups/backup_dev_$(shell date +%Y%m%d_%H%M%S).sql
+	docker compose -f docker-compose.dev.yml --env-file .env exec db-dev pg_dump -U postgres postgres > backups/backup_dev_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "Development database backup created in backups/"
 
 # Supabase Studio
@@ -85,15 +85,17 @@ studio: ## Open Supabase Studio in browser
 
 # Utility Commands
 .PHONY: clean
-clean: ## Clean up Docker resources
-	docker compose --env-file .env.supabase down -v --remove-orphans
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase down -v --remove-orphans
-	docker system prune -f
+clean: ## Clean up Docker resources (keeps images)
+	docker compose --env-file .env down -v --remove-orphans
+	docker compose -f docker-compose.dev.yml --env-file .env down -v --remove-orphans
+	docker container prune -f
+	docker volume prune -f
+	docker network prune -f
 
 .PHONY: clean-data
 clean-data: ## Clean database data directories (force fresh init)
-	docker compose --env-file .env.supabase down -v --remove-orphans
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase down -v --remove-orphans
+	docker compose --env-file .env down -v --remove-orphans
+	docker compose -f docker-compose.dev.yml --env-file .env down -v --remove-orphans
 	docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "rm -rf /data/data /data/data-dev && mkdir -p /data/data /data/data-dev && chown -R 1000:1000 /data/data /data/data-dev"
 	@echo "Database data cleaned. Ready for fresh initialization."
 
@@ -104,11 +106,11 @@ fix-permissions: ## Fix ownership of database volumes (run after containers crea
 
 .PHONY: status
 status: ## Show status of all services (development)
-	docker compose -f docker-compose.dev.yml --env-file .env.supabase ps
+	docker compose -f docker-compose.dev.yml --env-file .env ps
 
 .PHONY: status-prod
 status-prod: ## Show status of production services
-	docker compose --env-file .env.supabase ps
+	docker compose --env-file .env ps
 
 
 # Environment setup

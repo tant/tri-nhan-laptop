@@ -1,7 +1,15 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { AdminPage } from '@/components/pages/AdminPage'
+import { createFileRoute } from "@tanstack/react-router";
+import { AdminPage } from "@/components/pages/AdminPage";
+import { AdminRoute } from "@/components/protected-route";
 
-export const Route = createFileRoute('/admin')({
-  component: AdminPage,
-  // TODO: Add admin authentication check here
-})
+function ProtectedAdmin() {
+	return (
+		<AdminRoute>
+			<AdminPage />
+		</AdminRoute>
+	);
+}
+
+export const Route = createFileRoute("/admin")({
+	component: ProtectedAdmin,
+});

@@ -1,5 +1,5 @@
 x-env: &default-env
-  env_file: .env.supabase
+  env_file: .env
 
 services:
   # React App (Development mode)
@@ -15,6 +15,20 @@ services:
     command: sh -c "apk add --no-cache npm && npm install -g pnpm && pnpm install && pnpm dev:docker"
     environment:
       - NODE_ENV=development
+      # Vite environment variables from .env
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - VITE_APP_ENVIRONMENT=${VITE_APP_ENVIRONMENT}
+      - VITE_APP_NAME=${VITE_APP_NAME}
+      - VITE_APP_VERSION=${VITE_APP_VERSION}
+      - VITE_API_TIMEOUT=${VITE_API_TIMEOUT}
+      - VITE_ENABLE_DEVTOOLS=${VITE_ENABLE_DEVTOOLS}
+      - VITE_DEFAULT_CURRENCY=${VITE_DEFAULT_CURRENCY}
+      - VITE_DEFAULT_TIMEZONE=${VITE_DEFAULT_TIMEZONE}
+      - VITE_DEFAULT_LOCALE=${VITE_DEFAULT_LOCALE}
+      - VITE_DEMO_ADMIN_EMAIL=${VITE_DEMO_ADMIN_EMAIL}
+      - VITE_DEMO_ADMIN_PASSWORD=${VITE_DEMO_ADMIN_PASSWORD}
+      - VITE_DEMO_STAFF_EMAIL=${VITE_DEMO_STAFF_EMAIL}
     restart: unless-stopped
     networks:
       - app-network
