@@ -21,7 +21,7 @@ This setup includes a complete Supabase backend for a laptop repair shop managem
    # Create required directories
    mkdir -p supabase/volumes/storage supabase/volumes/db/data supabase/volumes/db/data-dev
 
-   # Ensure .env.supabase file exists with correct configuration
+   # Ensure .env file exists with correct configuration
    ```
 
 2. **Start development environment** (fully automated):
@@ -47,22 +47,22 @@ This setup includes a complete Supabase backend for a laptop repair shop managem
 
 ```bash
 # Development Environment
-docker compose -f docker-compose.dev.yml --env-file .env.supabase up -d     # Start dev
-docker compose -f docker-compose.dev.yml --env-file .env.supabase down      # Stop dev
-docker compose -f docker-compose.dev.yml --env-file .env.supabase logs -f   # Show dev logs
+docker compose -f docker-compose.dev.yml --env-file .env up -d     # Start dev
+docker compose -f docker-compose.dev.yml --env-file .env down      # Stop dev
+docker compose -f docker-compose.dev.yml --env-file .env logs -f   # Show dev logs
 
 # Production Environment
-docker compose --env-file .env.supabase up -d      # Start production
-docker compose --env-file .env.supabase down       # Stop production
-docker compose --env-file .env.supabase logs -f    # Show production logs
-docker compose --env-file .env.supabase build app  # Build React app
+docker compose --env-file .env up -d      # Start production
+docker compose --env-file .env down       # Stop production
+docker compose --env-file .env logs -f    # Show production logs
+docker compose --env-file .env build app  # Build React app
 
 # Database Management
-docker compose --env-file .env.supabase down -v --remove-orphans  # Full cleanup
+docker compose --env-file .env down -v --remove-orphans  # Full cleanup
 docker run --rm -v "$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "rm -rf /data/data /data/data-dev && mkdir -p /data/data /data/data-dev && chown -R 1000:1000 /data/data /data/data-dev"  # Clean data directories
 
 # Service Status & Debugging
-docker compose --env-file .env.supabase ps         # Show service status
+docker compose --env-file .env ps         # Show service status
 docker logs supabase-auth-dev                      # Check auth service logs
 docker logs supabase-db-dev                        # Check database logs
 
@@ -75,7 +75,7 @@ make fix-permissions  # Fix volume permissions
 
 ## Environment Configuration
 
-The setup uses `.env.supabase` file for configuration. Key variables:
+The setup uses `.env` file for configuration. Key variables:
 
 ```bash
 # Database
@@ -134,7 +134,7 @@ pnpm add @supabase/supabase-js
 
 ### Admin User Setup
 
-The admin user is automatically created during database initialization using the environment variables in `.env.supabase`:
+The admin user is automatically created during database initialization using the environment variables in `.env`:
 
 - **Email**: `SHOP_ADMIN_EMAIL` (default: admin@laptop-repair-shop.local)
 - **Password**: `SHOP_ADMIN_PASSWORD` (default: AdminPass123!)
@@ -264,7 +264,7 @@ docker ps
 netstat -tulpn | grep :3010
 
 # Stop dev environment before starting production
-docker compose -f docker-compose.dev.yml --env-file .env.supabase down
+docker compose -f docker-compose.dev.yml --env-file .env down
 ```
 
 #### 4. **Build Fails with "npm not found"**
@@ -320,7 +320,7 @@ The automation handles all initialization automatically.
 Test that everything is working:
 ```bash
 # Check service status
-docker compose -f docker-compose.dev.yml --env-file .env.supabase ps
+docker compose -f docker-compose.dev.yml --env-file .env ps
 
 # Test API endpoints
 curl -s http://localhost:8000/auth/v1/health
@@ -373,7 +373,7 @@ For production deployment, consider implementing proper security measures.
 ```
 ├── docker-compose.yml          # Production setup (✅ tested)
 ├── docker-compose.dev.yml      # Development setup (✅ tested)
-├── .env.supabase              # Environment variables (✅ working)
+├── .env              # Environment variables (✅ working)
 ├── Dockerfile                 # React app build (✅ fixed npm issue)
 ├── .dockerignore              # Excludes volumes (✅ updated)
 ├── Makefile                   # Quick commands (✅ enhanced)

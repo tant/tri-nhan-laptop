@@ -100,7 +100,7 @@ services:
   auth-dev:
     <<: *default-env
     container_name: supabase-auth-dev
-    image: supabase/gotrue:v2.177.0
+    image: supabase/gotrue:v2.151.0
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9999/health"]
@@ -172,7 +172,7 @@ services:
   # Realtime - Real-time subscriptions
   realtime-dev:
     <<: *default-env
-    container_name: realtime-dev.supabase-realtime-dev
+    container_name: supabase-realtime-dev
     image: supabase/realtime:v2.34.47
     restart: unless-stopped
     depends_on:
@@ -312,14 +312,8 @@ services:
     ports:
       - "5433:5432"  # Different port for dev to avoid conflicts
     volumes:
-      - ./supabase/volumes/db/00-create-supabase-admin.sql:/docker-entrypoint-initdb.d/00-create-supabase-admin.sql
-      - ./supabase/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql
-      - ./supabase/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql
-      - ./supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/98-roles.sql
-      - ./supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql
-      - ./supabase/volumes/db/init-scripts/98-create-admin-user.sh:/docker-entrypoint-initdb.d/init-scripts/98-create-admin-user.sh
-      - ./supabase/volumes/db/init-scripts/99-set-service-passwords.sh:/docker-entrypoint-initdb.d/init-scripts/99-set-service-passwords.sh
-      - ./supabase/volumes/db/data-dev:/var/lib/postgresql/data  # Separate data for dev
+      - ./supabase/volumes/db/01-init-users.sql:/docker-entrypoint-initdb.d/01-init-users.sql
+      - ./supabase/volumes/db/data-dev:/var/lib/postgresql/data
       - db-config-dev:/etc/postgresql-custom
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]

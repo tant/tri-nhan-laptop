@@ -22,7 +22,7 @@ Tài liệu toàn diện về toàn bộ hệ thống - phân tích trạng thá
 - **Layout Gốc**: `src/routes/__root.tsx` - Layout sidebar có điều kiện cho các route đã xác thực
 - **Logic Business Chính**: `src/components/pages/` - Tất cả page components với logic business tiếng Việt
 - **Database Schema**: `supabase/repair_shop_schema.sql` - Schema PostgreSQL hoàn chỉnh với RLS
-- **Cấu hình Environment**: `.env.supabase` - Tất cả cấu hình service Supabase
+- **Cấu hình Environment**: `.env` - Tất cả cấu hình service Supabase
 - **Docker Orchestration**: `docker-compose.dev.yml` - Environment development đầy đủ
 - **Build System**: `Makefile` - Interface command toàn diện
 
@@ -231,7 +231,7 @@ make status            # Kiểm tra service health
 - **Development**: `docker-compose.dev.yml` với hot reload
 - **Production**: `docker-compose.yml` với nginx-served build
 - **Build Command**: `pnpm build && tsc` (bao gồm TypeScript compilation)
-- **Environment**: `.env.supabase` cho tất cả services
+- **Environment**: `.env` cho tất cả services
 
 ### Cấu hình Environment
 

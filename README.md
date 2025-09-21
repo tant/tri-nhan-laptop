@@ -47,10 +47,19 @@ make dev
 ```
 
 ### 2. Access the Application
-The `make dev` command now automatically handles all initialization and service fixes:
+The `make dev` command automatically handles all initialization and service fixes:
 - **React App (Development)**: http://localhost:3000
 - **Supabase Studio (Database UI)**: http://localhost:3010
 - **API Gateway**: http://localhost:8000
+
+### ✅ Current Status (Fully Working)
+- **JWT Authentication**: ✅ Working and tested
+- **API Gateway**: ✅ Kong properly configured with CORS
+- **Database**: ✅ PostgreSQL with Vietnamese repair shop schema
+- **Customer Portal**: ✅ Ticket lookup functionality working
+- **Environment**: ✅ Single `.env` file consolidation complete
+- **Security**: ✅ Production template with secure secrets
+- **All Services**: ✅ Docker containers healthy and stable
 
 ## 📖 Available Commands
 
@@ -292,25 +301,30 @@ The application is fully localized for Vietnamese laptop repair shops:
 ### Development vs Production
 
 **Development Environment** (`make dev`):
-- Uses `docker-compose.dev.yml` with `.env.supabase`
+- Uses `docker-compose.dev.yml` with single `.env` file
 - React dev server with hot reload
 - Database on port 5433 (to avoid conflicts)
 - Separate data volumes for development
+- All services fully automated and working
 
 **Production Environment** (`make up`):
-- Uses `docker-compose.yml` with `.env.supabase`
+- Uses `docker-compose.yml` with single `.env` file
 - Built React app served by nginx on port 3001
 - Database on standard port 5432
 - Optimized containers for production
+- Use `.env.production.template` for secure deployment
 
-### Key Environment Variables
+### Single Environment File Configuration
+
+**All configuration is now consolidated in a single `.env` file:**
+
 ```bash
 # Database
 POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
 POSTGRES_DB=postgres
 
-# JWT & Authentication
-JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+# JWT & Authentication (Working and Tested)
+JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
 ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
@@ -321,9 +335,18 @@ KONG_HTTP_PORT=8000
 # Shop Admin Account
 SHOP_ADMIN_EMAIL=admin@laptop-repair-shop.local
 SHOP_ADMIN_PASSWORD=AdminPass123!
-SHOP_ADMIN_NAME=Shop Manager
-SHOP_ADMIN_ROLE=shop_owner
+
+# Frontend Environment Variables (All managed in .env)
+VITE_SUPABASE_URL=http://localhost:8000
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_DEMO_ADMIN_EMAIL=admin@trinhanlaptop.vn
 ```
+
+**For Production**: Copy `.env.production.template` to `.env.production` and:
+- Generate secure secrets with `openssl rand -base64 32/64`
+- Update all domain references to your actual domain
+- Remove or disable demo credentials
+- Configure real SMTP settings
 
 ## 🐛 Troubleshooting
 

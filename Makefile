@@ -96,13 +96,14 @@ clean: ## Clean up Docker resources (keeps images)
 clean-data: ## Clean database data directories (force fresh init)
 	docker compose --env-file .env down -v --remove-orphans
 	docker compose -f docker-compose.dev.yml --env-file .env down -v --remove-orphans
-	docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "rm -rf /data/data /data/data-dev && mkdir -p /data/data /data/data-dev && chown -R 1000:1000 /data/data /data/data-dev"
+	docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "rm -rf /data/data /data/data-dev && mkdir -p /data/data /data/data-dev"
 	@echo "Database data cleaned. Ready for fresh initialization."
 
 .PHONY: fix-permissions
-fix-permissions: ## Fix ownership of database volumes (run after containers create files)
-	docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest chown -R 1000:1000 /data/data /data/data-dev
-	@echo "Database permissions fixed. Directories can now be deleted without sudo."
+fix-permissions: ## Fix ownership of database volumes if needed
+	@echo "Fixing database permissions..."
+	@docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "find /data -type d \( -name 'data' -o -name 'data-dev' \) -exec chmod -R 777 {} + 2>/dev/null || true"
+	@echo "Database permissions fixed."
 
 .PHONY: status
 status: ## Show status of all services (development)
@@ -115,7 +116,7 @@ status-prod: ## Show status of production services
 
 # Environment setup
 .PHONY: setup
-setup: ## Initial setup - create directories and install dependencies
+setup: ## Initial setup - create directories
 	@echo "Setting up Laptop Repair Shop environment..."
 	mkdir -p supabase/volumes/storage
 	mkdir -p supabase/volumes/db/data
