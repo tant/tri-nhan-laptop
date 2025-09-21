@@ -4,16 +4,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DataTable } from '@/components/ui/data-table'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Search, Plus, Edit, Package, AlertTriangle } from 'lucide-react'
+
+type Part = {
+  id: string
+  name: string
+  category: string
+  brand: string
+  model: string
+  price: number
+  stock: number
+  minStock: number
+  supplier: string
+  location: string
+}
 
 export function PartsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
 
-  const parts = [
+  const parts: Part[] = [
     {
       id: 'LK001',
       name: 'Màn hình Laptop Dell 15.6"',
@@ -94,8 +108,71 @@ export function PartsPage() {
 
   const lowStockParts = parts.filter(part => part.stock <= part.minStock)
 
+  const columns: ColumnDef<Part>[] = [
+    {
+      accessorKey: "id",
+      header: "Mã",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("id")}</div>
+      ),
+    },
+    {
+      accessorKey: "name",
+      header: "Tên linh kiện",
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.getValue("name")}</div>
+          <div className="text-sm text-muted-foreground">{row.original.model}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "category",
+      header: "Danh mục",
+    },
+    {
+      accessorKey: "brand",
+      header: "Thương hiệu",
+    },
+    {
+      accessorKey: "price",
+      header: "Giá",
+      cell: ({ row }) => formatPrice(row.getValue("price")),
+    },
+    {
+      accessorKey: "stock",
+      header: "Tồn kho",
+      cell: ({ row }) => (
+        <div className="text-center">
+          <span className="font-medium">{row.getValue("stock")}</span>
+          <div className="text-xs text-muted-foreground">Tối thiểu: {row.original.minStock}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Trạng thái",
+      cell: ({ row }) => getStockBadge(row.original.stock, row.original.minStock),
+    },
+    {
+      accessorKey: "location",
+      header: "Vị trí",
+    },
+    {
+      id: "actions",
+      header: "Thao tác",
+      cell: ({ row }) => (
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm">
+            <Edit className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
   return (
-    <div className="container mx-auto p-6">
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Quản lý linh kiện</h1>
@@ -242,54 +319,16 @@ export function PartsPage() {
         <CardHeader>
           <CardTitle>Danh sách linh kiện</CardTitle>
           <CardDescription>
-            Tổng số {filteredParts.length} linh kiện
+            Tổng số {parts.length} linh kiện
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mã</TableHead>
-                <TableHead>Tên linh kiện</TableHead>
-                <TableHead>Danh mục</TableHead>
-                <TableHead>Thương hiệu</TableHead>
-                <TableHead>Giá</TableHead>
-                <TableHead>Tồn kho</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Vị trí</TableHead>
-                <TableHead>Thao tác</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredParts.map((part) => (
-                <TableRow key={part.id}>
-                  <TableCell className="font-medium">{part.id}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{part.name}</div>
-                      <div className="text-sm text-muted-foreground">{part.model}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{part.category}</TableCell>
-                  <TableCell>{part.brand}</TableCell>
-                  <TableCell>{formatPrice(part.price)}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4" />
-                      {part.stock}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getStockBadge(part.stock, part.minStock)}</TableCell>
-                  <TableCell>{part.location}</TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            columns={columns}
+            data={parts}
+            searchKey="name"
+            searchPlaceholder="Tìm kiếm theo tên linh kiện..."
+          />
         </CardContent>
       </Card>
     </div>

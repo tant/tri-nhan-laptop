@@ -27,3 +27,4 @@ supabase/volumes/db/data-dev/
 
 # VSCode files
 .vscode
+supabase/volumes/functions/

@@ -197,3 +197,13 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+# documentation-language-guidelines
+When creating documentation for this Vietnamese laptop repair shop project:
+- Write documentation in Vietnamese as the primary language
+- Keep common technical terms in English (React, Docker, API, database, etc.)
+- Keep specific tool/library names in English (Supabase, TanStack Router, shadcn/ui, etc.)
+- When uncertain about translation, use both languages: "phiếu sửa chữa (repair ticket)"
+- Business terminology should be in Vietnamese (khách hàng, linh kiện, phiếu sửa chữa)
+- Code examples, commands, and file paths remain in English
+- Technical concepts can be bilingual for clarity

@@ -1,19 +1,20 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Textarea } from '@/components/ui/textarea'
-import { Search, Plus, Edit, Eye } from 'lucide-react'
+import { DataTable } from '@/components/ui/data-table'
+import { type ColumnDef } from '@tanstack/react-table'
+
+type Ticket = {
+  id: string
+  customerName: string
+  customerPhone: string
+  device: string
+  issue: string
+  status: string
+  priority: string
+}
 
 export function RepairTicketsPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-
-  const tickets = [
+  const tickets: Ticket[] = [
     {
       id: 'PT001',
       customerName: 'Nguyễn Văn An',
@@ -47,47 +48,68 @@ export function RepairTicketsPage() {
     }
   }
 
+  const columns: ColumnDef<Ticket>[] = [
+    {
+      accessorKey: "id",
+      header: "Mã phiếu",
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("id")}</div>
+      ),
+    },
+    {
+      accessorKey: "customerName",
+      header: "Khách hàng",
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.getValue("customerName")}</div>
+          <div className="text-sm text-muted-foreground">{row.original.customerPhone}</div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "device",
+      header: "Thiết bị",
+    },
+    {
+      accessorKey: "issue",
+      header: "Sự cố",
+      cell: ({ row }) => (
+        <div className="max-w-xs truncate">{row.getValue("issue")}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Trạng thái",
+      cell: ({ row }) => getStatusBadge(row.getValue("status")),
+    },
+    {
+      accessorKey: "priority",
+      header: "Ưu tiên",
+      cell: ({ row }) => {
+        const priority = row.getValue("priority") as string
+        return (
+          <Badge variant={priority === 'Cao' ? 'destructive' : 'secondary'}>
+            {priority}
+          </Badge>
+        )
+      },
+    },
+  ]
+
   return (
-    <div className="container mx-auto p-6">
+    <div className="p-6">
       <h1 className="text-3xl font-bold mb-6">Quản lý phiếu sửa chữa</h1>
       <Card>
         <CardHeader>
           <CardTitle>Danh sách phiếu sửa chữa</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Mã phiếu</TableHead>
-                <TableHead>Khách hàng</TableHead>
-                <TableHead>Thiết bị</TableHead>
-                <TableHead>Sự cố</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead>Ưu tiên</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tickets.map((ticket) => (
-                <TableRow key={ticket.id}>
-                  <TableCell className="font-medium">{ticket.id}</TableCell>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{ticket.customerName}</div>
-                      <div className="text-sm text-muted-foreground">{ticket.customerPhone}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{ticket.device}</TableCell>
-                  <TableCell className="max-w-xs truncate">{ticket.issue}</TableCell>
-                  <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                  <TableCell>
-                    <Badge variant={ticket.priority === 'Cao' ? 'destructive' : 'secondary'}>
-                      {ticket.priority}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            columns={columns}
+            data={tickets}
+            searchKey="customerName"
+            searchPlaceholder="Tìm kiếm theo tên khách hàng..."
+          />
         </CardContent>
       </Card>
     </div>

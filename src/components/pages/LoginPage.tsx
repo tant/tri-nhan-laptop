@@ -49,12 +49,13 @@ function LoginForm({
         <div className="grid gap-3">
           <div className="flex items-center">
             <Label htmlFor="password">Mật khẩu</Label>
-            <a
-              href="#"
-              className="ml-auto text-sm text-[#299fce] underline-offset-4 hover:underline"
+            <button
+              type="button"
+              className="ml-auto text-sm text-[#299fce] underline-offset-4 hover:underline bg-transparent border-none cursor-pointer"
+              onClick={() => alert("Tính năng đang phát triển")}
             >
               Quên mật khẩu?
-            </a>
+            </button>
           </div>
           <Input
             id="password"

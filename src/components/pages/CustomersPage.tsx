@@ -3,15 +3,28 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { DataTable } from '@/components/ui/data-table'
+import { type ColumnDef } from '@tanstack/react-table'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Search, Plus, Edit, Eye, Phone, Mail, MapPin } from 'lucide-react'
 
+type Customer = {
+  id: string
+  name: string
+  phone: string
+  email: string
+  address: string
+  totalRepairs: number
+  lastRepair: string
+  status: string
+  notes: string
+}
+
 export function CustomersPage() {
   const [searchTerm, setSearchTerm] = useState('')
 
-  const customers = [
+  const customers: Customer[] = [
     {
       id: 'KH001',
       name: 'Nguyễn Văn An',
@@ -81,7 +94,7 @@ export function CustomersPage() {
   })
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">Quản lý khách hàng</h1>
