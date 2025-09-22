@@ -136,7 +136,7 @@ export function AdminPanel() {
             <input
               type="email"
               name="email"
-              defaultValue={import.meta.env.VITE_DEMO_ADMIN_EMAIL || "admin@laptop-repair-shop.local"}
+              defaultValue="admin@laptop-repair-shop.local"
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
               required
             />
@@ -146,7 +146,7 @@ export function AdminPanel() {
             <input
               type="password"
               name="password"
-              defaultValue={import.meta.env.VITE_DEMO_ADMIN_PASSWORD || "AdminPass123!"}
+              defaultValue="AdminPass123!"
               className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
               required
             />

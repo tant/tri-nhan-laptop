@@ -16,7 +16,7 @@ export function AdminPage() {
     {
       id: 1,
       name: 'Nguyễn Văn Admin',
-      email: 'admin@laptop-repair.com',
+      email: 'admin@trinhanlaptop.vn',
       role: 'Admin',
       status: 'Hoạt động',
       lastLogin: '2024-01-19 10:30'
@@ -24,7 +24,7 @@ export function AdminPage() {
     {
       id: 2,
       name: 'Trần Văn B',
-      email: 'technician1@laptop-repair.com',
+      email: 'technician1@trinhanlaptop.vn',
       role: 'Kỹ thuật viên',
       status: 'Hoạt động',
       lastLogin: '2024-01-19 09:15'
@@ -32,7 +32,7 @@ export function AdminPage() {
     {
       id: 3,
       name: 'Phạm Văn C',
-      email: 'technician2@laptop-repair.com',
+      email: 'technician2@trinhanlaptop.vn',
       role: 'Kỹ thuật viên',
       status: 'Tạm khóa',
       lastLogin: '2024-01-18 16:45'
@@ -43,7 +43,7 @@ export function AdminPage() {
     shopName: 'Trung tâm sửa chữa Laptop ABC',
     address: '123 Đường ABC, Quận 1, TP.HCM',
     phone: '028-12345678',
-    email: 'info@laptop-repair.com',
+    email: 'info@trinhanlaptop.vn',
     autoBackup: true,
     emailNotifications: true,
     smsNotifications: false,

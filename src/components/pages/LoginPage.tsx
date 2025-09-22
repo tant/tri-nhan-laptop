@@ -69,7 +69,7 @@ function LoginForm({
           <Input
             id="email"
             type="email"
-            placeholder={import.meta.env.VITE_DEMO_ADMIN_EMAIL || "admin@trinhanlaptop.vn"}
+            placeholder="admin@trinhanlaptop.vn"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"

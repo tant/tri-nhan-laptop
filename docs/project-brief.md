@@ -85,6 +85,59 @@ Phát triển hệ thống quản lý all-in-one để thay thế toàn bộ h�
 - **Data Persistence:** Volumes tại `supabase/volumes/*`
 - **Security:** JWT secret, service role key, anon key, Postgres passwords từ environment variables
 
+### **Environment Setup Process Requirements**
+**CRITICAL:** Environment setup must be separated into distinct phases for better control and testing.
+
+#### **Phase 1: Environment Bring-up (`make env`)**
+- **Purpose:** Start all Docker services and infrastructure
+- **Actions:**
+  - Build and start all Docker containers
+  - Initialize database schemas and tables
+  - Setup Supabase services (auth, rest, storage, realtime, functions, kong)
+  - Verify all services are healthy and responding
+  - No user accounts or data creation
+- **Result:** Clean, ready-to-use system with empty database
+
+#### **Phase 2: Basic Initialization (`make init`)**
+- **Purpose:** Create essential accounts and basic system configuration
+- **Prerequisites:** `make env` completed successfully
+- **Actions:**
+  - Create shop owner/admin account (từ environment variables)
+  - Setup initial system settings and configurations
+  - Create minimal required database records
+  - Verify admin account can login successfully
+- **Result:** System ready for production use with admin account
+
+#### **Phase 3: Sample Data (`make data`)**
+- **Purpose:** Populate system with sample/demo data for development and testing
+- **Prerequisites:** `make init` completed successfully
+- **Actions:**
+  - Create sample customers, parts, repair tickets
+  - Add demo repair workflows and status examples
+  - Generate realistic test data for development
+  - Populate inventory with sample parts and pricing
+- **Result:** Fully populated system ready for development and demonstration
+
+#### **Usage Flow:**
+```bash
+# Complete fresh setup
+make clean          # Remove everything
+make env           # Bring up infrastructure
+make init          # Create admin account
+make data          # Add sample data (optional)
+
+# Production setup (no sample data)
+make clean
+make env
+make init          # Production ready
+
+# Development with fresh data
+make clean
+make env
+make init
+make data          # Development ready with samples
+```
+
 ### **Kong Architecture (CRITICAL FOR AI AGENTS)**
 **⚠️ IMPORTANT:** Kong is Supabase's INTERNAL API Gateway, NOT an application reverse proxy!
 
@@ -133,9 +186,11 @@ React App → Supabase Client → Kong (localhost:8000) → Internal Supabase Se
 
 #### **Implementation Example:**
 ```bash
-# Complete environment reset
+# Complete environment reset and rebuild
 make clean          # Remove all containers, volumes, networks, data
-make dev           # Fresh build and start
+make env           # Fresh build and start infrastructure
+make init          # Create admin account
+make data          # Add sample data (optional)
 
 # Verify clean state
 docker ps -a       # Should show no project containers

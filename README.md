@@ -339,7 +339,6 @@ SHOP_ADMIN_PASSWORD=AdminPass123!
 # Frontend Environment Variables (All managed in .env)
 VITE_SUPABASE_URL=http://localhost:8000
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-VITE_DEMO_ADMIN_EMAIL=admin@trinhanlaptop.vn
 ```
 
 **For Production**: Copy `.env.production.template` to `.env.production` and:

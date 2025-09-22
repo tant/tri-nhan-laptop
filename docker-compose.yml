@@ -23,9 +23,6 @@ services:
       - VITE_DEFAULT_CURRENCY=${VITE_DEFAULT_CURRENCY}
       - VITE_DEFAULT_TIMEZONE=${VITE_DEFAULT_TIMEZONE}
       - VITE_DEFAULT_LOCALE=${VITE_DEFAULT_LOCALE}
-      - VITE_DEMO_ADMIN_EMAIL=${VITE_DEMO_ADMIN_EMAIL}
-      - VITE_DEMO_ADMIN_PASSWORD=${VITE_DEMO_ADMIN_PASSWORD}
-      - VITE_DEMO_STAFF_EMAIL=${VITE_DEMO_STAFF_EMAIL}
     restart: unless-stopped
     networks:
       - app-network
@@ -310,12 +307,8 @@ services:
     expose:
       - "5432"
     volumes:
-      - ./supabase/volumes/db/00-create-supabase-admin.sql:/docker-entrypoint-initdb.d/00-create-supabase-admin.sql
-      - ./supabase/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql
-      - ./supabase/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql
-      - ./supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/98-roles.sql
-      - ./supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql
-      - ./supabase/volumes/db/init-scripts/98-create-admin-user.sh:/docker-entrypoint-initdb.d/init-scripts/98-create-admin-user.sh
+      - ./supabase/volumes/db/01-init-users.sql:/docker-entrypoint-initdb.d/01-init-users.sql
+      - ./supabase/volumes/db/02-sample-data.sql:/docker-entrypoint-initdb.d/02-sample-data.sql
       - ./supabase/volumes/db/init-scripts/99-set-service-passwords.sh:/docker-entrypoint-initdb.d/init-scripts/99-set-service-passwords.sh
       - ./supabase/volumes/db/data:/var/lib/postgresql/data
       - db-config:/etc/postgresql-custom
