@@ -2,6 +2,11 @@
 
 A modern, full-stack management system for Vietnamese laptop repair shops built with **React 19**, **TypeScript**, **TanStack Router**, and **Supabase**. Features a complete Docker containerized backend with real-time capabilities and Vietnamese localization.
 
+This system follows a **phased environment setup** approach with three distinct phases:
+1. **Environment Bring-up** (`make env`) - Start all Docker services and infrastructure
+2. **Basic Initialization** (`make init`) - Create essential accounts and basic system configuration
+3. **Sample Data** (`make data`) - Populate system with sample/demo data for development and testing
+
 ## 🌟 Features
 
 ### 🏪 Business Management
@@ -37,13 +42,15 @@ A modern, full-stack management system for Vietnamese laptop repair shops built 
 ### 1. Clone and Setup
 ```bash
 git clone <repository-url>
-cd try-vite
+cd laptop-repair-shop
 
 # Create required directories
 make setup
 
-# Start development environment (includes database initialization)
-make dev
+# Start environment with phased approach
+make env    # Phase 1: Environment Bring-up
+make init   # Phase 2: Basic Initialization
+make data   # Phase 3: Sample Data (optional)
 ```
 
 ### 2. Access the Application
@@ -63,20 +70,32 @@ The `make dev` command automatically handles all initialization and service fixe
 
 ## 📖 Available Commands
 
-### Development Workflow
+### Environment Management (Single Environment)
 ```bash
-# Start development environment (React dev server + Supabase services)
-make dev
+# Phase 1: Environment Bring-up - Start all Docker services and infrastructure
+make env
 
-# Stop development environment
-make dev-down
+# Phase 2: Basic Initialization - Create essential accounts and basic system configuration
+make init
 
-# Show development logs
-make dev-logs
+# Phase 3: Sample Data - Populate system with sample/demo data for development and testing
+make data
+
+# Start environment with all phases (shortcut)
+make up
+
+# Stop all services
+make down
+
+# Show logs from all services
+make logs
+
+# Rebuild and restart environment
+make rebuild
 
 # Quick aliases
-make start    # Same as make dev
-make stop     # Same as make dev-down
+make start    # Same as make up
+make stop     # Same as make down
 ```
 
 ### Frontend Development
@@ -130,7 +149,7 @@ make dev            # Start full Docker development
 
 ### Production Deployment
 ```bash
-# Start production environment
+# Start production environment (all-in-one)
 make up
 
 # Stop production environment
@@ -145,14 +164,14 @@ make rebuild
 # Open Supabase Studio (database UI)
 make studio   # Opens http://localhost:3010
 
-# Reset database (WARNING: deletes all data)
-make db-reset
+# Complete environment reset (WARNING: deletes ALL data!)
+make clean
+
+# Clean database data directories only
+make clean-data
 
 # Backup database
 make db-backup
-
-# Clean all Docker resources
-make clean
 ```
 
 ### Component Development
@@ -192,17 +211,14 @@ src/
 ```
 
 ### Backend Services (Docker)
-The application runs in a multi-container Docker environment:
+The application runs in a single multi-container Docker environment with the following external access points:
 
-- **app-dev**: React development server (port 3000)
-- **supabase-kong-dev**: API Gateway (ports 8000/8443)
-- **supabase-auth-dev**: User authentication service
-- **supabase-rest-dev**: Auto-generated REST API from database schema
-- **supabase-db-dev**: PostgreSQL database (port 5433)
-- **supabase-studio-dev**: Database management UI (port 3010)
-- **supabase-storage-dev**: File storage service
-- **realtime-dev**: Real-time subscriptions
-- **functions-dev**: Edge functions runtime
+- **app**: React application (port 3001)
+- **supabase-kong**: API Gateway - aggregates ALL Supabase services (ports 8000/8443)
+- **supabase-db**: PostgreSQL database (port 5432)
+- **supabase-studio**: Database management UI (port 3010)
+
+All other Supabase services (auth, rest, storage, realtime, functions, imgproxy, meta) are internal-only and accessed via Kong.
 
 ### Database Schema
 The system includes a comprehensive database schema for laptop repair shops:
@@ -298,37 +314,37 @@ The application is fully localized for Vietnamese laptop repair shops:
 
 ## 🔧 Environment Configuration
 
-### Development vs Production
+### Single Environment Model
+This system uses a **single environment model** (no separate dev/prod) with a single `.env` file for all configuration.
 
-**Development Environment** (`make dev`):
-- Uses `docker-compose.dev.yml` with single `.env` file
-- React dev server with hot reload
-- Database on port 5433 (to avoid conflicts)
-- Separate data volumes for development
-- All services fully automated and working
+### External Access Points
+- **App**: Port 3001 - React application for end users
+- **Supabase API**: Port 8000 HTTP, 8443 HTTPS - Kong gateway (aggregates ALL Supabase services)
+- **Studio**: Port 3010 - Database management UI (for admin access)
+- **All other services**: Internal-only, accessed via Kong or not exposed
 
-**Production Environment** (`make up`):
-- Uses `docker-compose.yml` with single `.env` file
-- Built React app served by nginx on port 3001
-- Database on standard port 5432
-- Optimized containers for production
-- Use `.env.production.template` for secure deployment
+### Kong Architecture (CRITICAL)
+Kong is Supabase's INTERNAL API Gateway that aggregates ALL Supabase services through a single endpoint:
+- Your React app connects ONLY to Kong endpoint (`localhost:8000`)
+- Kong handles internal routing to individual Supabase services
+- Your app does NOT need its own reverse proxy/Kong instance
+- External reverse proxy responsibility is handled outside the Docker stack
 
 ### Single Environment File Configuration
 
-**All configuration is now consolidated in a single `.env` file:**
+**All configuration is consolidated in a single `.env` file:**
 
 ```bash
 # Database
 POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
 POSTGRES_DB=postgres
 
-# JWT & Authentication (Working and Tested)
+# JWT & Authentication
 JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
 ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
-# API Configuration
+# API Configuration (Kong endpoint - aggregates all Supabase services)
 SUPABASE_PUBLIC_URL=http://localhost:8000
 KONG_HTTP_PORT=8000
 
@@ -340,12 +356,6 @@ SHOP_ADMIN_PASSWORD=AdminPass123!
 VITE_SUPABASE_URL=http://localhost:8000
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
-
-**For Production**: Copy `.env.production.template` to `.env.production` and:
-- Generate secure secrets with `openssl rand -base64 32/64`
-- Update all domain references to your actual domain
-- Remove or disable demo credentials
-- Configure real SMTP settings
 
 ## 🐛 Troubleshooting
 
@@ -384,18 +394,26 @@ docker ps
 netstat -tulpn | grep :3000
 ```
 
-#### Clean Reinitialization
-For a completely fresh start:
+#### Environment Reset Requirements
+The system provides a complete reset mechanism for testing environment build-up process:
+
 ```bash
-# Full cleanup
-make clean
+# Complete environment reset and rebuild
+make clean          # Remove all containers, volumes, networks, data
+make env           # Fresh build and start infrastructure
+make init          # Create admin account
+make data          # Add sample data (optional)
 
-# Clean database data
-make clean-data
-
-# Start fresh
-make dev
+# Verify clean state
+docker ps -a       # Should show no project containers
+docker volume ls   # Should show no project volumes
+ls supabase/volumes/  # Should be empty or non-existent
 ```
+
+**Safety Considerations:**
+- **Data loss warning:** Reset command will permanently delete ALL data
+- **Confirmation prompt:** Required before executing
+- **Production protection:** Clearly marked as development/testing only
 
 ## 📝 Contributing
 

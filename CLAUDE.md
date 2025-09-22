@@ -4,39 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Vietnamese laptop repair shop management system built with React 19, TypeScript, TanStack Router, and Supabase. The application runs in Docker containers with a full Supabase backend stack.
+This is a Vietnamese laptop repair shop management system built with React 19, TypeScript, TanStack Router, and Supabase. The application runs in Docker containers with a full Supabase backend stack using a single environment for both development and production.
 
 ## Essential Commands
 
-### Development
+### Environment Management (Single Environment)
 ```bash
-# Full Docker development (React + Supabase in containers)
-make dev
+# Phase 1: Environment Bring-up - Start all Docker services and infrastructure
+make env
 
-# Backend-only development (Supabase in Docker, React locally)
-make backend-only    # Then run: pnpm dev
+# Phase 2: Basic Initialization - Create essential accounts and basic system configuration
+make init
 
-# Stop development environment
-make dev-down
+# Phase 3: Sample Data - Populate system with sample/demo data for development and testing
+make data
 
-# Show development logs
-make dev-logs
-
-# Quick aliases
-make start  # Same as make dev
-make stop   # Same as make dev-down
-```
-
-### Production
-```bash
-# Start production environment
+# Start environment with all phases (shortcut)
 make up
 
-# Stop production environment
+# Stop all services
 make down
 
-# Rebuild production environment
+# Show logs from all services
+make logs
+
+# Rebuild and restart environment
 make rebuild
+
+# Quick aliases
+make start  # Same as make up
+make stop   # Same as make down
 ```
 
 ### Frontend Development
@@ -50,8 +47,13 @@ pnpm dev
 # Build for production
 pnpm build
 
+# Preview production build
+pnpm preview
+
 # Run tests
 pnpm test
+pnpm test:ui
+pnpm test:watch
 
 # Lint and format
 pnpm lint
@@ -64,14 +66,15 @@ pnpm check
 # Open Supabase Studio (database UI)
 make studio  # Opens http://localhost:3010
 
-# Reset database (WARNING: deletes all data)
-make db-reset
+# Complete environment reset (WARNING: deletes ALL data!)
+# IMPORTANT: Preserves Docker images for faster rebuilds
+make clean
+
+# Clean database data directories only
+make clean-data
 
 # Backup database
 make db-backup
-
-# Clean all Docker resources
-make clean
 ```
 
 ### shadcn/ui Components
@@ -83,17 +86,14 @@ pnpx shadcn@latest add [component-name]
 ## Architecture
 
 ### Docker Services Architecture
-The application runs in a multi-container Docker environment with the following services:
+The application runs in a single multi-container Docker environment with the following external access points:
 
-- **app-dev**: React development server (port 3000)
-- **supabase-kong-dev**: API Gateway (ports 8000/8443)
-- **supabase-auth-dev**: Authentication service
-- **supabase-rest-dev**: Auto-generated REST API
-- **supabase-db-dev**: PostgreSQL database (port 5433)
-- **supabase-studio-dev**: Database management UI (port 3010)
-- **supabase-storage-dev**: File storage service
-- **realtime-dev**: Real-time subscriptions
-- **functions-dev**: Edge functions runtime
+- **app**: React application (port 3001)
+- **supabase-kong**: API Gateway - aggregates ALL Supabase services (ports 8000/8443)
+- **supabase-db**: PostgreSQL database (port 5432)
+- **supabase-studio**: Database management UI (port 3010)
+
+All other Supabase services (auth, rest, storage, realtime, functions, imgproxy, meta) are internal-only and accessed via Kong.
 
 ### Frontend Architecture
 
@@ -162,15 +162,13 @@ The application has 8 main pages for the laptop repair shop workflow:
 
 ### Environment Configuration
 - **Single Environment File**: All configuration consolidated in `.env`
-- **Development**: Uses `docker-compose.dev.yml` with `.env`
-- **Production**: Uses `docker-compose.yml` with `.env.production`
-- **Security Template**: `.env.production.template` for secure deployment
-- Database data is separated between dev and production volumes
+- **Single Environment Model**: No separate dev/prod environments
+- **Security Template**: `.env` contains all necessary configuration
 - All environment variables properly passed to Docker containers
 
 ### First-Time Setup (Fully Automated)
 The system is completely automated and ready to use:
-1. Run `make dev` to start all services
+1. Run `make env` to start all services
 2. Database schema automatically created with Vietnamese repair shop data
 3. JWT authentication working with proper Kong gateway configuration
 4. Service fixes automatically applied via `fix-supabase-services.sh`
@@ -204,17 +202,16 @@ The application uses Vietnamese language throughout:
 - JWT signature validation resolved
 - Edge functions main entrypoint configured
 - Environment variables consolidated to single `.env` file
-- Production security template with secret generation guide
+- Production security with secure defaults
 - All Docker services using unified environment configuration
 - Real Vietnamese test data populated in database
-- Comprehensive security audit and documentation (`docs/SECURITY.md`)
+- Comprehensive security practices
 - Hardcoded credentials externalized to environment variables
 - Clean up scripts preserve Docker images while removing containers/volumes
-- File permissions may require `make fix-permissions` if developing on Linux/WSL
 
 ### Security & Production Ready
-- **Secret Management**: Comprehensive security guide in `docs/SECURITY.md`
-- **Production Template**: `.env.production.template` with secure defaults
+- **Secret Management**: Secure environment variable handling
+- **Single Environment**: Simplified configuration management
 - **No Hardcoded Values**: All credentials properly externalized
 - **Clean Architecture**: Single environment file controls entire stack
 
@@ -223,6 +220,13 @@ Do what has been asked; nothing more, nothing less.
 NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (*.md) or README files. Only create documentation files if explicitly requested by the User.
+
+# docker-image-preservation
+IMPORTANT: Never remove Docker images when cleaning up the development environment.
+- All cleanup commands (make clean, make clean-data) preserve Docker images
+- This ensures faster rebuilds and reduces download time
+- Images are intentionally preserved for development efficiency
+- Only remove containers, volumes, networks, and data directories
 
 # documentation-language-guidelines
 When creating documentation for this Vietnamese laptop repair shop project:
