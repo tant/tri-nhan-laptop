@@ -114,6 +114,41 @@ React App → Supabase Client → Kong (localhost:8000) → Internal Supabase Se
 - **Studio:** Port 3010 - Database management UI (for admin access)
 - **All other services:** Internal-only, accessed via Kong or not exposed
 
+### **Environment Reset Requirements**
+**CRITICAL FOR TESTING:** System must provide a complete reset mechanism for testing environment build-up process.
+
+#### **Reset Command Requirements:**
+- **Complete cleanup script** (via `make clean` or similar) that removes:
+  - All Docker containers (running and stopped)
+  - All Docker volumes (including named volumes and bind mounts)
+  - All data directories (`supabase/volumes/*`)
+  - All Docker networks created by compose
+  - All Docker images (optional for deep clean)
+
+#### **Use Cases:**
+- **Fresh installation testing:** Verify environment builds correctly from scratch
+- **Development reset:** Clean state for testing new configurations
+- **Troubleshooting:** Complete environment reset when debugging issues
+- **Documentation verification:** Ensure setup instructions are complete and accurate
+
+#### **Implementation Example:**
+```bash
+# Complete environment reset
+make clean          # Remove all containers, volumes, networks, data
+make dev           # Fresh build and start
+
+# Verify clean state
+docker ps -a       # Should show no project containers
+docker volume ls   # Should show no project volumes
+ls supabase/volumes/  # Should be empty or non-existent
+```
+
+#### **Safety Considerations:**
+- **Data loss warning:** Reset command must clearly warn about permanent data loss
+- **Confirmation prompt:** Require explicit confirmation before executing
+- **Backup reminder:** Suggest data backup before reset (if applicable)
+- **Production protection:** Clearly mark as development/testing only
+
 ---
 
 ## 👥 **PHÂN QUYỀN & TÀI KHOẢN**
