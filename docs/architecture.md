@@ -204,7 +204,6 @@ type RepairStatus =
 
 #### Relationships
 - Belongs to one Customer (via customer_phone)
-- Has many RepairTicketParts (parts used)
 - Has many RepairTicketPhotos (before/after images)
 - Has many InternalComments (staff notes)
 - Assigned to one UserProfile (technician)
@@ -246,10 +245,8 @@ interface Customer {
 - `id`: uuid - Primary key (linked to Supabase auth)
 - `email`: string - Login credential
 - `full_name`: string - Staff member name
-- `role`: enum - Permission level (shop_owner, manager, technician, staff)
+- `role`: enum - Permission level (shop_owner, staff)
 - `is_active`: boolean - Employment status
-- `can_create_users`: boolean - Admin permissions
-- `can_manage_inventory`: boolean - Parts management access
 - `phone`: string - Staff contact number
 
 #### TypeScript Interface
@@ -258,12 +255,8 @@ interface UserProfile {
   id: string; // UUID from Supabase auth
   email: string;
   full_name: string;
-  role: 'shop_owner' | 'manager' | 'technician' | 'staff';
+  role: 'shop_owner' | 'staff';
   is_active: boolean;
-  can_create_users: boolean;
-  can_manage_inventory: boolean;
-  can_view_financials: boolean;
-  can_delete_repairs: boolean;
   phone?: string;
   created_at: string;
   updated_at: string;
@@ -308,41 +301,12 @@ interface Part {
 ```
 
 #### Relationships
-- Used in many RepairTicketParts (usage log)
+- Used in many RepairTickets (via `parts_used` field)
 - Belongs to PartCategory (classification)
 
-### RepairTicketPart
+### RepairTicketPart (Removed)
 
-**Purpose:** Junction table logging parts used in specific repairs, preserving pricing at time of use for accurate cost tracking.
-
-**Key Attributes:**
-- `ticket_id`: uuid - Reference to repair ticket
-- `part_id`: uuid - Reference to part used
-- `quantity`: integer - Amount used
-- `unit_cost_at_use`: decimal - Purchase price when used
-- `unit_price_at_use`: decimal - Sale price when used
-- `warranty_months`: integer - Part-specific warranty period
-- `notes`: text - Installation notes
-
-#### TypeScript Interface
-```typescript
-interface RepairTicketPart {
-  id: string;
-  ticket_id: string;
-  part_id: string;
-  quantity: number;
-  unit_cost_at_use: number;
-  unit_price_at_use: number;
-  warranty_months?: number;
-  notes?: string;
-  used_at: string;
-}
-```
-
-#### Relationships
-- Belongs to RepairTicket
-- References Part (for current info)
-- Preserves historical pricing data
+**Purpose:** This has been removed for simplicity. Parts used are now tracked in the `parts_used` field on the `RepairTicket` table.
 
 ## API Specification
 
@@ -447,15 +411,15 @@ WebSocket: ws://localhost:8000/realtime/v1/websocket
 - `customers`: No access
 
 **Staff Access (User JWT):**
-- `repair_tickets`: Full CRUD based on role permissions
+- `repair_tickets`: Full CRUD for `shop_owner`, limited for `staff`
 - `customers`: Read all, create/update based on role
-- `parts`: Read all, update if `can_manage_inventory = true`
+- `parts`: Read all, update for `shop_owner`
 - `user_profiles`: Read all active users
 
 **Data Isolation:**
 - Customers only see their own tickets via phone lookup
 - Staff see tickets based on assignment and role permissions
-- Admin sees all data without restrictions
+- `shop_owner` sees all data without restrictions
 
 ## Components
 
@@ -535,12 +499,11 @@ WebSocket: ws://localhost:8000/realtime/v1/websocket
 **Responsibility:** Parts inventory tracking, usage logging, and cost calculation for repair tickets with simplified stock management.
 
 **Key Interfaces:**
-- `addPartUsage(ticketId, partId, quantity, pricing)` - Log part consumption
+- `addPartUsage(ticketId, partId, quantity)` - Log part consumption
 - `checkStockAvailability(partId, quantity)` - Stock validation
 - `calculateTicketCosts(ticketId)` - Total cost computation
-- `preservePricingHistory(partUsage)` - Historical cost tracking
 
-**Dependencies:** Part, RepairTicketPart models, UserProfile permissions
+**Dependencies:** Part, RepairTicket models, UserProfile permissions
 
 **Technology Stack:** PostgreSQL calculations, Supabase functions, TypeScript business logic
 
@@ -714,3 +677,579 @@ sequenceDiagram
     Repair-->>React: Success confirmation
     React-->>Tech: Status updated to 'Đang thực hiện sửa chữa'
 ```
+
+## Database Schema
+
+### PostgreSQL Database Schema
+
+Based on PostgreSQL 15.8+ with Supabase extensions, RLS policies, and Vietnamese business requirements:
+
+```sql
+-- =====================================================
+-- DATABASE SCHEMA FOR VIETNAMESE LAPTOP REPAIR SYSTEM
+-- =====================================================
+
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- =====================================================
+-- ENUMS AND CUSTOM TYPES
+-- =====================================================
+
+-- Repair ticket status enum (16 states from project brief)
+CREATE TYPE repair_status AS ENUM (
+  'device_received',           -- Đã tiếp nhận thiết bị
+  'preliminary_inspection',    -- Đang kiểm tra ban đầu
+  'awaiting_repair_plan',     -- Chờ xác nhận phương án sửa chữa
+  'approved_for_repair',      -- Đã xác nhận sửa chữa
+  'in_diagnosis',             -- Đang chẩn đoán chi tiết
+  'waiting_parts',            -- Đang đặt hàng linh kiện
+  'in_repair',                -- Đang thực hiện sửa chữa
+  'quality_testing',          -- Đang kiểm tra chất lượng
+  'ready_for_pickup',         -- Sẵn sàng nhận máy
+  'completed',                -- Đã hoàn thành
+  'cannot_repair',            -- Không thể sửa chữa
+  'cancelled_by_customer',    -- Đã hủy sửa chữa
+  'repair_failed',            -- Sửa chữa gặp khó khăn
+  'customer_no_show',         -- Chờ khách hàng liên hệ
+  'ready_for_return',         -- Sẵn sàng trả máy
+  'abandoned'                 -- Liên hệ để nhận máy
+);
+
+-- User roles enum
+CREATE TYPE user_role AS ENUM (
+  'shop_owner',
+  'staff'
+);
+
+-- Payment methods enum
+CREATE TYPE payment_method AS ENUM (
+  'cash',
+  'transfer',
+  'other'
+);
+
+-- =====================================================
+-- CORE TABLES
+-- =====================================================
+
+-- Customers table (phone as primary key)
+CREATE TABLE customers (
+  phone VARCHAR(20) PRIMARY KEY,  -- Vietnamese phone number format
+  full_name VARCHAR(255) NOT NULL,
+  address TEXT,
+  notes TEXT,                     -- Internal staff notes
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- User profiles (linked to Supabase auth)
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  full_name VARCHAR(255) NOT NULL,
+  role user_role NOT NULL DEFAULT 'staff',
+  is_active BOOLEAN DEFAULT TRUE,
+  phone VARCHAR(20),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Repair tickets table
+CREATE TABLE repair_tickets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  ticket_code VARCHAR(20) UNIQUE NOT NULL, -- LRP-2025-000123
+  customer_phone VARCHAR(20) NOT NULL REFERENCES customers(phone),
+  device_info JSONB NOT NULL,             -- {brand, model, serial_number, initial_condition}
+  issue_description TEXT NOT NULL,
+  status repair_status DEFAULT 'device_received',
+  assigned_technician_id UUID REFERENCES user_profiles(id),
+  parts_used JSONB,                       -- [{part_id, name, quantity, unit_price}]
+
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  estimated_completion TIMESTAMPTZ,
+
+  -- Financial fields
+  total_cost DECIMAL(12,2),
+  deposit_amount DECIMAL(12,2),
+  is_paid BOOLEAN DEFAULT FALSE,
+  paid_at TIMESTAMPTZ,
+  payment_method payment_method,
+  receipt_note TEXT,
+
+  -- Warranty
+  warranty_until DATE,
+
+  -- Status transition validation fields
+  has_issue_report BOOLEAN DEFAULT FALSE,
+  customer_approved_at TIMESTAMPTZ,
+  customer_approved_by UUID REFERENCES user_profiles(id),
+  repair_completed_at TIMESTAMPTZ,
+  repair_completed_by UUID REFERENCES user_profiles(id),
+  paid_by UUID REFERENCES user_profiles(id)
+);
+
+-- Parts inventory table
+CREATE TABLE parts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(255) NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  brand VARCHAR(100),
+  model_compatibility TEXT[],             -- Array of compatible laptop models
+  current_stock INTEGER DEFAULT 10000,    -- Simplified stock (per project brief)
+  unit_cost DECIMAL(12,2) NOT NULL,
+  unit_price DECIMAL(12,2) NOT NULL,
+  supplier_info TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Parts usage in repairs has been removed for simplicity.
+-- Parts are now tracked in the `parts_used` JSONB field on the `repair_tickets` table.
+
+
+-- =====================================================
+-- BUSINESS LOGIC FUNCTIONS
+-- =====================================================
+
+-- Generate sequential ticket code
+CREATE OR REPLACE FUNCTION generate_ticket_code(year INTEGER)
+RETURNS TEXT AS $$
+DECLARE
+  next_number INTEGER;
+  code TEXT;
+BEGIN
+  -- Get next sequence number for the year
+  SELECT nextval('ticket_sequence') INTO next_number;
+
+  -- Format as LRP-YYYY-NNNNNN
+  code := 'LRP-' || year::TEXT || '-' || lpad(next_number::TEXT, 6, '0');
+
+  RETURN code;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Validate status transitions
+CREATE OR REPLACE FUNCTION validate_status_transition(
+  current_status repair_status,
+  new_status repair_status,
+  ticket_uuid UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+  ticket_record repair_tickets%ROWTYPE;
+BEGIN
+  SELECT * INTO ticket_record FROM repair_tickets WHERE id = ticket_uuid;
+
+  -- Business rules from project brief
+  CASE
+    WHEN current_status = 'preliminary_inspection' AND new_status = 'awaiting_repair_plan' THEN
+      RETURN ticket_record.has_issue_report = TRUE;
+    WHEN current_status = 'awaiting_repair_plan' AND new_status = 'approved_for_repair' THEN
+      RETURN ticket_record.customer_approved_at IS NOT NULL;
+    WHEN current_status = 'in_repair' AND new_status = 'quality_testing' THEN
+      RETURN ticket_record.repair_completed_at IS NOT NULL;
+    WHEN current_status = 'ready_for_pickup' AND new_status = 'completed' THEN
+      RETURN ticket_record.is_paid = TRUE AND ticket_record.paid_at IS NOT NULL;
+    ELSE
+      RETURN TRUE; -- Allow other transitions
+  END CASE;
+END;
+$$ LANGUAGE plpgsql;
+```
+
+## Frontend Architecture
+
+### Component Architecture
+
+#### Component Organization
+```
+src/
+├── components/
+│   ├── ui/                     # shadcn/ui base components
+│   ├── common/                 # Shared application components
+│   ├── pages/                  # Page-level components
+│   ├── features/               # Business domain components
+│   │   ├── repair-tickets/
+│   │   ├── customers/
+│   │   └── parts/
+│   └── customer-portal/        # Public-facing components
+```
+
+#### Component Template
+```typescript
+// Example: RepairTicketCard.tsx
+import { RepairTicket } from '@/shared/types'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+
+interface RepairTicketCardProps {
+  ticket: RepairTicket
+  onStatusUpdate?: (ticketId: string, newStatus: string) => void
+  showCustomerInfo?: boolean
+}
+
+export function RepairTicketCard({ ticket, onStatusUpdate, showCustomerInfo = true }: RepairTicketCardProps) {
+  return (
+    <Card className="hover:shadow-md transition-shadow">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg font-medium">
+          {ticket.ticket_code}
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          {ticket.device_info.brand} {ticket.device_info.model}
+        </p>
+      </CardHeader>
+      <CardContent>
+        {showCustomerInfo && (
+          <p className="text-sm mb-2">
+            <span className="font-medium">Khách hàng:</span> {ticket.customer_name}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm">Xem chi tiết</Button>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+### State Management Architecture
+
+#### State Structure
+```typescript
+interface AppState {
+  auth: {
+    user: UserProfile | null
+    isLoading: boolean
+    isAuthenticated: boolean
+  }
+  ui: {
+    theme: 'light' | 'dark'
+    sidebarOpen: boolean
+    isOffline: boolean
+  }
+  cache: {
+    repairTickets: Map<string, RepairTicket>
+    customers: Map<string, Customer>
+    parts: Map<string, Part>
+  }
+}
+```
+
+### Routing Architecture
+
+#### Route Organization
+```typescript
+src/routes/
+├── __root.tsx                 # Root layout
+├── index.tsx                  # Public homepage
+├── sua-laptop/
+│   └── tra-cuu.tsx           # Public ticket lookup
+├── login.tsx                  # Staff authentication
+└── dashboard/
+    ├── index.tsx             # Dashboard overview
+    ├── phieu-sua-chua/       # Repair tickets
+    ├── khach-hang/           # Customers
+    └── admin/                # Administration
+```
+
+### Frontend Services Layer
+
+#### API Client Setup
+```typescript
+import { createClient } from '@supabase/supabase-js'
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:8000'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true
+  },
+  realtime: {
+    params: { eventsPerSecond: 10 }
+  }
+})
+```
+
+#### Service Example
+```typescript
+export class RepairTicketService {
+  static async createTicket(data: CreateTicketRequest): Promise<RepairTicket> {
+    const year = new Date().getFullYear()
+    const { data: ticketCode } = await supabase.rpc('generate_ticket_code', { year })
+
+    const { data: ticket, error } = await supabase
+      .from('repair_tickets')
+      .insert({
+        ticket_code: ticketCode,
+        customer_phone: data.customer_phone,
+        device_info: data.device_info,
+        issue_description: data.issue_description
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+    return ticket
+  }
+}
+```
+
+## Unified Project Structure
+
+```
+laptop-repair-system/
+├── .github/workflows/          # CI/CD
+├── apps/
+│   ├── web/                   # React frontend
+│   │   ├── src/
+│   │   │   ├── components/    # UI components
+│   │   │   ├── pages/         # Page components
+│   │   │   ├── hooks/         # Custom hooks
+│   │   │   ├── services/      # API services
+│   │   │   └── lib/           # Utilities
+│   │   ├── public/            # Static assets
+│   │   └── package.json
+│   └── supabase/              # Supabase configuration
+│       ├── migrations/        # Database migrations
+│       ├── functions/         # Edge functions
+│       └── config/
+├── packages/
+│   ├── shared/                # Shared types/utilities
+│   │   ├── types/             # TypeScript interfaces
+│   │   └── utils/             # Common utilities
+│   └── ui/                    # Shared components
+├── docker-compose.yml         # Development environment
+├── Makefile                   # Build automation
+├── .env.example               # Environment template
+└── docs/                      # Documentation
+    ├── architecture.md
+    ├── project-brief.md
+    └── env.md
+```
+
+## Development Workflow
+
+### Local Development Setup
+
+#### Prerequisites
+```bash
+# Install required tools
+curl -fsSL https://get.docker.com -o get-docker.sh && sh get-docker.sh
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+```
+
+#### Initial Setup
+```bash
+# Clone and setup
+git clone <repository>
+cd laptop-repair-system
+cp .env.example .env
+# Edit .env with your values
+pnpm install
+```
+
+#### Development Commands
+```bash
+# Start all services (3-phase approach)
+make clean          # Reset everything
+make env           # Start infrastructure
+make init          # Create admin account
+make data          # Add sample data (optional)
+
+# Individual services
+pnpm dev           # Frontend only (localhost:3001)
+make studio        # Database UI (localhost:3010)
+```
+
+### Environment Configuration
+
+#### Required Environment Variables
+```bash
+# Frontend (.env)
+VITE_SUPABASE_URL=http://localhost:8000
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Backend (same .env)
+POSTGRES_PASSWORD=your-postgres-password
+JWT_SECRET=your-jwt-secret
+SHOP_ADMIN_EMAIL=admin@laptop-repair-shop.local
+SHOP_ADMIN_PASSWORD=AdminPass123!
+```
+
+## Deployment Architecture
+
+### Deployment Strategy
+
+**Frontend Deployment:**
+- **Platform:** Static hosting (Vercel/Netlify) or Docker container
+- **Build Command:** `pnpm build`
+- **Output Directory:** `dist/`
+
+**Backend Deployment:**
+- **Platform:** Docker Compose on VPS
+- **Deployment Method:** `make env && make init`
+- **Data Persistence:** Docker volumes
+
+### Environments
+
+| Environment | Frontend URL | Backend URL | Purpose |
+|-------------|--------------|-------------|---------|
+| Development | http://localhost:3001 | http://localhost:8000 | Local development |
+| Production | https://your-domain.com | https://api.your-domain.com | Live environment |
+
+## Security and Performance
+
+### Security Requirements
+
+**Frontend Security:**
+- CSP Headers: Strict content security policy
+- XSS Prevention: Input sanitization and output encoding
+- Secure Storage: Encrypted localStorage for sensitive data
+
+**Backend Security:**
+- Input Validation: Zod schema validation on all inputs
+- Rate Limiting: Kong rate limiting configuration
+- CORS Policy: Restricted to frontend domain only
+
+**Authentication Security:**
+- Token Storage: HttpOnly cookies for JWT tokens
+- Session Management: Supabase automatic refresh
+- Password Policy: Minimum 8 characters with complexity
+
+### Performance Optimization
+
+**Frontend Performance:**
+- Bundle Size Target: < 500KB gzipped
+- Loading Strategy: Route-based code splitting
+- Caching Strategy: Service Worker for offline support
+
+**Backend Performance:**
+- Response Time Target: < 200ms for API calls
+- Database Optimization: Proper indexing and RLS policies
+- Caching Strategy: Redis for session data (if needed)
+
+## Testing Strategy
+
+### Test Organization
+
+**Frontend Tests:**
+```
+src/
+├── __tests__/                 # Unit tests
+├── components/__tests__/      # Component tests
+└── e2e/                       # Playwright E2E tests
+```
+
+**Backend Tests:**
+```
+supabase/
+├── tests/
+│   ├── functions/             # Edge function tests
+│   └── database/              # Database function tests
+```
+
+### Test Examples
+
+**Frontend Component Test:**
+```typescript
+import { render, screen } from '@testing-library/react'
+import { RepairTicketCard } from '@/components/features/repair-tickets/RepairTicketCard'
+
+test('displays ticket information correctly', () => {
+  const ticket = { ticket_code: 'LRP-2025-000001', /* ... */ }
+  render(<RepairTicketCard ticket={ticket} />)
+  expect(screen.getByText('LRP-2025-000001')).toBeInTheDocument()
+})
+```
+
+**E2E Test:**
+```typescript
+import { test, expect } from '@playwright/test'
+
+test('staff can create repair ticket', async ({ page }) => {
+  await page.goto('/login')
+  await page.fill('[data-testid=email]', 'admin@laptop-repair-shop.local')
+  await page.fill('[data-testid=password]', 'AdminPass123!')
+  await page.click('[data-testid=login-button]')
+
+  await page.goto('/dashboard/phieu-sua-chua')
+  await page.click('[data-testid=create-ticket-button]')
+  // ... rest of test
+})
+```
+
+## Coding Standards
+
+### Critical Fullstack Rules
+- **Type Sharing:** Always define types in packages/shared and import consistently
+- **API Calls:** Never make direct HTTP calls - always use the service layer abstraction
+- **Environment Variables:** Access only through config objects, never process.env directly
+- **Error Handling:** All API routes must use standardized error handler with Vietnamese messages
+- **State Updates:** Never mutate state directly - use proper React state management patterns
+
+### Naming Conventions
+
+| Element | Frontend | Backend | Example |
+|---------|----------|---------|---------|
+| Components | PascalCase | - | `UserProfile.tsx` |
+| Hooks | camelCase with 'use' | - | `useAuth.ts` |
+| API Routes | - | kebab-case | `/api/repair-tickets` |
+| Database Tables | - | snake_case | `repair_tickets` |
+
+## Error Handling Strategy
+
+### Error Response Format
+```typescript
+interface ApiError {
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, any>;
+    timestamp: string;
+  };
+}
+```
+
+### Frontend Error Handling
+```typescript
+export function useErrorHandler() {
+  return (error: unknown) => {
+    if (error instanceof SupabaseError) {
+      toast.error(`Lỗi hệ thống: ${error.message}`)
+    } else {
+      toast.error('Đã xảy ra lỗi không xác định')
+    }
+  }
+}
+```
+
+## Monitoring and Observability
+
+### Monitoring Stack
+- **Frontend Monitoring:** Browser performance monitoring via Web Vitals
+- **Backend Monitoring:** Supabase built-in analytics and logging
+- **Error Tracking:** Console logging with structured error reporting
+- **Performance Monitoring:** Real User Monitoring (RUM) for frontend performance
+
+### Key Metrics
+
+**Frontend Metrics:**
+- Core Web Vitals (LCP, FID, CLS)
+- JavaScript errors and stack traces
+- API response times from frontend perspective
+- User interaction success rates
+
+**Backend Metrics:**
+- API request rate and response times
+- Database query performance
+- Error rates by endpoint
+- Authentication success/failure rates
