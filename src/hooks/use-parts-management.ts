@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from "react";
 
 // Database types
 type Part = Database["public"]["Tables"]["parts"]["Row"];
@@ -25,21 +25,26 @@ export interface PartReservation {
 	reserved_by: string;
 	reserved_at: string;
 	expires_at: string;
-	status: 'active' | 'confirmed' | 'cancelled' | 'expired';
+	status: "active" | "confirmed" | "cancelled" | "expired";
 	notes?: string;
 }
 
 export interface InventoryTransaction {
 	id: string;
 	part_id: string;
-	transaction_type: 'purchase' | 'usage' | 'adjustment' | 'reservation' | 'return';
+	transaction_type:
+		| "purchase"
+		| "usage"
+		| "adjustment"
+		| "reservation"
+		| "return";
 	quantity_change: number;
 	quantity_before: number;
 	quantity_after: number;
 	cost_per_unit?: number;
 	total_cost?: number;
 	reference_id?: string;
-	reference_type?: 'repair' | 'reservation' | 'adjustment' | 'purchase';
+	reference_type?: "repair" | "reservation" | "adjustment" | "purchase";
 	notes?: string;
 	performed_by?: string;
 	created_at: string;
@@ -59,95 +64,96 @@ export function usePartsManagement() {
 		error: null,
 		lowStockParts: [],
 		totalInventoryValue: 0,
-		activeReservations: []
+		activeReservations: [],
 	});
 
 	// Add parts to a repair
-	const addPartsToRepair = useCallback(async (
-		repairId: string,
-		parts: PartUsage[],
-		userId: string
-	) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+	const addPartsToRepair = useCallback(
+		async (repairId: string, parts: PartUsage[], userId: string) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
 
-		try {
-			// Start a transaction-like operation
-			const partUpdates = [];
-			const usageRecords = [];
+			try {
+				// Start a transaction-like operation
+				const partUpdates = [];
+				const usageRecords = [];
 
-			for (const partUsage of parts) {
-				// Get current part stock
-				const { data: currentPart, error: fetchError } = await supabase
-					.from("parts")
-					.select("*")
-					.eq("id", partUsage.part_id)
-					.single();
+				for (const partUsage of parts) {
+					// Get current part stock
+					const { data: currentPart, error: fetchError } = await supabase
+						.from("parts")
+						.select("*")
+						.eq("id", partUsage.part_id)
+						.single();
 
-				if (fetchError) throw fetchError;
+					if (fetchError) throw fetchError;
 
-				// Check if sufficient stock available
-				if (currentPart.current_stock < partUsage.quantity_used) {
-					throw new Error(`Không đủ linh kiện ${currentPart.name}. Tồn kho: ${currentPart.current_stock}, cần: ${partUsage.quantity_used}`);
+					// Check if sufficient stock available
+					if (currentPart.current_stock < partUsage.quantity_used) {
+						throw new Error(
+							`Không đủ linh kiện ${currentPart.name}. Tồn kho: ${currentPart.current_stock}, cần: ${partUsage.quantity_used}`,
+						);
+					}
+
+					// Calculate new stock quantity
+					const newStockQuantity =
+						currentPart.current_stock - partUsage.quantity_used;
+
+					// Prepare stock update
+					partUpdates.push({
+						id: partUsage.part_id,
+						current_stock: newStockQuantity,
+						updated_at: new Date().toISOString(),
+					});
+
+					// Prepare usage record
+					usageRecords.push({
+						repair_id: repairId,
+						part_id: partUsage.part_id,
+						quantity_used: partUsage.quantity_used,
+						cost_per_unit: partUsage.cost_per_unit,
+						total_cost: partUsage.quantity_used * partUsage.cost_per_unit,
+						notes: partUsage.notes,
+						used_by: userId,
+						used_at: new Date().toISOString(),
+					});
 				}
 
-				// Calculate new stock quantity
-				const newStockQuantity = currentPart.current_stock - partUsage.quantity_used;
+				// Execute stock updates
+				for (const update of partUpdates) {
+					const { error: updateError } = await supabase
+						.from("parts")
+						.update({
+							current_stock: update.current_stock,
+							updated_at: update.updated_at,
+						})
+						.eq("id", update.id);
 
-				// Prepare stock update
-				partUpdates.push({
-					id: partUsage.part_id,
-					current_stock: newStockQuantity,
-					updated_at: new Date().toISOString()
-				});
+					if (updateError) throw updateError;
+				}
 
-				// Prepare usage record
-				usageRecords.push({
-					repair_id: repairId,
-					part_id: partUsage.part_id,
-					quantity_used: partUsage.quantity_used,
-					cost_per_unit: partUsage.cost_per_unit,
-					total_cost: partUsage.quantity_used * partUsage.cost_per_unit,
-					notes: partUsage.notes,
-					used_by: userId,
-					used_at: new Date().toISOString()
-				});
+				// Insert usage records
+				const { error: usageError } = await supabase
+					.from("repair_parts")
+					.insert(usageRecords);
+
+				if (usageError) throw usageError;
+
+				// Log activity
+				await logPartsUsage(repairId, parts, userId);
+
+				setState((prev) => ({ ...prev, loading: false }));
+				return true;
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
 			}
-
-			// Execute stock updates
-			for (const update of partUpdates) {
-				const { error: updateError } = await supabase
-					.from("parts")
-					.update({
-						current_stock: update.current_stock,
-						updated_at: update.updated_at
-					})
-					.eq("id", update.id);
-
-				if (updateError) throw updateError;
-			}
-
-			// Insert usage records
-			const { error: usageError } = await supabase
-				.from("repair_parts")
-				.insert(usageRecords);
-
-			if (usageError) throw usageError;
-
-			// Log activity
-			await logPartsUsage(repairId, parts, userId);
-
-			setState(prev => ({ ...prev, loading: false }));
-			return true;
-
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, []);
+		},
+		[],
+	);
 
 	// Get parts used in a repair
 	const getRepairParts = useCallback(async (repairId: string) => {
@@ -173,13 +179,16 @@ export function usePartsManagement() {
 
 		if (error) throw error;
 
-		const totalCost = data.reduce((sum, item) => sum + (item.total_cost || 0), 0);
+		const totalCost = data.reduce(
+			(sum, item) => sum + (item.total_cost || 0),
+			0,
+		);
 		return totalCost;
 	}, []);
 
 	// Get low stock parts
 	const getLowStockParts = useCallback(async () => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+		setState((prev) => ({ ...prev, loading: true, error: null }));
 
 		try {
 			const { data, error } = await supabase
@@ -190,18 +199,18 @@ export function usePartsManagement() {
 
 			if (error) throw error;
 
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				loading: false,
-				lowStockParts: data || []
+				lowStockParts: data || [],
 			}));
 
 			return data || [];
 		} catch (error) {
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				loading: false,
-				error: error as Error
+				error: error as Error,
 			}));
 			throw error;
 		}
@@ -209,7 +218,7 @@ export function usePartsManagement() {
 
 	// Calculate total inventory value
 	const calculateInventoryValue = useCallback(async () => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+		setState((prev) => ({ ...prev, loading: true, error: null }));
 
 		try {
 			const { data, error } = await supabase
@@ -219,28 +228,30 @@ export function usePartsManagement() {
 			if (error) throw error;
 
 			const totalValue = (data || []).reduce((sum, part) => {
-				return sum + (part.current_stock * (part.selling_price || 0));
+				return sum + part.current_stock * (part.selling_price || 0);
 			}, 0);
 
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				loading: false,
-				totalInventoryValue: totalValue
+				totalInventoryValue: totalValue,
 			}));
 
 			return totalValue;
 		} catch (error) {
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				loading: false,
-				error: error as Error
+				error: error as Error,
 			}));
 			throw error;
 		}
 	}, []);
 
 	// Get parts with enhanced stock status
-	const getPartsWithStockStatus = useCallback(async (): Promise<PartWithStock[]> => {
+	const getPartsWithStockStatus = useCallback(async (): Promise<
+		PartWithStock[]
+	> => {
 		const { data, error } = await supabase
 			.from("parts")
 			.select("*")
@@ -248,7 +259,7 @@ export function usePartsManagement() {
 
 		if (error) throw error;
 
-		return (data || []).map(part => {
+		return (data || []).map((part) => {
 			const isLowStock = part.current_stock <= part.min_stock_level;
 			const isOutOfStock = part.current_stock === 0;
 
@@ -264,191 +275,200 @@ export function usePartsManagement() {
 			return {
 				...part,
 				is_low_stock: isLowStock,
-				stock_status: stockStatus
+				stock_status: stockStatus,
 			};
 		});
 	}, []);
 
 	// Search parts for repair (available parts only) with caching
-	const searchAvailableParts = useCallback(async (searchTerm: string, limit: number = 10) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+	const searchAvailableParts = useCallback(
+		async (searchTerm: string, limit = 10) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
 
-		try {
-			const { data, error } = await supabase
-				.from("parts")
-				.select("*")
-				.gt("current_stock", 0)
-				.or(`name.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,supplier_info.ilike.%${searchTerm}%`)
-				.order("name", { ascending: true })
-				.limit(limit);
+			try {
+				const { data, error } = await supabase
+					.from("parts")
+					.select("*")
+					.gt("current_stock", 0)
+					.or(
+						`name.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,supplier_info.ilike.%${searchTerm}%`,
+					)
+					.order("name", { ascending: true })
+					.limit(limit);
 
-			if (error) throw error;
+				if (error) throw error;
 
-			setState(prev => ({ ...prev, loading: false }));
-			return data || [];
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, []);
+				setState((prev) => ({ ...prev, loading: false }));
+				return data || [];
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
+			}
+		},
+		[],
+	);
 
 	// Note: Search functionality is handled client-side in PartsSearch component
 	// This keeps the architecture simple and leverages React's strengths for filtering
 
 	// Update part stock manually (for receiving new inventory)
-	const updatePartStock = useCallback(async (
-		partId: string,
-		newQuantity: number,
-		cost: number,
-		userId: string,
-		notes?: string
-	) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+	const updatePartStock = useCallback(
+		async (
+			partId: string,
+			newQuantity: number,
+			cost: number,
+			userId: string,
+			notes?: string,
+		) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
 
-		try {
-			// Update part stock
-			const { data: updatedPart, error: updateError } = await supabase
-				.from("parts")
-				.update({
-					current_stock: newQuantity,
-					cost_price: cost,
-					updated_at: new Date().toISOString()
-				})
-				.eq("id", partId)
-				.select()
-				.single();
+			try {
+				// Update part stock
+				const { data: updatedPart, error: updateError } = await supabase
+					.from("parts")
+					.update({
+						current_stock: newQuantity,
+						cost_price: cost,
+						updated_at: new Date().toISOString(),
+					})
+					.eq("id", partId)
+					.select()
+					.single();
 
-			if (updateError) throw updateError;
+				if (updateError) throw updateError;
 
-			// Log stock update
-			await logStockUpdate(partId, newQuantity, cost, userId, notes);
+				// Log stock update
+				await logStockUpdate(partId, newQuantity, cost, userId, notes);
 
-			setState(prev => ({ ...prev, loading: false }));
-			return updatedPart;
-
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, []);
+				setState((prev) => ({ ...prev, loading: false }));
+				return updatedPart;
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
+			}
+		},
+		[],
+	);
 
 	// Reserve parts for repair planning
-	const reservePartsForRepair = useCallback(async (
-		partId: string,
-		repairId: string,
-		quantity: number,
-		userId: string,
-		durationHours: number = 24,
-		notes?: string
-	) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+	const reservePartsForRepair = useCallback(
+		async (
+			partId: string,
+			repairId: string,
+			quantity: number,
+			userId: string,
+			durationHours = 24,
+			notes?: string,
+		) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
 
-		try {
-			const { data, error } = await supabase.rpc('reserve_parts_for_repair', {
-				p_part_id: partId,
-				p_repair_id: repairId,
-				p_quantity: quantity,
-				p_reserved_by: userId,
-				p_duration_hours: durationHours
-			});
+			try {
+				const { data, error } = await supabase.rpc("reserve_parts_for_repair", {
+					p_part_id: partId,
+					p_repair_id: repairId,
+					p_quantity: quantity,
+					p_reserved_by: userId,
+					p_duration_hours: durationHours,
+				});
 
-			if (error) throw error;
+				if (error) throw error;
 
-			// Insert additional notes if provided
-			if (notes && data) {
-				await supabase
-					.from("parts_reservations")
-					.update({ notes })
-					.eq("id", data);
+				// Insert additional notes if provided
+				if (notes && data) {
+					await supabase
+						.from("parts_reservations")
+						.update({ notes })
+						.eq("id", data);
+				}
+
+				setState((prev) => ({ ...prev, loading: false }));
+				return data; // Returns reservation ID
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
 			}
-
-			setState(prev => ({ ...prev, loading: false }));
-			return data; // Returns reservation ID
-
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, []);
+		},
+		[],
+	);
 
 	// Confirm parts reservation and update stock
-	const confirmPartsReservation = useCallback(async (
-		reservationId: string,
-		userId: string
-	) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+	const confirmPartsReservation = useCallback(
+		async (reservationId: string, userId: string) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
 
-		try {
-			const { data, error } = await supabase.rpc('confirm_parts_reservation', {
-				p_reservation_id: reservationId,
-				p_confirmed_by: userId
-			});
+			try {
+				const { data, error } = await supabase.rpc(
+					"confirm_parts_reservation",
+					{
+						p_reservation_id: reservationId,
+						p_confirmed_by: userId,
+					},
+				);
 
-			if (error) throw error;
+				if (error) throw error;
 
-			setState(prev => ({ ...prev, loading: false }));
-			return data;
-
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, []);
+				setState((prev) => ({ ...prev, loading: false }));
+				return data;
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
+			}
+		},
+		[],
+	);
 
 	// Cancel parts reservation
-	const cancelPartsReservation = useCallback(async (
-		reservationId: string,
-		userId: string
-	) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+	const cancelPartsReservation = useCallback(
+		async (reservationId: string, userId: string) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
 
-		try {
-			const { data, error } = await supabase.rpc('cancel_parts_reservation', {
-				p_reservation_id: reservationId,
-				p_cancelled_by: userId
-			});
+			try {
+				const { data, error } = await supabase.rpc("cancel_parts_reservation", {
+					p_reservation_id: reservationId,
+					p_cancelled_by: userId,
+				});
 
-			if (error) throw error;
+				if (error) throw error;
 
-			setState(prev => ({ ...prev, loading: false }));
-			return data;
-
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, []);
+				setState((prev) => ({ ...prev, loading: false }));
+				return data;
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
+			}
+		},
+		[],
+	);
 
 	// Get available stock considering reservations
 	const getAvailableStock = useCallback(async (partId: string) => {
 		try {
-			const { data, error } = await supabase.rpc('get_available_stock', {
-				part_uuid: partId
+			const { data, error } = await supabase.rpc("get_available_stock", {
+				part_uuid: partId,
 			});
 
 			if (error) throw error;
 			return data as number;
-
 		} catch (error) {
 			console.error("Error getting available stock:", error);
 			throw error;
@@ -473,7 +493,7 @@ export function usePartsManagement() {
 
 	// Get all active reservations
 	const getActiveReservations = useCallback(async () => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
+		setState((prev) => ({ ...prev, loading: true, error: null }));
 
 		try {
 			const { data, error } = await supabase
@@ -488,81 +508,82 @@ export function usePartsManagement() {
 
 			if (error) throw error;
 
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				loading: false,
-				activeReservations: data || []
+				activeReservations: data || [],
 			}));
 
 			return data || [];
-
 		} catch (error) {
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				loading: false,
-				error: error as Error
+				error: error as Error,
 			}));
 			throw error;
 		}
 	}, []);
 
 	// Get inventory transactions for audit trail
-	const getInventoryTransactions = useCallback(async (
-		partId?: string,
-		limit: number = 50
-	) => {
-		let query = supabase
-			.from("inventory_transactions")
-			.select(`
+	const getInventoryTransactions = useCallback(
+		async (partId?: string, limit = 50) => {
+			let query = supabase
+				.from("inventory_transactions")
+				.select(`
 				*,
 				part:parts(name, part_number),
 				performer:user_profiles(full_name)
 			`)
-			.order("created_at", { ascending: false })
-			.limit(limit);
+				.order("created_at", { ascending: false })
+				.limit(limit);
 
-		if (partId) {
-			query = query.eq("part_id", partId);
-		}
-
-		const { data, error } = await query;
-
-		if (error) throw error;
-		return data;
-	}, []);
-
-	// Enhanced addPartsToRepair with reservation confirmation
-	const addPartsToRepairWithReservation = useCallback(async (
-		repairId: string,
-		parts: PartUsage[],
-		userId: string,
-		reservationIds?: string[]
-	) => {
-		setState(prev => ({ ...prev, loading: true, error: null }));
-
-		try {
-			// If reservation IDs provided, confirm them first
-			if (reservationIds && reservationIds.length > 0) {
-				for (const reservationId of reservationIds) {
-					await confirmPartsReservation(reservationId, userId);
-				}
-			} else {
-				// Use the original addPartsToRepair method
-				await addPartsToRepair(repairId, parts, userId);
+			if (partId) {
+				query = query.eq("part_id", partId);
 			}
 
-			setState(prev => ({ ...prev, loading: false }));
-			return true;
+			const { data, error } = await query;
 
-		} catch (error) {
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: error as Error
-			}));
-			throw error;
-		}
-	}, [addPartsToRepair, confirmPartsReservation]);
+			if (error) throw error;
+			return data;
+		},
+		[],
+	);
+
+	// Enhanced addPartsToRepair with reservation confirmation
+	const addPartsToRepairWithReservation = useCallback(
+		async (
+			repairId: string,
+			parts: PartUsage[],
+			userId: string,
+			reservationIds?: string[],
+		) => {
+			setState((prev) => ({ ...prev, loading: true, error: null }));
+
+			try {
+				// If reservation IDs provided, confirm them first
+				if (reservationIds && reservationIds.length > 0) {
+					for (const reservationId of reservationIds) {
+						await confirmPartsReservation(reservationId, userId);
+					}
+				} else {
+					// Use the original addPartsToRepair method
+					await addPartsToRepair(repairId, parts, userId);
+				}
+
+				setState((prev) => ({ ...prev, loading: false }));
+				return true;
+			} catch (error) {
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: error as Error,
+				}));
+				throw error;
+			}
+		},
+		[addPartsToRepair, confirmPartsReservation],
+	);
 
 	// Load initial data
 	useEffect(() => {
@@ -571,7 +592,7 @@ export function usePartsManagement() {
 				await Promise.all([
 					getLowStockParts(),
 					calculateInventoryValue(),
-					getActiveReservations()
+					getActiveReservations(),
 				]);
 			} catch (error) {
 				console.error("Failed to load initial parts data:", error);
@@ -599,7 +620,7 @@ export function usePartsManagement() {
 		getRepairReservations,
 		getActiveReservations,
 		getInventoryTransactions,
-		addPartsToRepairWithReservation
+		addPartsToRepairWithReservation,
 	};
 }
 
@@ -607,20 +628,20 @@ export function usePartsManagement() {
 async function logPartsUsage(
 	repairId: string,
 	parts: PartUsage[],
-	userId: string
+	userId: string,
 ) {
-	const partsList = parts.map(p => `${p.quantity_used}x part_${p.part_id}`).join(", ");
+	const partsList = parts
+		.map((p) => `${p.quantity_used}x part_${p.part_id}`)
+		.join(", ");
 
-	const { error } = await supabase
-		.from("repair_status_logs")
-		.insert({
-			repair_id: repairId,
-			old_status: null,
-			new_status: null,
-			notes: `Sử dụng linh kiện: ${partsList}`,
-			changed_by: userId,
-			created_at: new Date().toISOString()
-		});
+	const { error } = await supabase.from("repair_status_logs").insert({
+		repair_id: repairId,
+		old_status: null,
+		new_status: null,
+		notes: `Sử dụng linh kiện: ${partsList}`,
+		changed_by: userId,
+		created_at: new Date().toISOString(),
+	});
 
 	if (error) {
 		console.error("Failed to log parts usage:", error);
@@ -633,7 +654,7 @@ async function logStockUpdate(
 	newQuantity: number,
 	cost: number,
 	userId: string,
-	notes?: string
+	notes?: string,
 ) {
 	// Get part details for notifications
 	const { data: part } = await supabase
@@ -648,7 +669,9 @@ async function logStockUpdate(
 		// Check if we need to send low stock notifications
 		if (newQuantity <= minStock && newQuantity > 0) {
 			// Low stock notification
-			console.log(`Low stock notification for ${part.name}: ${newQuantity} remaining`);
+			console.log(
+				`Low stock notification for ${part.name}: ${newQuantity} remaining`,
+			);
 		} else if (newQuantity === 0) {
 			// Out of stock notification
 			console.log(`Out of stock notification for ${part.name}`);
@@ -656,5 +679,7 @@ async function logStockUpdate(
 	}
 
 	// Log the stock update
-	console.log(`Stock update logged: Part ${partId}, Quantity: ${newQuantity}, Cost: ${cost}, User: ${userId}, Notes: ${notes}`);
+	console.log(
+		`Stock update logged: Part ${partId}, Quantity: ${newQuantity}, Cost: ${cost}, User: ${userId}, Notes: ${notes}`,
+	);
 }

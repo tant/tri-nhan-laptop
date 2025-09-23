@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { WifiOff, Wifi, RefreshCw } from "lucide-react";
+import { RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export function NetworkStatus() {
 	const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -25,8 +25,8 @@ export function NetworkStatus() {
 			setWasOffline(true);
 		};
 
-		window.addEventListener('online', handleOnline);
-		window.addEventListener('offline', handleOffline);
+		window.addEventListener("online", handleOnline);
+		window.addEventListener("offline", handleOffline);
 
 		// Show offline message if starting offline
 		if (!navigator.onLine) {
@@ -35,8 +35,8 @@ export function NetworkStatus() {
 		}
 
 		return () => {
-			window.removeEventListener('online', handleOnline);
-			window.removeEventListener('offline', handleOffline);
+			window.removeEventListener("online", handleOnline);
+			window.removeEventListener("offline", handleOffline);
 		};
 	}, [wasOffline]);
 
@@ -58,7 +58,8 @@ export function NetworkStatus() {
 					<AlertDescription className="space-y-2">
 						<div className="font-medium">Mất kết nối mạng</div>
 						<p className="text-sm">
-							Không thể kết nối đến internet. Một số tính năng có thể không hoạt động.
+							Không thể kết nối đến internet. Một số tính năng có thể không hoạt
+							động.
 						</p>
 						<div className="flex gap-2">
 							<Button size="sm" variant="outline" onClick={handleRetry}>
@@ -77,7 +78,8 @@ export function NetworkStatus() {
 					<AlertDescription className="space-y-2">
 						<div className="font-medium text-green-800">Đã kết nối lại</div>
 						<p className="text-sm text-green-700">
-							Kết nối mạng đã được khôi phục. Tất cả tính năng hoạt động bình thường.
+							Kết nối mạng đã được khôi phục. Tất cả tính năng hoạt động bình
+							thường.
 						</p>
 						<Button size="sm" variant="ghost" onClick={handleDismiss}>
 							Đóng
@@ -97,12 +99,12 @@ export function useNetworkStatus() {
 		const handleOnline = () => setIsOnline(true);
 		const handleOffline = () => setIsOnline(false);
 
-		window.addEventListener('online', handleOnline);
-		window.addEventListener('offline', handleOffline);
+		window.addEventListener("online", handleOnline);
+		window.addEventListener("offline", handleOffline);
 
 		return () => {
-			window.removeEventListener('online', handleOnline);
-			window.removeEventListener('offline', handleOffline);
+			window.removeEventListener("online", handleOnline);
+			window.removeEventListener("offline", handleOffline);
 		};
 	}, []);
 

@@ -1,15 +1,15 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SupabaseErrorAlert } from "@/components/error-boundary";
+import { RepairDetailsModal } from "@/components/repairs/RepairDetailsModal";
+import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
-import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, RefreshCw, ArrowUpDown, Eye, Edit, Package } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
-import { RepairDetailsModal } from "@/components/repairs/RepairDetailsModal";
+import type { ColumnDef } from "@tanstack/react-table";
+import { ArrowUpDown, Edit, Eye, Package, Plus, RefreshCw } from "lucide-react";
+import { useEffect, useState } from "react";
 // Workflow components temporarily disabled for Phase 3 development
 
 // Database types
@@ -28,7 +28,8 @@ export function RepairTicketsPage() {
 	const [repairs, setRepairs] = useState<RepairWithDetails[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
-	const [selectedRepair, setSelectedRepair] = useState<RepairWithDetails | null>(null);
+	const [selectedRepair, setSelectedRepair] =
+		useState<RepairWithDetails | null>(null);
 	const [isRepairDetailsOpen, setIsRepairDetailsOpen] = useState(false);
 	// const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 	// const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
@@ -98,7 +99,7 @@ export function RepairTicketsPage() {
 					console.log("Repair change detected:", payload);
 					// Refetch data when changes occur
 					fetchRepairs();
-				}
+				},
 			)
 			.subscribe();
 
@@ -110,25 +111,58 @@ export function RepairTicketsPage() {
 	// Status badge mapping
 	const getStatusBadge = (status: RepairTicket["status"]) => {
 		const statusMap = {
-			device_received: { label: "Tiếp nhận thiết bị", variant: "outline" as const },
-			preliminary_inspection: { label: "Kiểm tra sơ bộ", variant: "secondary" as const },
-			awaiting_repair_plan: { label: "Chờ phương án sửa chữa", variant: "secondary" as const },
-			approved_for_repair: { label: "Đã phê duyệt sửa chữa", variant: "default" as const },
+			device_received: {
+				label: "Tiếp nhận thiết bị",
+				variant: "outline" as const,
+			},
+			preliminary_inspection: {
+				label: "Kiểm tra sơ bộ",
+				variant: "secondary" as const,
+			},
+			awaiting_repair_plan: {
+				label: "Chờ phương án sửa chữa",
+				variant: "secondary" as const,
+			},
+			approved_for_repair: {
+				label: "Đã phê duyệt sửa chữa",
+				variant: "default" as const,
+			},
 			in_diagnosis: { label: "Đang chẩn đoán", variant: "default" as const },
-			waiting_parts: { label: "Chờ linh kiện", variant: "destructive" as const },
+			waiting_parts: {
+				label: "Chờ linh kiện",
+				variant: "destructive" as const,
+			},
 			in_repair: { label: "Đang sửa chữa", variant: "default" as const },
-			quality_testing: { label: "Kiểm tra chất lượng", variant: "default" as const },
+			quality_testing: {
+				label: "Kiểm tra chất lượng",
+				variant: "default" as const,
+			},
 			ready_for_pickup: { label: "Sẵn sàng nhận", variant: "default" as const },
 			completed: { label: "Hoàn thành", variant: "default" as const },
-			cannot_repair: { label: "Không thể sửa", variant: "destructive" as const },
-			cancelled_by_customer: { label: "Khách hàng hủy", variant: "destructive" as const },
-			repair_failed: { label: "Sửa chữa thất bại", variant: "destructive" as const },
-			customer_no_show: { label: "Khách không đến", variant: "destructive" as const },
+			cannot_repair: {
+				label: "Không thể sửa",
+				variant: "destructive" as const,
+			},
+			cancelled_by_customer: {
+				label: "Khách hàng hủy",
+				variant: "destructive" as const,
+			},
+			repair_failed: {
+				label: "Sửa chữa thất bại",
+				variant: "destructive" as const,
+			},
+			customer_no_show: {
+				label: "Khách không đến",
+				variant: "destructive" as const,
+			},
 			ready_for_return: { label: "Sẵn sàng trả", variant: "outline" as const },
 			abandoned: { label: "Bỏ qua", variant: "destructive" as const },
 		};
 
-		const statusInfo = statusMap[status] || { label: status, variant: "outline" as const };
+		const statusInfo = statusMap[status] || {
+			label: status,
+			variant: "outline" as const,
+		};
 		return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
 	};
 
@@ -141,7 +175,10 @@ export function RepairTicketsPage() {
 			urgent: { label: "Khẩn cấp", variant: "destructive" as const },
 		};
 
-		const priorityInfo = priorityMap[priority] || { label: priority, variant: "outline" as const };
+		const priorityInfo = priorityMap[priority] || {
+			label: priority,
+			variant: "outline" as const,
+		};
 		return <Badge variant={priorityInfo.variant}>{priorityInfo.label}</Badge>;
 	};
 
@@ -177,7 +214,9 @@ export function RepairTicketsPage() {
 				</Button>
 			),
 			cell: ({ row }) => (
-				<div className="font-medium">{row.getValue("ticket_number") || `#${row.original.id.slice(0, 8)}`}</div>
+				<div className="font-medium">
+					{row.getValue("ticket_number") || `#${row.original.id.slice(0, 8)}`}
+				</div>
 			),
 		},
 		{
@@ -188,7 +227,9 @@ export function RepairTicketsPage() {
 				return (
 					<div>
 						<div className="font-medium">{customer.full_name}</div>
-						<div className="text-sm text-muted-foreground">{customer.phone}</div>
+						<div className="text-sm text-muted-foreground">
+							{customer.phone}
+						</div>
 					</div>
 				);
 			},
@@ -201,7 +242,9 @@ export function RepairTicketsPage() {
 				return (
 					<div>
 						<div className="font-medium">{deviceInfo.brand}</div>
-						<div className="text-sm text-muted-foreground">{deviceInfo.model}</div>
+						<div className="text-sm text-muted-foreground">
+							{deviceInfo.model}
+						</div>
 					</div>
 				);
 			},
@@ -210,7 +253,9 @@ export function RepairTicketsPage() {
 			accessorKey: "issue_description",
 			header: "Sự cố",
 			cell: ({ row }) => (
-				<div className="max-w-xs truncate">{row.getValue("issue_description")}</div>
+				<div className="max-w-xs truncate">
+					{row.getValue("issue_description")}
+				</div>
 			),
 		},
 		{
@@ -311,12 +356,10 @@ export function RepairTicketsPage() {
 			<div className="flex justify-between items-center">
 				<h1 className="text-3xl font-bold">Quản lý phiếu sửa chữa</h1>
 				<div className="flex gap-2">
-					<Button
-						variant="outline"
-						onClick={fetchRepairs}
-						disabled={loading}
-					>
-						<RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+					<Button variant="outline" onClick={fetchRepairs} disabled={loading}>
+						<RefreshCw
+							className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+						/>
 						Làm mới
 					</Button>
 					<Button>
@@ -338,9 +381,7 @@ export function RepairTicketsPage() {
 			<div className="grid gap-4 md:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Tổng phiếu
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Tổng phiếu</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">{repairs.length}</div>
@@ -348,25 +389,21 @@ export function RepairTicketsPage() {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Đang sửa chữa
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Đang sửa chữa</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{repairs.filter(r => r.status === "in_progress").length}
+							{repairs.filter((r) => r.status === "in_progress").length}
 						</div>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Chờ linh kiện
-						</CardTitle>
+						<CardTitle className="text-sm font-medium">Chờ linh kiện</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{repairs.filter(r => r.status === "waiting_parts").length}
+							{repairs.filter((r) => r.status === "waiting_parts").length}
 						</div>
 					</CardContent>
 				</Card>
@@ -378,11 +415,15 @@ export function RepairTicketsPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{repairs.filter(r =>
-								r.status === "completed" &&
-								r.completed_at &&
-								new Date(r.completed_at).toDateString() === new Date().toDateString()
-							).length}
+							{
+								repairs.filter(
+									(r) =>
+										r.status === "completed" &&
+										r.completed_at &&
+										new Date(r.completed_at).toDateString() ===
+											new Date().toDateString(),
+								).length
+							}
 						</div>
 					</CardContent>
 				</Card>

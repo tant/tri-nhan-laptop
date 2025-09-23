@@ -1,13 +1,13 @@
+import { supabase } from "@/lib/supabase";
+import type { Database } from "@/lib/supabase";
+import type { Session, User } from "@supabase/supabase-js";
 import {
+	type ReactNode,
 	createContext,
 	useContext,
 	useEffect,
 	useState,
-	type ReactNode,
 } from "react";
-import { supabase } from "@/lib/supabase";
-import type { User, Session } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase";
 
 // Define user profile type from database
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
@@ -85,7 +85,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			console.error("Sign out error:", error);
 		}
 	};
-
 
 	// Check if user has specific role
 	const isRole = (role: UserProfile["role"]): boolean => {
@@ -203,4 +202,3 @@ export function RequireRole({
 
 	return <>{children}</>;
 }
-

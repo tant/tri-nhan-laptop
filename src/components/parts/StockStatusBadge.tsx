@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Package, TrendingDown } from "lucide-react";
 import type { Database } from "@/lib/supabase";
+import { AlertTriangle, Package, TrendingDown } from "lucide-react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
@@ -9,7 +9,10 @@ interface StockStatusBadgeProps {
 	showIcon?: boolean;
 }
 
-export function StockStatusBadge({ part, showIcon = true }: StockStatusBadgeProps) {
+export function StockStatusBadge({
+	part,
+	showIcon = true,
+}: StockStatusBadgeProps) {
 	const minStock = part.min_stock_level || 5;
 	const currentStock = part.current_stock;
 
@@ -56,7 +59,7 @@ export function getStockStatusInfo(part: Part) {
 			label: "Hết hàng",
 			variant: "destructive" as const,
 			icon: AlertTriangle,
-			priority: 3
+			priority: 3,
 		};
 	} else if (currentStock <= minStock) {
 		return {
@@ -64,7 +67,7 @@ export function getStockStatusInfo(part: Part) {
 			label: "Sắp hết",
 			variant: "outline" as const,
 			icon: TrendingDown,
-			priority: 2
+			priority: 2,
 		};
 	} else {
 		return {
@@ -72,7 +75,7 @@ export function getStockStatusInfo(part: Part) {
 			label: "Còn hàng",
 			variant: "secondary" as const,
 			icon: Package,
-			priority: 1
+			priority: 1,
 		};
 	}
 }

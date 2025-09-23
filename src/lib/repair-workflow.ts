@@ -20,10 +20,15 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 	device_received: {
 		status: "device_received",
 		allowedTransitions: ["preliminary_inspection", "cancelled_by_customer"],
-		requiredFields: ["customer_id", "device_type", "device_model", "issue_description"],
+		requiredFields: [
+			"customer_id",
+			"device_type",
+			"device_model",
+			"issue_description",
+		],
 		autoActions: ["generate_ticket_number", "log_status_change"],
 		userMessage: "Phiếu đã được tiếp nhận và đang chờ chẩn đoán",
-		technicalDescription: "Initial state when repair request is received"
+		technicalDescription: "Initial state when repair request is received",
 	},
 	preliminary_inspection: {
 		status: "preliminary_inspection",
@@ -31,38 +36,56 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 		requiredFields: ["diagnosis", "estimated_cost"],
 		autoActions: ["log_status_change", "notify_customer_estimate"],
 		userMessage: "Đã chẩn đoán xong, chờ xác nhận sửa chữa",
-		technicalDescription: "Diagnosis completed, waiting for customer approval"
+		technicalDescription: "Diagnosis completed, waiting for customer approval",
 	},
 	waiting_parts: {
 		status: "waiting_parts",
 		allowedTransitions: ["in_repair", "cancelled_by_customer"],
 		requiredFields: ["required_parts"],
-		autoActions: ["log_status_change", "notify_customer_delay", "check_parts_availability"],
+		autoActions: [
+			"log_status_change",
+			"notify_customer_delay",
+			"check_parts_availability",
+		],
 		userMessage: "Đang chờ linh kiện để tiến hành sửa chữa",
-		technicalDescription: "Waiting for required parts to arrive"
+		technicalDescription: "Waiting for required parts to arrive",
 	},
 	in_repair: {
 		status: "in_repair",
 		allowedTransitions: ["quality_testing", "waiting_parts", "repair_failed"],
 		requiredFields: ["technician_id"],
-		autoActions: ["log_status_change", "notify_customer_progress", "start_timer", "update_parts_cost"],
+		autoActions: [
+			"log_status_change",
+			"notify_customer_progress",
+			"start_timer",
+			"update_parts_cost",
+		],
 		userMessage: "Đang trong quá trình sửa chữa",
-		technicalDescription: "Actively being repaired by technician"
+		technicalDescription: "Actively being repaired by technician",
 	},
 	quality_testing: {
 		status: "quality_testing",
 		allowedTransitions: ["ready_for_pickup", "repair_failed"],
 		requiredFields: ["actual_cost", "work_performed", "completed_at"],
-		autoActions: ["log_status_change", "calculate_final_cost", "update_parts_cost", "quality_check"],
+		autoActions: [
+			"log_status_change",
+			"calculate_final_cost",
+			"update_parts_cost",
+			"quality_check",
+		],
 		userMessage: "Sửa chữa hoàn tất, đang chuẩn bị giao hàng",
-		technicalDescription: "Repair work completed, ready for quality check"
+		technicalDescription: "Repair work completed, ready for quality check",
 	},
 	ready_for_pickup: {
 		status: "ready_for_pickup",
 		allowedTransitions: ["completed", "customer_no_show"],
-		autoActions: ["log_status_change", "notify_customer_ready", "prepare_invoice"],
+		autoActions: [
+			"log_status_change",
+			"notify_customer_ready",
+			"prepare_invoice",
+		],
 		userMessage: "Thiết bị đã sẵn sàng để khách hàng nhận",
-		technicalDescription: "Ready for customer pickup"
+		technicalDescription: "Ready for customer pickup",
 	},
 	completed: {
 		status: "completed",
@@ -70,15 +93,19 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 		requiredFields: ["delivered_at", "delivered_to"],
 		autoActions: ["log_status_change", "close_ticket", "request_feedback"],
 		userMessage: "Đã giao thiết bị cho khách hàng",
-		technicalDescription: "Final state - device delivered to customer"
+		technicalDescription: "Final state - device delivered to customer",
 	},
 	cancelled_by_customer: {
 		status: "cancelled_by_customer",
 		allowedTransitions: [],
 		requiredFields: ["cancellation_reason"],
-		autoActions: ["log_status_change", "refund_deposit", "notify_customer_cancellation"],
+		autoActions: [
+			"log_status_change",
+			"refund_deposit",
+			"notify_customer_cancellation",
+		],
 		userMessage: "Phiếu sửa chữa đã bị hủy",
-		technicalDescription: "Repair cancelled at any stage"
+		technicalDescription: "Repair cancelled at any stage",
 	},
 	awaiting_repair_plan: {
 		status: "awaiting_repair_plan",
@@ -86,7 +113,7 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 		requiredFields: ["repair_plan", "estimated_cost"],
 		autoActions: ["log_status_change", "notify_customer_plan"],
 		userMessage: "Đang chờ khách hàng xác nhận phương án sửa chữa",
-		technicalDescription: "Waiting for customer approval of repair plan"
+		technicalDescription: "Waiting for customer approval of repair plan",
 	},
 	approved_for_repair: {
 		status: "approved_for_repair",
@@ -94,14 +121,14 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 		requiredFields: ["customer_approval"],
 		autoActions: ["log_status_change"],
 		userMessage: "Khách hàng đã xác nhận sửa chữa",
-		technicalDescription: "Customer approved repair plan"
+		technicalDescription: "Customer approved repair plan",
 	},
 	in_diagnosis: {
 		status: "in_diagnosis",
 		allowedTransitions: ["waiting_parts", "in_repair", "cannot_repair"],
 		autoActions: ["log_status_change"],
 		userMessage: "Đang chẩn đoán chi tiết",
-		technicalDescription: "Detailed diagnosis in progress"
+		technicalDescription: "Detailed diagnosis in progress",
 	},
 	cannot_repair: {
 		status: "cannot_repair",
@@ -109,7 +136,7 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 		requiredFields: ["cannot_repair_reason"],
 		autoActions: ["log_status_change", "notify_customer_cannot_repair"],
 		userMessage: "Không thể sửa chữa thiết bị",
-		technicalDescription: "Device cannot be repaired"
+		technicalDescription: "Device cannot be repaired",
 	},
 	repair_failed: {
 		status: "repair_failed",
@@ -117,72 +144,78 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 		requiredFields: ["failure_reason"],
 		autoActions: ["log_status_change"],
 		userMessage: "Sửa chữa gặp khó khăn",
-		technicalDescription: "Repair encountered issues"
+		technicalDescription: "Repair encountered issues",
 	},
 	customer_no_show: {
 		status: "customer_no_show",
 		allowedTransitions: ["ready_for_pickup", "abandoned"],
 		autoActions: ["log_status_change", "notify_customer_reminder"],
 		userMessage: "Chờ khách hàng liên hệ",
-		technicalDescription: "Customer has not picked up device"
+		technicalDescription: "Customer has not picked up device",
 	},
 	ready_for_return: {
 		status: "ready_for_return",
 		allowedTransitions: ["completed", "abandoned"],
 		autoActions: ["log_status_change"],
 		userMessage: "Sẵn sàng trả máy",
-		technicalDescription: "Device ready to be returned"
+		technicalDescription: "Device ready to be returned",
 	},
 	abandoned: {
 		status: "abandoned",
 		allowedTransitions: [],
 		autoActions: ["log_status_change", "dispose_device"],
 		userMessage: "Liên hệ để nhận máy",
-		technicalDescription: "Device abandoned by customer"
-	}
+		technicalDescription: "Device abandoned by customer",
+	},
 };
 
 // Priority levels with business rules
-export const PRIORITY_LEVELS: Record<RepairPriority, {
-	label: string;
-	color: string;
-	maxDays: number;
-	requiredApproval: boolean;
-	description: string;
-}> = {
+export const PRIORITY_LEVELS: Record<
+	RepairPriority,
+	{
+		label: string;
+		color: string;
+		maxDays: number;
+		requiredApproval: boolean;
+		description: string;
+	}
+> = {
 	low: {
 		label: "Thấp",
 		color: "text-gray-600",
 		maxDays: 14,
 		requiredApproval: false,
-		description: "Sửa chữa thông thường, không cấp bách"
+		description: "Sửa chữa thông thường, không cấp bách",
 	},
 	normal: {
 		label: "Bình thường",
 		color: "text-blue-600",
 		maxDays: 7,
 		requiredApproval: false,
-		description: "Sửa chữa ưu tiên trung bình"
+		description: "Sửa chữa ưu tiên trung bình",
 	},
 	high: {
 		label: "Cao",
 		color: "text-orange-600",
 		maxDays: 3,
 		requiredApproval: true,
-		description: "Cần hoàn thành trong thời gian ngắn"
+		description: "Cần hoàn thành trong thời gian ngắn",
 	},
 	urgent: {
 		label: "Khẩn cấp",
 		color: "text-red-600",
 		maxDays: 1,
 		requiredApproval: true,
-		description: "Cần xử lý ngay lập tức"
-	}
+		description: "Cần xử lý ngay lập tức",
+	},
 };
 
 // Workflow validation functions
 export class RepairWorkflowValidator {
-	static canTransitionTo(currentStatus: RepairStatus, targetStatus: RepairStatus): boolean {
+	static canTransitionTo(
+		currentStatus: RepairStatus,
+		targetStatus: RepairStatus,
+	): boolean {
 		const currentState = REPAIR_WORKFLOW[currentStatus];
 		return currentState.allowedTransitions.includes(targetStatus);
 	}
@@ -194,7 +227,7 @@ export class RepairWorkflowValidator {
 	static validateTransition(
 		currentStatus: RepairStatus,
 		targetStatus: RepairStatus,
-		repairData: any
+		repairData: any,
 	): { valid: boolean; errors: string[] } {
 		const errors: string[] = [];
 
@@ -207,7 +240,9 @@ export class RepairWorkflowValidator {
 		const requiredFields = this.getRequiredFields(targetStatus);
 		for (const field of requiredFields) {
 			if (!repairData[field] || repairData[field] === "") {
-				errors.push(`Trường ${field} là bắt buộc cho trạng thái ${targetStatus}`);
+				errors.push(
+					`Trường ${field} là bắt buộc cho trạng thái ${targetStatus}`,
+				);
 			}
 		}
 
@@ -222,7 +257,7 @@ export class RepairWorkflowValidator {
 
 		return {
 			valid: errors.length === 0,
-			errors
+			errors,
 		};
 	}
 
@@ -237,7 +272,7 @@ export class RepairWorkflowValidator {
 			label: this.getVietnameseStatusLabel(status),
 			message: state.userMessage,
 			technical: state.technicalDescription,
-			nextSteps: state.allowedTransitions
+			nextSteps: state.allowedTransitions,
 		};
 	}
 
@@ -258,7 +293,7 @@ export class RepairWorkflowValidator {
 			repair_failed: "Sửa chữa gặp khó khăn",
 			customer_no_show: "Chờ khách hàng liên hệ",
 			ready_for_return: "Sẵn sàng trả máy",
-			abandoned: "Liên hệ để nhận máy"
+			abandoned: "Liên hệ để nhận máy",
 		};
 		return labels[status];
 	}
@@ -270,7 +305,7 @@ export class RepairWorkflowActions {
 		status: RepairStatus,
 		repairId: string,
 		repairData: any,
-		userId: string
+		userId: string,
 	): Promise<void> {
 		const actions = REPAIR_WORKFLOW[status].autoActions || [];
 
@@ -288,7 +323,7 @@ export class RepairWorkflowActions {
 		action: string,
 		repairId: string,
 		repairData: any,
-		userId: string
+		userId: string,
 	): Promise<void> {
 		switch (action) {
 			case "generate_ticket_number":
@@ -334,26 +369,33 @@ export class RepairWorkflowActions {
 		}
 	}
 
-	private static async logStatusChange(repairId: string, repairData: any, userId: string): Promise<void> {
+	private static async logStatusChange(
+		repairId: string,
+		repairData: any,
+		userId: string,
+	): Promise<void> {
 		const { supabase } = await import("@/lib/supabase");
 
-		const { error } = await supabase
-			.from("repair_status_logs")
-			.insert({
-				repair_id: repairId,
-				old_status: repairData.previousStatus || null,
-				new_status: repairData.status,
-				notes: repairData.notes || REPAIR_WORKFLOW[repairData.status as RepairStatus].userMessage,
-				changed_by: userId,
-				created_at: new Date().toISOString()
-			});
+		const { error } = await supabase.from("repair_status_logs").insert({
+			repair_id: repairId,
+			old_status: repairData.previousStatus || null,
+			new_status: repairData.status,
+			notes:
+				repairData.notes ||
+				REPAIR_WORKFLOW[repairData.status as RepairStatus].userMessage,
+			changed_by: userId,
+			created_at: new Date().toISOString(),
+		});
 
 		if (error) {
 			console.error("Failed to log status change:", error);
 		}
 	}
 
-	private static async sendCustomerNotification(action: string, repairData: any): Promise<void> {
+	private static async sendCustomerNotification(
+		action: string,
+		repairData: any,
+	): Promise<void> {
 		// Implementation will be in notification system
 		console.log(`Sending notification ${action} for repair`, repairData);
 	}
@@ -368,7 +410,10 @@ export class RepairWorkflowActions {
 		console.log(`Starting timer for repair ${repairId}`);
 	}
 
-	private static async calculateFinalCost(repairId: string, repairData: any): Promise<void> {
+	private static async calculateFinalCost(
+		repairId: string,
+		repairData: any,
+	): Promise<void> {
 		// Implementation will calculate final cost including parts and labor
 		console.log(`Calculating final cost for repair ${repairId}`, repairData);
 	}
@@ -378,7 +423,10 @@ export class RepairWorkflowActions {
 		console.log(`Scheduling quality check for repair ${repairId}`);
 	}
 
-	private static async prepareInvoice(repairId: string, repairData: any): Promise<void> {
+	private static async prepareInvoice(
+		repairId: string,
+		repairData: any,
+	): Promise<void> {
 		// Implementation will generate invoice
 		console.log(`Preparing invoice for repair ${repairId}`, repairData);
 	}
@@ -393,12 +441,18 @@ export class RepairWorkflowActions {
 		console.log(`Requesting feedback for repair`, repairData);
 	}
 
-	private static async processRefund(repairId: string, repairData: any): Promise<void> {
+	private static async processRefund(
+		repairId: string,
+		repairData: any,
+	): Promise<void> {
 		// Implementation will process refund
 		console.log(`Processing refund for repair ${repairId}`, repairData);
 	}
 
-	private static async updatePartsCost(repairId: string, _repairData: any): Promise<void> {
+	private static async updatePartsCost(
+		repairId: string,
+		_repairData: any,
+	): Promise<void> {
 		try {
 			const { supabase } = await import("@/lib/supabase");
 
@@ -413,14 +467,17 @@ export class RepairWorkflowActions {
 				return;
 			}
 
-			const totalPartsCost = (partsCosts || []).reduce((sum, item) => sum + (item.total_cost || 0), 0);
+			const totalPartsCost = (partsCosts || []).reduce(
+				(sum, item) => sum + (item.total_cost || 0),
+				0,
+			);
 
 			// Update repair with parts cost
 			const { error: updateError } = await supabase
 				.from("repairs")
 				.update({
 					parts_cost: totalPartsCost,
-					updated_at: new Date().toISOString()
+					updated_at: new Date().toISOString(),
 				})
 				.eq("id", repairId);
 
@@ -428,7 +485,9 @@ export class RepairWorkflowActions {
 				console.error("Failed to update parts cost:", updateError);
 			}
 
-			console.log(`Updated parts cost for repair ${repairId}: ${totalPartsCost}`);
+			console.log(
+				`Updated parts cost for repair ${repairId}: ${totalPartsCost}`,
+			);
 		} catch (error) {
 			console.error("Error in updatePartsCost:", error);
 		}
@@ -437,7 +496,7 @@ export class RepairWorkflowActions {
 
 // Ticket number generator
 export class TicketNumberGenerator {
-	static async generateTicketNumber(locationCode: string = "TNL"): Promise<string> {
+	static async generateTicketNumber(locationCode = "TNL"): Promise<string> {
 		const { supabase } = await import("@/lib/supabase");
 
 		const today = new Date();
@@ -463,7 +522,7 @@ export class TicketNumberGenerator {
 			// Extract sequence number from last ticket
 			const parts = lastTicket.ticket_number.split("-");
 			if (parts.length === 3) {
-				const lastSequence = parseInt(parts[2], 10);
+				const lastSequence = Number.parseInt(parts[2], 10);
 				if (!isNaN(lastSequence)) {
 					sequence = lastSequence + 1;
 				}

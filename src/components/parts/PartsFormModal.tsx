@@ -1,17 +1,30 @@
-import { useState, useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { AlertTriangle, Package, Plus, X, Save, FileEdit } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
+import { AlertTriangle, FileEdit, Package, Plus, Save, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
@@ -41,22 +54,52 @@ interface PartFormData {
 }
 
 const PART_CATEGORIES = [
-	"Memory", "Storage", "Display", "Battery", "Cooling", "Input",
-	"Power", "Network", "Audio", "Motherboard", "CPU", "Graphics"
+	"Memory",
+	"Storage",
+	"Display",
+	"Battery",
+	"Cooling",
+	"Input",
+	"Power",
+	"Network",
+	"Audio",
+	"Motherboard",
+	"CPU",
+	"Graphics",
 ];
 
 const POPULAR_BRANDS = [
-	"Samsung", "SK Hynix", "Crucial", "Kingston", "Western Digital",
-	"Seagate", "Intel", "AMD", "NVIDIA", "LG", "BOE", "AUO"
+	"Samsung",
+	"SK Hynix",
+	"Crucial",
+	"Kingston",
+	"Western Digital",
+	"Seagate",
+	"Intel",
+	"AMD",
+	"NVIDIA",
+	"LG",
+	"BOE",
+	"AUO",
 ];
 
 const LAPTOP_MODELS = [
-	"Dell Inspiron 15", "HP Pavilion 14", "Lenovo ThinkPad E14",
-	"Asus ROG Strix", "Acer Aspire 5", "MacBook Pro 13",
-	"HP ProBook 450", "Dell Latitude 7420"
+	"Dell Inspiron 15",
+	"HP Pavilion 14",
+	"Lenovo ThinkPad E14",
+	"Asus ROG Strix",
+	"Acer Aspire 5",
+	"MacBook Pro 13",
+	"HP ProBook 450",
+	"Dell Latitude 7420",
 ];
 
-export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormModalProps) {
+export function PartsFormModal({
+	part,
+	isOpen,
+	onClose,
+	onSuccess,
+}: PartsFormModalProps) {
 	const [formData, setFormData] = useState<PartFormData>({
 		name: "",
 		part_number: "",
@@ -72,7 +115,7 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 		location: "",
 		model_compatibility: [],
 		warranty_period: 12,
-		part_condition: "new"
+		part_condition: "new",
 	});
 
 	const [modelInput, setModelInput] = useState("");
@@ -100,7 +143,8 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 				location: part.location || "",
 				model_compatibility: part.model_compatibility || [],
 				warranty_period: part.warranty_period || 12,
-				part_condition: (part.part_condition as "new" | "refurbished" | "used") || "new"
+				part_condition:
+					(part.part_condition as "new" | "refurbished" | "used") || "new",
 			});
 		} else {
 			// Reset form for new part
@@ -119,30 +163,34 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 				location: "",
 				model_compatibility: [],
 				warranty_period: 12,
-				part_condition: "new"
+				part_condition: "new",
 			});
 		}
 		setErrors({});
 	}, [part]);
 
 	const updateFormData = (field: keyof PartFormData, value: any) => {
-		setFormData(prev => ({ ...prev, [field]: value }));
+		setFormData((prev) => ({ ...prev, [field]: value }));
 		// Clear error when user starts typing
 		if (errors[field]) {
-			setErrors(prev => ({ ...prev, [field]: "" }));
+			setErrors((prev) => ({ ...prev, [field]: "" }));
 		}
 	};
 
 	const addModelCompatibility = (model: string) => {
 		if (model && !formData.model_compatibility.includes(model)) {
-			updateFormData("model_compatibility", [...formData.model_compatibility, model]);
+			updateFormData("model_compatibility", [
+				...formData.model_compatibility,
+				model,
+			]);
 		}
 		setModelInput("");
 	};
 
 	const removeModelCompatibility = (model: string) => {
-		updateFormData("model_compatibility",
-			formData.model_compatibility.filter(m => m !== model)
+		updateFormData(
+			"model_compatibility",
+			formData.model_compatibility.filter((m) => m !== model),
 		);
 	};
 
@@ -194,7 +242,7 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 			const partData = {
 				...formData,
 				updated_at: new Date().toISOString(),
-				...(isEditMode ? {} : { created_at: new Date().toISOString() })
+				...(isEditMode ? {} : { created_at: new Date().toISOString() }),
 			};
 
 			if (isEditMode && part) {
@@ -207,9 +255,7 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 				if (error) throw error;
 			} else {
 				// Create new part
-				const { error } = await supabase
-					.from("parts")
-					.insert([partData]);
+				const { error } = await supabase.from("parts").insert([partData]);
 
 				if (error) throw error;
 			}
@@ -229,7 +275,7 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 			style: "currency",
 			currency: "VND",
 			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
+			maximumFractionDigits: 0,
 		}).format(price);
 	};
 
@@ -253,8 +299,7 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 					<DialogDescription>
 						{isEditMode
 							? `Cập nhật thông tin cho ${part?.name}`
-							: "Nhập thông tin chi tiết cho linh kiện mới"
-						}
+							: "Nhập thông tin chi tiết cho linh kiện mới"}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -285,7 +330,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 									<Input
 										id="part_number"
 										value={formData.part_number}
-										onChange={(e) => updateFormData("part_number", e.target.value)}
+										onChange={(e) =>
+											updateFormData("part_number", e.target.value)
+										}
 										placeholder="VD: RAM-DDR4-8GB-001"
 										className={errors.part_number ? "border-red-500" : ""}
 									/>
@@ -298,8 +345,13 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 								<div className="space-y-2">
 									<Label htmlFor="category">Danh mục *</Label>
-									<Select value={formData.category} onValueChange={(value) => updateFormData("category", value)}>
-										<SelectTrigger className={errors.category ? "border-red-500" : ""}>
+									<Select
+										value={formData.category}
+										onValueChange={(value) => updateFormData("category", value)}
+									>
+										<SelectTrigger
+											className={errors.category ? "border-red-500" : ""}
+										>
 											<SelectValue placeholder="Chọn danh mục" />
 										</SelectTrigger>
 										<SelectContent>
@@ -317,7 +369,10 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 
 								<div className="space-y-2">
 									<Label htmlFor="brand">Thương hiệu</Label>
-									<Select value={formData.brand} onValueChange={(value) => updateFormData("brand", value)}>
+									<Select
+										value={formData.brand}
+										onValueChange={(value) => updateFormData("brand", value)}
+									>
 										<SelectTrigger>
 											<SelectValue placeholder="Chọn thương hiệu" />
 										</SelectTrigger>
@@ -345,7 +400,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 								<Textarea
 									id="description"
 									value={formData.description}
-									onChange={(e) => updateFormData("description", e.target.value)}
+									onChange={(e) =>
+										updateFormData("description", e.target.value)
+									}
 									placeholder="Mô tả chi tiết về linh kiện..."
 									rows={3}
 								/>
@@ -367,7 +424,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										type="number"
 										min="0"
 										value={formData.cost_price}
-										onChange={(e) => updateFormData("cost_price", Number(e.target.value))}
+										onChange={(e) =>
+											updateFormData("cost_price", Number(e.target.value))
+										}
 										placeholder="0"
 										className={errors.cost_price ? "border-red-500" : ""}
 									/>
@@ -383,7 +442,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										type="number"
 										min="0"
 										value={formData.unit_price}
-										onChange={(e) => updateFormData("unit_price", Number(e.target.value))}
+										onChange={(e) =>
+											updateFormData("unit_price", Number(e.target.value))
+										}
 										placeholder="0"
 										className={errors.unit_price ? "border-red-500" : ""}
 									/>
@@ -399,12 +460,16 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										type="number"
 										min="0"
 										value={formData.selling_price}
-										onChange={(e) => updateFormData("selling_price", Number(e.target.value))}
+										onChange={(e) =>
+											updateFormData("selling_price", Number(e.target.value))
+										}
 										placeholder="0"
 										className={errors.selling_price ? "border-red-500" : ""}
 									/>
 									{errors.selling_price && (
-										<p className="text-sm text-red-500">{errors.selling_price}</p>
+										<p className="text-sm text-red-500">
+											{errors.selling_price}
+										</p>
 									)}
 								</div>
 							</div>
@@ -416,19 +481,35 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										<div>
 											<span className="text-muted-foreground">Lợi nhuận:</span>
 											<div className="font-semibold text-green-700">
-												{formatPrice(formData.selling_price - formData.cost_price)}
+												{formatPrice(
+													formData.selling_price - formData.cost_price,
+												)}
 											</div>
 										</div>
 										<div>
-											<span className="text-muted-foreground">Tỷ suất lợi nhuận:</span>
+											<span className="text-muted-foreground">
+												Tỷ suất lợi nhuận:
+											</span>
 											<div className="font-semibold text-green-700">
-												{(((formData.selling_price - formData.cost_price) / formData.cost_price) * 100).toFixed(1)}%
+												{(
+													((formData.selling_price - formData.cost_price) /
+														formData.cost_price) *
+													100
+												).toFixed(1)}
+												%
 											</div>
 										</div>
 										<div>
-											<span className="text-muted-foreground">Biên lợi nhuận:</span>
+											<span className="text-muted-foreground">
+												Biên lợi nhuận:
+											</span>
 											<div className="font-semibold text-green-700">
-												{(((formData.selling_price - formData.cost_price) / formData.selling_price) * 100).toFixed(1)}%
+												{(
+													((formData.selling_price - formData.cost_price) /
+														formData.selling_price) *
+													100
+												).toFixed(1)}
+												%
 											</div>
 										</div>
 									</div>
@@ -451,12 +532,16 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										type="number"
 										min="0"
 										value={formData.current_stock}
-										onChange={(e) => updateFormData("current_stock", Number(e.target.value))}
+										onChange={(e) =>
+											updateFormData("current_stock", Number(e.target.value))
+										}
 										placeholder="0"
 										className={errors.current_stock ? "border-red-500" : ""}
 									/>
 									{errors.current_stock && (
-										<p className="text-sm text-red-500">{errors.current_stock}</p>
+										<p className="text-sm text-red-500">
+											{errors.current_stock}
+										</p>
 									)}
 								</div>
 
@@ -467,12 +552,16 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										type="number"
 										min="0"
 										value={formData.min_stock_level}
-										onChange={(e) => updateFormData("min_stock_level", Number(e.target.value))}
+										onChange={(e) =>
+											updateFormData("min_stock_level", Number(e.target.value))
+										}
 										placeholder="5"
 										className={errors.min_stock_level ? "border-red-500" : ""}
 									/>
 									{errors.min_stock_level && (
-										<p className="text-sm text-red-500">{errors.min_stock_level}</p>
+										<p className="text-sm text-red-500">
+											{errors.min_stock_level}
+										</p>
 									)}
 								</div>
 
@@ -518,7 +607,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 
 							{/* Popular models quick add */}
 							<div>
-								<Label className="text-sm text-muted-foreground">Thêm nhanh:</Label>
+								<Label className="text-sm text-muted-foreground">
+									Thêm nhanh:
+								</Label>
 								<div className="flex flex-wrap gap-2 mt-2">
 									{LAPTOP_MODELS.map((model) => (
 										<Button
@@ -538,10 +629,16 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 							{/* Selected models */}
 							{formData.model_compatibility.length > 0 && (
 								<div>
-									<Label className="text-sm text-muted-foreground">Đã chọn:</Label>
+									<Label className="text-sm text-muted-foreground">
+										Đã chọn:
+									</Label>
 									<div className="flex flex-wrap gap-2 mt-2">
 										{formData.model_compatibility.map((model) => (
-											<Badge key={model} variant="secondary" className="flex items-center gap-1">
+											<Badge
+												key={model}
+												variant="secondary"
+												className="flex items-center gap-1"
+											>
 												{model}
 												<X
 													className="h-3 w-3 cursor-pointer"
@@ -567,7 +664,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 									<Textarea
 										id="supplier_info"
 										value={formData.supplier_info}
-										onChange={(e) => updateFormData("supplier_info", e.target.value)}
+										onChange={(e) =>
+											updateFormData("supplier_info", e.target.value)
+										}
 										placeholder="VD: Công ty ABC - 0123456789 - Địa chỉ..."
 										rows={3}
 									/>
@@ -581,7 +680,12 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 											type="number"
 											min="0"
 											value={formData.warranty_period}
-											onChange={(e) => updateFormData("warranty_period", Number(e.target.value))}
+											onChange={(e) =>
+												updateFormData(
+													"warranty_period",
+													Number(e.target.value),
+												)
+											}
 											placeholder="12"
 										/>
 									</div>
@@ -590,7 +694,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 										<Label htmlFor="part_condition">Tình trạng linh kiện</Label>
 										<Select
 											value={formData.part_condition}
-											onValueChange={(value: "new" | "refurbished" | "used") => updateFormData("part_condition", value)}
+											onValueChange={(value: "new" | "refurbished" | "used") =>
+												updateFormData("part_condition", value)
+											}
 										>
 											<SelectTrigger>
 												<SelectValue />
@@ -621,7 +727,9 @@ export function PartsFormModal({ part, isOpen, onClose, onSuccess }: PartsFormMo
 						Hủy
 					</Button>
 					<Button onClick={handleSubmit} disabled={loading}>
-						{loading ? "Đang lưu..." : (
+						{loading ? (
+							"Đang lưu..."
+						) : (
 							<>
 								<Save className="h-4 w-4 mr-2" />
 								{isEditMode ? "Cập nhật" : "Thêm mới"}

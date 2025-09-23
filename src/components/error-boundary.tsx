@@ -1,7 +1,13 @@
-import { Component, type ErrorInfo, type ReactNode, useState, useEffect } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, AlertTriangle, WifiOff, Server } from "lucide-react";
+import { AlertTriangle, RefreshCw, Server, WifiOff } from "lucide-react";
+import {
+	Component,
+	type ErrorInfo,
+	type ReactNode,
+	useEffect,
+	useState,
+} from "react";
 
 interface Props {
 	children: ReactNode;
@@ -42,54 +48,66 @@ export class ErrorBoundary extends Component<Props, State> {
 
 		// Add exponential backoff delay
 		const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-		await new Promise(resolve => setTimeout(resolve, delay));
+		await new Promise((resolve) => setTimeout(resolve, delay));
 
 		this.setState({
 			hasError: false,
 			error: undefined,
 			retryCount: retryCount + 1,
-			isRetrying: false
+			isRetrying: false,
 		});
 	};
 
-	private getErrorType = (error: Error): 'network' | 'server' | 'client' => {
+	private getErrorType = (error: Error): "network" | "server" | "client" => {
 		const message = error.message.toLowerCase();
-		if (message.includes('fetch') || message.includes('network') || message.includes('connection')) {
-			return 'network';
+		if (
+			message.includes("fetch") ||
+			message.includes("network") ||
+			message.includes("connection")
+		) {
+			return "network";
 		}
-		if (message.includes('500') || message.includes('502') || message.includes('503')) {
-			return 'server';
+		if (
+			message.includes("500") ||
+			message.includes("502") ||
+			message.includes("503")
+		) {
+			return "server";
 		}
-		return 'client';
+		return "client";
 	};
 
-	private getErrorIcon = (errorType: 'network' | 'server' | 'client') => {
+	private getErrorIcon = (errorType: "network" | "server" | "client") => {
 		switch (errorType) {
-			case 'network':
+			case "network":
 				return WifiOff;
-			case 'server':
+			case "server":
 				return Server;
 			default:
 				return AlertTriangle;
 		}
 	};
 
-	private getErrorTitle = (errorType: 'network' | 'server' | 'client'): string => {
+	private getErrorTitle = (
+		errorType: "network" | "server" | "client",
+	): string => {
 		switch (errorType) {
-			case 'network':
+			case "network":
 				return "Lỗi kết nối mạng";
-			case 'server':
+			case "server":
 				return "Lỗi máy chủ";
 			default:
 				return "Đã xảy ra lỗi";
 		}
 	};
 
-	private getErrorMessage = (errorType: 'network' | 'server' | 'client'): string => {
+	private getErrorMessage = (
+		errorType: "network" | "server" | "client",
+	): string => {
 		switch (errorType) {
-			case 'network':
+			case "network":
 				return "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng và thử lại.";
-			case 'server':
+			case "server":
 				return "Máy chủ đang gặp sự cố. Chúng tôi đang khắc phục và sẽ hoạt động trở lại sớm.";
 			default:
 				return "Ứng dụng đã gặp lỗi không mong muốn. Vui lòng thử lại hoặc liên hệ quản trị viên nếu lỗi tiếp tục xảy ra.";
@@ -102,7 +120,9 @@ export class ErrorBoundary extends Component<Props, State> {
 				return this.props.fallback;
 			}
 
-			const errorType = this.state.error ? this.getErrorType(this.state.error) : 'client';
+			const errorType = this.state.error
+				? this.getErrorType(this.state.error)
+				: "client";
 			const ErrorIcon = this.getErrorIcon(errorType);
 			const maxRetries = 3;
 			const canRetry = this.state.retryCount < maxRetries;
@@ -113,7 +133,9 @@ export class ErrorBoundary extends Component<Props, State> {
 						<Alert variant="destructive">
 							<ErrorIcon className="h-4 w-4" />
 							<AlertDescription className="space-y-2">
-								<div className="font-medium">{this.getErrorTitle(errorType)}</div>
+								<div className="font-medium">
+									{this.getErrorTitle(errorType)}
+								</div>
 								<p>{this.getErrorMessage(errorType)}</p>
 
 								{this.state.retryCount > 0 && (
@@ -141,8 +163,10 @@ export class ErrorBoundary extends Component<Props, State> {
 									variant="outline"
 									disabled={this.state.isRetrying}
 								>
-									<RefreshCw className={`h-4 w-4 mr-2 ${this.state.isRetrying ? 'animate-spin' : ''}`} />
-									{this.state.isRetrying ? 'Đang thử lại...' : 'Thử lại'}
+									<RefreshCw
+										className={`h-4 w-4 mr-2 ${this.state.isRetrying ? "animate-spin" : ""}`}
+									/>
+									{this.state.isRetrying ? "Đang thử lại..." : "Thử lại"}
 								</Button>
 							)}
 							<Button
@@ -191,18 +215,24 @@ export function SupabaseErrorAlert({
 		const handleOnline = () => setIsOnline(true);
 		const handleOffline = () => setIsOnline(false);
 
-		window.addEventListener('online', handleOnline);
-		window.addEventListener('offline', handleOffline);
+		window.addEventListener("online", handleOnline);
+		window.addEventListener("offline", handleOffline);
 
 		return () => {
-			window.removeEventListener('online', handleOnline);
-			window.removeEventListener('offline', handleOffline);
+			window.removeEventListener("online", handleOnline);
+			window.removeEventListener("offline", handleOffline);
 		};
 	}, []);
 
 	// Auto-retry for network errors when connection is restored
 	useEffect(() => {
-		if (autoRetry && isOnline && isNetworkError(error) && retryCount < maxRetries && onRetry) {
+		if (
+			autoRetry &&
+			isOnline &&
+			isNetworkError(error) &&
+			retryCount < maxRetries &&
+			onRetry
+		) {
 			const timer = setTimeout(() => {
 				handleRetry();
 			}, 2000); // Wait 2 seconds after connection is restored
@@ -212,27 +242,29 @@ export function SupabaseErrorAlert({
 	}, [isOnline, autoRetry, error, retryCount, maxRetries, onRetry]);
 
 	const isNetworkError = (error: any): boolean => {
-		const message = error?.message?.toLowerCase() || '';
-		return message.includes('failed to fetch') ||
-		       message.includes('network') ||
-		       message.includes('connection') ||
-		       message.includes('timeout');
+		const message = error?.message?.toLowerCase() || "";
+		return (
+			message.includes("failed to fetch") ||
+			message.includes("network") ||
+			message.includes("connection") ||
+			message.includes("timeout")
+		);
 	};
 
 	const handleRetry = async () => {
 		if (!onRetry || retryCount >= maxRetries) return;
 
 		setIsRetrying(true);
-		setRetryCount(prev => prev + 1);
+		setRetryCount((prev) => prev + 1);
 
 		// Exponential backoff
 		const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
-		await new Promise(resolve => setTimeout(resolve, delay));
+		await new Promise((resolve) => setTimeout(resolve, delay));
 
 		try {
 			await onRetry();
 		} catch (err) {
-			console.error('Retry failed:', err);
+			console.error("Retry failed:", err);
 		} finally {
 			setIsRetrying(false);
 		}
@@ -269,7 +301,11 @@ export function SupabaseErrorAlert({
 
 	return (
 		<Alert variant="destructive" className="mb-4">
-			{networkError ? <WifiOff className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+			{networkError ? (
+				<WifiOff className="h-4 w-4" />
+			) : (
+				<AlertTriangle className="h-4 w-4" />
+			)}
 			<AlertDescription className="space-y-2">
 				<div className="font-medium">
 					{networkError ? "Lỗi kết nối" : "Lỗi thao tác"}
@@ -302,8 +338,10 @@ export function SupabaseErrorAlert({
 							onClick={handleRetry}
 							disabled={isRetrying || !isOnline}
 						>
-							<RefreshCw className={`h-3 w-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
-							{isRetrying ? 'Đang thử lại...' : 'Thử lại'}
+							<RefreshCw
+								className={`h-3 w-3 mr-1 ${isRetrying ? "animate-spin" : ""}`}
+							/>
+							{isRetrying ? "Đang thử lại..." : "Thử lại"}
 						</Button>
 					)}
 					{onDismiss && (

@@ -1,3 +1,12 @@
+import {
+	VietnameseAddress,
+	type VietnameseAddressData,
+} from "@/components/address/VietnameseAddress";
+import {
+	type ContactInfo,
+	ContactManagement,
+} from "@/components/customers/ContactManagement";
+import { PhoneInput } from "@/components/customers/PhoneInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,15 +20,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-	VietnameseAddress,
-	type VietnameseAddressData,
-} from "@/components/address/VietnameseAddress";
-import {
-	ContactManagement,
-	type ContactInfo,
-} from "@/components/customers/ContactManagement";
-import { PhoneInput } from "@/components/customers/PhoneInput";
 import {
 	type AddressValidationResult,
 	type BusinessDataValidationResult,
@@ -262,7 +262,9 @@ export function CustomerProfileForm({
 				<CardHeader>
 					<CardTitle className="flex items-center gap-2">
 						<User className="h-5 w-5" />
-						{mode === "create" ? "Tạo hồ sơ khách hàng mới" : "Chỉnh sửa hồ sơ khách hàng"}
+						{mode === "create"
+							? "Tạo hồ sơ khách hàng mới"
+							: "Chỉnh sửa hồ sơ khách hàng"}
 					</CardTitle>
 				</CardHeader>
 			</Card>
@@ -307,13 +309,13 @@ export function CustomerProfileForm({
 								}`}
 							/>
 							<div className="absolute inset-y-0 right-0 flex items-center pr-3">
-								{showValidation && value.fullName && (
-									nameValidation.isValid ? (
+								{showValidation &&
+									value.fullName &&
+									(nameValidation.isValid ? (
 										<Check className="h-4 w-4 text-green-600" />
 									) : (
 										<AlertCircle className="h-4 w-4 text-red-500" />
-									)
-								)}
+									))}
 							</div>
 						</div>
 						{showValidation && nameValidation.error && (
@@ -433,13 +435,13 @@ export function CustomerProfileForm({
 										}`}
 									/>
 									<div className="absolute inset-y-0 right-0 flex items-center pr-3">
-										{showValidation && value.idCardNumber && (
-											idCardValidation.isValid ? (
+										{showValidation &&
+											value.idCardNumber &&
+											(idCardValidation.isValid ? (
 												<Check className="h-4 w-4 text-green-600" />
 											) : (
 												<AlertCircle className="h-4 w-4 text-red-500" />
-											)
-										)}
+											))}
 									</div>
 								</div>
 								{showValidation && idCardValidation.error && (

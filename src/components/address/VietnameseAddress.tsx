@@ -147,7 +147,8 @@ export function VietnameseAddress({
 				{/* Address Details */}
 				<div className="space-y-2">
 					<Label htmlFor="details" className="text-sm">
-						Địa chỉ chi tiết {required && <span className="text-red-500">*</span>}
+						Địa chỉ chi tiết{" "}
+						{required && <span className="text-red-500">*</span>}
 					</Label>
 					<Input
 						id="details"

@@ -1,17 +1,46 @@
-import { useState, useEffect } from "react";
+import { SupabaseErrorAlert } from "@/components/error-boundary";
+import { CustomerListSkeleton } from "@/components/skeleton-loaders";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, Eye, Phone, MapPin, Loader2, RefreshCw } from "lucide-react";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { useOptimisticList } from "@/hooks/use-optimistic-mutation";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { useOptimisticList } from "@/hooks/use-optimistic-mutation";
-import { CustomerListSkeleton } from "@/components/skeleton-loaders";
+import {
+	Edit,
+	Eye,
+	Loader2,
+	MapPin,
+	Phone,
+	Plus,
+	RefreshCw,
+	Search,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Database types
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
@@ -79,11 +108,19 @@ export function CustomersPage() {
 
 					const totalRepairs = repairStats.length;
 					const activeRepairs = repairStats.filter(
-						r => !["completed", "cancelled_by_customer", "abandoned"].includes(r.status)
+						(r) =>
+							!["completed", "cancelled_by_customer", "abandoned"].includes(
+								r.status,
+							),
 					).length;
-					const lastRepairDate = repairStats.length > 0
-						? repairStats.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at
-						: null;
+					const lastRepairDate =
+						repairStats.length > 0
+							? repairStats.sort(
+									(a, b) =>
+										new Date(b.created_at).getTime() -
+										new Date(a.created_at).getTime(),
+								)[0].created_at
+							: null;
 
 					return {
 						...customer,
@@ -92,7 +129,7 @@ export function CustomersPage() {
 						lastRepairDate,
 						activeRepairs,
 					};
-				})
+				}),
 			);
 
 			setCustomers(customersWithStats);
@@ -124,7 +161,7 @@ export function CustomersPage() {
 					console.log("Customer change detected:", payload);
 					// Refetch data when changes occur
 					fetchCustomers();
-				}
+				},
 			)
 			.subscribe();
 
@@ -134,16 +171,21 @@ export function CustomersPage() {
 	}, []);
 
 	// Filter customers based on search term
-	const filteredCustomers = customers.filter(customer =>
-		customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-		customer.phone.includes(searchTerm) ||
-		customer.address?.toLowerCase().includes(searchTerm.toLowerCase())
+	const filteredCustomers = customers.filter(
+		(customer) =>
+			customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			customer.phone.includes(searchTerm) ||
+			customer.address?.toLowerCase().includes(searchTerm.toLowerCase()),
 	);
 
 	// Get customer status badge
 	const getStatusBadge = (customer: CustomerWithStats) => {
 		if (customer.activeRepairs > 0) {
-			return <Badge variant="default">Đang sửa chữa ({customer.activeRepairs})</Badge>;
+			return (
+				<Badge variant="default">
+					Đang sửa chữa ({customer.activeRepairs})
+				</Badge>
+			);
 		} else if (customer.totalRepairs > 0) {
 			return <Badge variant="secondary">Khách hàng cũ</Badge>;
 		} else {
@@ -166,8 +208,8 @@ export function CustomersPage() {
 		const customerData = {
 			full_name: formData.get("customerName") as string,
 			phone: formData.get("customerPhone") as string,
-			address: formData.get("customerAddress") as string || null,
-			notes: formData.get("customerNotes") as string || null,
+			address: (formData.get("customerAddress") as string) || null,
+			notes: (formData.get("customerNotes") as string) || null,
 		};
 
 		// Validate required fields
@@ -249,12 +291,10 @@ export function CustomersPage() {
 			<div className="flex justify-between items-center">
 				<h1 className="text-3xl font-bold">Quản lý khách hàng</h1>
 				<div className="flex gap-2">
-					<Button
-						variant="outline"
-						onClick={fetchCustomers}
-						disabled={loading}
-					>
-						<RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+					<Button variant="outline" onClick={fetchCustomers} disabled={loading}>
+						<RefreshCw
+							className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+						/>
 						Làm mới
 					</Button>
 					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -310,7 +350,11 @@ export function CustomersPage() {
 										disabled={isSubmitting}
 									/>
 								</div>
-								<Button type="submit" className="w-full" disabled={isSubmitting}>
+								<Button
+									type="submit"
+									className="w-full"
+									disabled={isSubmitting}
+								>
 									{isSubmitting ? (
 										<>
 											<Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -341,7 +385,9 @@ export function CustomersPage() {
 			<div className="grid gap-4 md:grid-cols-4">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Tổng khách hàng</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Tổng khách hàng
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">{customers.length}</div>
@@ -349,11 +395,13 @@ export function CustomersPage() {
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Khách hàng mới</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Khách hàng mới
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{customers.filter(c => c.totalRepairs === 0).length}
+							{customers.filter((c) => c.totalRepairs === 0).length}
 						</div>
 					</CardContent>
 				</Card>
@@ -363,17 +411,19 @@ export function CustomersPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{customers.filter(c => c.activeRepairs > 0).length}
+							{customers.filter((c) => c.activeRepairs > 0).length}
 						</div>
 					</CardContent>
 				</Card>
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Khách hàng thân thiết</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Khách hàng thân thiết
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{customers.filter(c => c.totalRepairs >= 5).length}
+							{customers.filter((c) => c.totalRepairs >= 5).length}
 						</div>
 					</CardContent>
 				</Card>
@@ -424,7 +474,9 @@ export function CustomersPage() {
 								return (
 									<TableRow
 										key={customer.id}
-										className={isOptimisticCustomer ? "bg-blue-50 opacity-75" : ""}
+										className={
+											isOptimisticCustomer ? "bg-blue-50 opacity-75" : ""
+										}
 									>
 										<TableCell>
 											<div className="flex items-center gap-2">
@@ -432,7 +484,10 @@ export function CustomersPage() {
 													<div className="font-medium flex items-center gap-2">
 														{customer.full_name}
 														{isOptimisticCustomer && (
-															<Badge variant="outline" className="text-blue-600 border-blue-300">
+															<Badge
+																variant="outline"
+																className="text-blue-600 border-blue-300"
+															>
 																<Loader2 className="h-3 w-3 mr-1 animate-spin" />
 																Đang lưu
 															</Badge>
@@ -444,52 +499,66 @@ export function CustomersPage() {
 												</div>
 											</div>
 										</TableCell>
-									<TableCell>
-										<div className="space-y-1">
-											<div className="flex items-center text-sm">
-												<Phone className="mr-1 h-3 w-3" />
-												{customer.phone}
-											</div>
-											{customer.address && (
-												<div className="flex items-center text-sm text-muted-foreground">
-													<MapPin className="mr-1 h-3 w-3" />
-													{customer.address}
+										<TableCell>
+											<div className="space-y-1">
+												<div className="flex items-center text-sm">
+													<Phone className="mr-1 h-3 w-3" />
+													{customer.phone}
 												</div>
-											)}
-										</div>
-									</TableCell>
-									<TableCell>
-										{customer.address ? (
-											<div className="flex items-center text-sm max-w-xs">
-												<MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
-												<span className="truncate">{customer.address}</span>
+												{customer.address && (
+													<div className="flex items-center text-sm text-muted-foreground">
+														<MapPin className="mr-1 h-3 w-3" />
+														{customer.address}
+													</div>
+												)}
 											</div>
-										) : (
-											<span className="text-muted-foreground text-sm">Chưa có địa chỉ</span>
-										)}
-									</TableCell>
-									<TableCell>{getStatusBadge(customer)}</TableCell>
-									<TableCell className="text-center">{customer.totalRepairs}</TableCell>
-									<TableCell>{formatDate(customer.lastRepairDate)}</TableCell>
-									<TableCell>
-										<div className="flex gap-2">
-											<Button variant="outline" size="sm" disabled={isOptimisticCustomer}>
-												<Eye className="h-4 w-4" />
-											</Button>
-											<Button variant="outline" size="sm" disabled={isOptimisticCustomer}>
-												<Edit className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							);
-						})}
+										</TableCell>
+										<TableCell>
+											{customer.address ? (
+												<div className="flex items-center text-sm max-w-xs">
+													<MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
+													<span className="truncate">{customer.address}</span>
+												</div>
+											) : (
+												<span className="text-muted-foreground text-sm">
+													Chưa có địa chỉ
+												</span>
+											)}
+										</TableCell>
+										<TableCell>{getStatusBadge(customer)}</TableCell>
+										<TableCell className="text-center">
+											{customer.totalRepairs}
+										</TableCell>
+										<TableCell>{formatDate(customer.lastRepairDate)}</TableCell>
+										<TableCell>
+											<div className="flex gap-2">
+												<Button
+													variant="outline"
+													size="sm"
+													disabled={isOptimisticCustomer}
+												>
+													<Eye className="h-4 w-4" />
+												</Button>
+												<Button
+													variant="outline"
+													size="sm"
+													disabled={isOptimisticCustomer}
+												>
+													<Edit className="h-4 w-4" />
+												</Button>
+											</div>
+										</TableCell>
+									</TableRow>
+								);
+							})}
 						</TableBody>
 					</Table>
 					{filteredCustomers.length === 0 && (
 						<div className="text-center py-8">
 							<p className="text-muted-foreground">
-								{searchTerm ? "Không tìm thấy khách hàng phù hợp" : "Chưa có khách hàng nào"}
+								{searchTerm
+									? "Không tìm thấy khách hàng phù hợp"
+									: "Chưa có khách hàng nào"}
 							</p>
 						</div>
 					)}

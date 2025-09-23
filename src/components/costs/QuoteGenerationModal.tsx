@@ -1,30 +1,47 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-	FileText,
-	Send,
-	Download,
-	Eye,
-	Clock,
-	CheckCircle,
-	XCircle,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	type CostSummary,
+	type CustomerQuote,
+	useCostTracking,
+} from "@/hooks/use-cost-tracking";
+import { formatVND, formatVNDDetailed } from "@/lib/currency";
+import {
 	AlertCircle,
 	Calendar,
+	CheckCircle,
+	Clock,
 	DollarSign,
+	Download,
+	Eye,
+	FileText,
+	Mail,
 	Printer,
-	Mail
+	Send,
+	XCircle,
 } from "lucide-react";
-import { useCostTracking, type CustomerQuote, type CostSummary } from "@/hooks/use-cost-tracking";
-import { formatVND, formatVNDDetailed } from "@/lib/currency";
+import { useEffect, useState } from "react";
 
 interface QuoteGenerationModalProps {
 	isOpen: boolean;
@@ -37,25 +54,26 @@ export function QuoteGenerationModal({
 	isOpen,
 	onClose,
 	repairId,
-	onQuoteUpdate
+	onQuoteUpdate,
 }: QuoteGenerationModalProps) {
 	const [quotes, setQuotes] = useState<CustomerQuote[]>([]);
 	const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [showCreateForm, setShowCreateForm] = useState(false);
 	const [createForm, setCreateForm] = useState({
-		terms_conditions: 'Báo giá có hiệu lực trong 30 ngày. Giá không bao gồm VAT.\nThời gian thực hiện: 3-5 ngày làm việc.\nQuy định thanh toán: 50% trước khi thực hiện, 50% khi hoàn thành.',
+		terms_conditions:
+			"Báo giá có hiệu lực trong 30 ngày. Giá không bao gồm VAT.\nThời gian thực hiện: 3-5 ngày làm việc.\nQuy định thanh toán: 50% trước khi thực hiện, 50% khi hoàn thành.",
 		valid_days: 30,
-		notes: '',
+		notes: "",
 		discount_amount: 0,
-		tax_amount: 0
+		tax_amount: 0,
 	});
 
 	const {
 		calculateRepairCosts,
 		generateCustomerQuote,
 		getCustomerQuotes,
-		updateQuoteStatus
+		updateQuoteStatus,
 	} = useCostTracking();
 
 	// Load quotes when modal opens
@@ -79,7 +97,7 @@ export function QuoteGenerationModal({
 			const summary = await calculateRepairCosts(repairId);
 			setCostSummary(summary);
 		} catch (error) {
-			console.error('Error loading quotes:', error);
+			console.error("Error loading quotes:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -93,9 +111,9 @@ export function QuoteGenerationModal({
 
 			const quoteId = await generateCustomerQuote(
 				repairId,
-				'current-user-id', // TODO: Get real user ID
+				"current-user-id", // TODO: Get real user ID
 				createForm.terms_conditions,
-				createForm.valid_days
+				createForm.valid_days,
 			);
 
 			if (quoteId) {
@@ -104,11 +122,12 @@ export function QuoteGenerationModal({
 
 				// Reset form
 				setCreateForm({
-					terms_conditions: 'Báo giá có hiệu lực trong 30 ngày. Giá không bao gồm VAT.\nThời gian thực hiện: 3-5 ngày làm việc.\nQuy định thanh toán: 50% trước khi thực hiện, 50% khi hoàn thành.',
+					terms_conditions:
+						"Báo giá có hiệu lực trong 30 ngày. Giá không bao gồm VAT.\nThời gian thực hiện: 3-5 ngày làm việc.\nQuy định thanh toán: 50% trước khi thực hiện, 50% khi hoàn thành.",
 					valid_days: 30,
-					notes: '',
+					notes: "",
 					discount_amount: 0,
-					tax_amount: 0
+					tax_amount: 0,
 				});
 
 				setShowCreateForm(false);
@@ -118,17 +137,25 @@ export function QuoteGenerationModal({
 				}
 			}
 		} catch (error) {
-			console.error('Error creating quote:', error);
+			console.error("Error creating quote:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const handleUpdateQuoteStatus = async (quoteId: string, status: CustomerQuote['status'], customerResponse?: string) => {
+	const handleUpdateQuoteStatus = async (
+		quoteId: string,
+		status: CustomerQuote["status"],
+		customerResponse?: string,
+	) => {
 		try {
 			setLoading(true);
 
-			const success = await updateQuoteStatus(quoteId, status, customerResponse);
+			const success = await updateQuoteStatus(
+				quoteId,
+				status,
+				customerResponse,
+			);
 			if (success) {
 				// Reload quotes
 				await loadQuotes();
@@ -138,35 +165,51 @@ export function QuoteGenerationModal({
 				}
 			}
 		} catch (error) {
-			console.error('Error updating quote status:', error);
+			console.error("Error updating quote status:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const getStatusBadge = (status: CustomerQuote['status']) => {
+	const getStatusBadge = (status: CustomerQuote["status"]) => {
 		const badges = {
-			draft: <Badge variant="outline" className="text-gray-600">Nháp</Badge>,
-			sent: <Badge variant="default" className="bg-blue-100 text-blue-800">Đã gửi</Badge>,
-			approved: <Badge variant="default" className="bg-green-100 text-green-800">Đã duyệt</Badge>,
+			draft: (
+				<Badge variant="outline" className="text-gray-600">
+					Nháp
+				</Badge>
+			),
+			sent: (
+				<Badge variant="default" className="bg-blue-100 text-blue-800">
+					Đã gửi
+				</Badge>
+			),
+			approved: (
+				<Badge variant="default" className="bg-green-100 text-green-800">
+					Đã duyệt
+				</Badge>
+			),
 			rejected: <Badge variant="destructive">Từ chối</Badge>,
-			expired: <Badge variant="outline" className="text-orange-600">Hết hạn</Badge>
+			expired: (
+				<Badge variant="outline" className="text-orange-600">
+					Hết hạn
+				</Badge>
+			),
 		};
 
 		return badges[status] || <Badge variant="outline">{status}</Badge>;
 	};
 
-	const getStatusIcon = (status: CustomerQuote['status']) => {
+	const getStatusIcon = (status: CustomerQuote["status"]) => {
 		switch (status) {
-			case 'draft':
+			case "draft":
 				return <FileText className="h-4 w-4" />;
-			case 'sent':
+			case "sent":
 				return <Send className="h-4 w-4" />;
-			case 'approved':
+			case "approved":
 				return <CheckCircle className="h-4 w-4" />;
-			case 'rejected':
+			case "rejected":
 				return <XCircle className="h-4 w-4" />;
-			case 'expired':
+			case "expired":
 				return <Clock className="h-4 w-4" />;
 			default:
 				return <FileText className="h-4 w-4" />;
@@ -184,7 +227,7 @@ export function QuoteGenerationModal({
 			month: "short",
 			day: "numeric",
 			hour: "2-digit",
-			minute: "2-digit"
+			minute: "2-digit",
 		});
 	};
 
@@ -251,17 +294,29 @@ export function QuoteGenerationModal({
 							<CardContent>
 								<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Chi phí linh kiện</div>
-										<div className="text-lg font-semibold">{formatVNDDetailed(costSummary.parts_revenue)}</div>
+										<div className="text-sm text-muted-foreground">
+											Chi phí linh kiện
+										</div>
+										<div className="text-lg font-semibold">
+											{formatVNDDetailed(costSummary.parts_revenue)}
+										</div>
 									</div>
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Chi phí công</div>
-										<div className="text-lg font-semibold">{formatVNDDetailed(costSummary.labor_revenue)}</div>
+										<div className="text-sm text-muted-foreground">
+											Chi phí công
+										</div>
+										<div className="text-lg font-semibold">
+											{formatVNDDetailed(costSummary.labor_revenue)}
+										</div>
 									</div>
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Tổng báo giá</div>
+										<div className="text-sm text-muted-foreground">
+											Tổng báo giá
+										</div>
 										<div className="text-lg font-semibold text-green-600">
-											{formatVNDDetailed(costSummary.parts_revenue + costSummary.labor_revenue)}
+											{formatVNDDetailed(
+												costSummary.parts_revenue + costSummary.labor_revenue,
+											)}
 										</div>
 									</div>
 								</div>
@@ -288,7 +343,12 @@ export function QuoteGenerationModal({
 											min="1"
 											max="365"
 											value={createForm.valid_days}
-											onChange={(e) => setCreateForm(prev => ({ ...prev, valid_days: parseInt(e.target.value) || 30 }))}
+											onChange={(e) =>
+												setCreateForm((prev) => ({
+													...prev,
+													valid_days: Number.parseInt(e.target.value) || 30,
+												}))
+											}
 										/>
 									</div>
 									<div>
@@ -298,17 +358,30 @@ export function QuoteGenerationModal({
 											type="number"
 											min="0"
 											value={createForm.discount_amount}
-											onChange={(e) => setCreateForm(prev => ({ ...prev, discount_amount: parseFloat(e.target.value) || 0 }))}
+											onChange={(e) =>
+												setCreateForm((prev) => ({
+													...prev,
+													discount_amount:
+														Number.parseFloat(e.target.value) || 0,
+												}))
+											}
 										/>
 									</div>
 								</div>
 
 								<div>
-									<Label htmlFor="terms_conditions">Điều khoản và điều kiện</Label>
+									<Label htmlFor="terms_conditions">
+										Điều khoản và điều kiện
+									</Label>
 									<Textarea
 										id="terms_conditions"
 										value={createForm.terms_conditions}
-										onChange={(e) => setCreateForm(prev => ({ ...prev, terms_conditions: e.target.value }))}
+										onChange={(e) =>
+											setCreateForm((prev) => ({
+												...prev,
+												terms_conditions: e.target.value,
+											}))
+										}
 										rows={4}
 										placeholder="Điều khoản và điều kiện của báo giá..."
 									/>
@@ -319,7 +392,12 @@ export function QuoteGenerationModal({
 									<Textarea
 										id="notes"
 										value={createForm.notes}
-										onChange={(e) => setCreateForm(prev => ({ ...prev, notes: e.target.value }))}
+										onChange={(e) =>
+											setCreateForm((prev) => ({
+												...prev,
+												notes: e.target.value,
+											}))
+										}
 										rows={2}
 										placeholder="Ghi chú thêm cho báo giá..."
 									/>
@@ -328,7 +406,9 @@ export function QuoteGenerationModal({
 								{/* Quote Preview */}
 								{costSummary && (
 									<div className="p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground mb-2">Xem trước báo giá:</div>
+										<div className="text-sm text-muted-foreground mb-2">
+											Xem trước báo giá:
+										</div>
 										<div className="space-y-2 text-sm">
 											<div className="flex justify-between">
 												<span>Linh kiện:</span>
@@ -340,7 +420,12 @@ export function QuoteGenerationModal({
 											</div>
 											<div className="flex justify-between">
 												<span>Tạm tính:</span>
-												<span>{formatVND(costSummary.parts_revenue + costSummary.labor_revenue)}</span>
+												<span>
+													{formatVND(
+														costSummary.parts_revenue +
+															costSummary.labor_revenue,
+													)}
+												</span>
 											</div>
 											{createForm.discount_amount > 0 && (
 												<div className="flex justify-between text-red-600">
@@ -351,24 +436,38 @@ export function QuoteGenerationModal({
 											<Separator />
 											<div className="flex justify-between font-semibold">
 												<span>Tổng cộng:</span>
-												<span>{formatVND(costSummary.parts_revenue + costSummary.labor_revenue - createForm.discount_amount)}</span>
+												<span>
+													{formatVND(
+														costSummary.parts_revenue +
+															costSummary.labor_revenue -
+															createForm.discount_amount,
+													)}
+												</span>
 											</div>
 											<div className="text-xs text-muted-foreground">
-												Hiệu lực đến: {new Date(Date.now() + createForm.valid_days * 24 * 60 * 60 * 1000).toLocaleDateString('vi-VN')}
+												Hiệu lực đến:{" "}
+												{new Date(
+													Date.now() +
+														createForm.valid_days * 24 * 60 * 60 * 1000,
+												).toLocaleDateString("vi-VN")}
 											</div>
 										</div>
 									</div>
 								)}
 
 								<div className="flex gap-2 justify-end">
-									<Button variant="outline" onClick={() => setShowCreateForm(false)} disabled={loading}>
+									<Button
+										variant="outline"
+										onClick={() => setShowCreateForm(false)}
+										disabled={loading}
+									>
 										Hủy
 									</Button>
 									<Button
 										onClick={handleCreateQuote}
 										disabled={loading || !createForm.terms_conditions}
 									>
-										{loading ? 'Đang tạo...' : 'Tạo báo giá'}
+										{loading ? "Đang tạo..." : "Tạo báo giá"}
 									</Button>
 								</div>
 							</CardContent>
@@ -378,9 +477,14 @@ export function QuoteGenerationModal({
 					{/* Existing Quotes */}
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
-							<h3 className="text-lg font-semibold">Báo giá đã tạo ({quotes.length})</h3>
+							<h3 className="text-lg font-semibold">
+								Báo giá đã tạo ({quotes.length})
+							</h3>
 							{!showCreateForm && (
-								<Button onClick={() => setShowCreateForm(true)} disabled={loading}>
+								<Button
+									onClick={() => setShowCreateForm(true)}
+									disabled={loading}
+								>
 									<FileText className="h-4 w-4 mr-2" />
 									Tạo báo giá mới
 								</Button>
@@ -391,19 +495,27 @@ export function QuoteGenerationModal({
 							<Alert>
 								<AlertCircle className="h-4 w-4" />
 								<AlertDescription>
-									Chưa có báo giá nào cho phiếu sửa chữa này. Nhấn "Tạo báo giá mới" để tạo báo giá đầu tiên.
+									Chưa có báo giá nào cho phiếu sửa chữa này. Nhấn "Tạo báo giá
+									mới" để tạo báo giá đầu tiên.
 								</AlertDescription>
 							</Alert>
 						) : (
 							<div className="space-y-4">
 								{quotes.map((quote) => (
-									<Card key={quote.id} className={`${isExpired(quote.valid_until) ? 'border-orange-200 bg-orange-50' : ''}`}>
+									<Card
+										key={quote.id}
+										className={`${isExpired(quote.valid_until) ? "border-orange-200 bg-orange-50" : ""}`}
+									>
 										<CardHeader>
 											<div className="flex items-center justify-between">
 												<CardTitle className="flex items-center gap-2">
 													{getStatusIcon(quote.status)}
-													<span className="font-mono text-lg">{quote.quote_number}</span>
-													<span className="text-sm text-muted-foreground">v{quote.quote_version}</span>
+													<span className="font-mono text-lg">
+														{quote.quote_number}
+													</span>
+													<span className="text-sm text-muted-foreground">
+														v{quote.quote_version}
+													</span>
 												</CardTitle>
 												{getStatusBadge(quote.status)}
 											</div>
@@ -412,22 +524,38 @@ export function QuoteGenerationModal({
 											{/* Quote Summary */}
 											<div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3 bg-muted rounded-lg">
 												<div className="text-center">
-													<div className="text-sm text-muted-foreground">Linh kiện</div>
-													<div className="font-semibold">{formatVND(quote.subtotal_parts)}</div>
-												</div>
-												<div className="text-center">
-													<div className="text-sm text-muted-foreground">Công lao động</div>
-													<div className="font-semibold">{formatVND(quote.subtotal_labor)}</div>
-												</div>
-												<div className="text-center">
-													<div className="text-sm text-muted-foreground">Giảm giá</div>
-													<div className="font-semibold text-red-600">
-														{quote.discount_amount > 0 ? `-${formatVND(quote.discount_amount)}` : formatVND(0)}
+													<div className="text-sm text-muted-foreground">
+														Linh kiện
+													</div>
+													<div className="font-semibold">
+														{formatVND(quote.subtotal_parts)}
 													</div>
 												</div>
 												<div className="text-center">
-													<div className="text-sm text-muted-foreground">Tổng cộng</div>
-													<div className="font-bold text-lg text-green-600">{formatVND(quote.total_amount)}</div>
+													<div className="text-sm text-muted-foreground">
+														Công lao động
+													</div>
+													<div className="font-semibold">
+														{formatVND(quote.subtotal_labor)}
+													</div>
+												</div>
+												<div className="text-center">
+													<div className="text-sm text-muted-foreground">
+														Giảm giá
+													</div>
+													<div className="font-semibold text-red-600">
+														{quote.discount_amount > 0
+															? `-${formatVND(quote.discount_amount)}`
+															: formatVND(0)}
+													</div>
+												</div>
+												<div className="text-center">
+													<div className="text-sm text-muted-foreground">
+														Tổng cộng
+													</div>
+													<div className="font-bold text-lg text-green-600">
+														{formatVND(quote.total_amount)}
+													</div>
 												</div>
 											</div>
 
@@ -436,16 +564,24 @@ export function QuoteGenerationModal({
 												<div className="flex items-center gap-2">
 													<Calendar className="h-4 w-4 text-muted-foreground" />
 													<div>
-														<div className="text-muted-foreground">Ngày tạo</div>
-														<div className="font-medium">{formatDateTime(quote.created_at)}</div>
+														<div className="text-muted-foreground">
+															Ngày tạo
+														</div>
+														<div className="font-medium">
+															{formatDateTime(quote.created_at)}
+														</div>
 													</div>
 												</div>
 												{quote.valid_until && (
 													<div className="flex items-center gap-2">
 														<Clock className="h-4 w-4 text-muted-foreground" />
 														<div>
-															<div className="text-muted-foreground">Hiệu lực đến</div>
-															<div className={`font-medium ${isExpired(quote.valid_until) ? 'text-red-600' : 'text-green-600'}`}>
+															<div className="text-muted-foreground">
+																Hiệu lực đến
+															</div>
+															<div
+																className={`font-medium ${isExpired(quote.valid_until) ? "text-red-600" : "text-green-600"}`}
+															>
 																{formatDateTime(quote.valid_until)}
 																{quote.valid_until && (
 																	<div className="text-xs">
@@ -461,7 +597,9 @@ export function QuoteGenerationModal({
 											{/* Terms and Conditions */}
 											{quote.terms_conditions && (
 												<div>
-													<div className="text-sm text-muted-foreground mb-1">Điều khoản và điều kiện:</div>
+													<div className="text-sm text-muted-foreground mb-1">
+														Điều khoản và điều kiện:
+													</div>
 													<div className="text-sm p-2 bg-muted rounded whitespace-pre-wrap">
 														{quote.terms_conditions}
 													</div>
@@ -471,7 +609,9 @@ export function QuoteGenerationModal({
 											{/* Customer Response */}
 											{quote.customer_response && (
 												<div>
-													<div className="text-sm text-muted-foreground mb-1">Phản hồi khách hàng:</div>
+													<div className="text-sm text-muted-foreground mb-1">
+														Phản hồi khách hàng:
+													</div>
 													<div className="text-sm p-2 bg-blue-50 border-l-4 border-blue-200 rounded">
 														{quote.customer_response}
 														{quote.customer_responded_at && (
@@ -484,22 +624,26 @@ export function QuoteGenerationModal({
 											)}
 
 											{/* Expiration Warning */}
-											{isExpired(quote.valid_until) && quote.status !== 'expired' && (
-												<Alert variant="destructive">
-													<AlertCircle className="h-4 w-4" />
-													<AlertDescription>
-														Báo giá này đã hết hạn. Cần tạo báo giá mới hoặc gia hạn báo giá hiện tại.
-													</AlertDescription>
-												</Alert>
-											)}
+											{isExpired(quote.valid_until) &&
+												quote.status !== "expired" && (
+													<Alert variant="destructive">
+														<AlertCircle className="h-4 w-4" />
+														<AlertDescription>
+															Báo giá này đã hết hạn. Cần tạo báo giá mới hoặc
+															gia hạn báo giá hiện tại.
+														</AlertDescription>
+													</Alert>
+												)}
 
 											{/* Action Buttons */}
 											<div className="flex flex-wrap gap-2">
-												{quote.status === 'draft' && (
+												{quote.status === "draft" && (
 													<>
 														<Button
 															size="sm"
-															onClick={() => handleUpdateQuoteStatus(quote.id, 'sent')}
+															onClick={() =>
+																handleUpdateQuoteStatus(quote.id, "sent")
+															}
 															disabled={loading}
 														>
 															<Send className="h-4 w-4 mr-1" />
@@ -508,28 +652,41 @@ export function QuoteGenerationModal({
 													</>
 												)}
 
-												{quote.status === 'sent' && !isExpired(quote.valid_until) && (
-													<>
-														<Button
-															size="sm"
-															variant="default"
-															onClick={() => handleUpdateQuoteStatus(quote.id, 'approved', 'Khách hàng đã chấp thuận báo giá')}
-															disabled={loading}
-														>
-															<CheckCircle className="h-4 w-4 mr-1" />
-															Đánh dấu đã duyệt
-														</Button>
-														<Button
-															size="sm"
-															variant="outline"
-															onClick={() => handleUpdateQuoteStatus(quote.id, 'rejected', 'Khách hàng từ chối báo giá')}
-															disabled={loading}
-														>
-															<XCircle className="h-4 w-4 mr-1" />
-															Đánh dấu từ chối
-														</Button>
-													</>
-												)}
+												{quote.status === "sent" &&
+													!isExpired(quote.valid_until) && (
+														<>
+															<Button
+																size="sm"
+																variant="default"
+																onClick={() =>
+																	handleUpdateQuoteStatus(
+																		quote.id,
+																		"approved",
+																		"Khách hàng đã chấp thuận báo giá",
+																	)
+																}
+																disabled={loading}
+															>
+																<CheckCircle className="h-4 w-4 mr-1" />
+																Đánh dấu đã duyệt
+															</Button>
+															<Button
+																size="sm"
+																variant="outline"
+																onClick={() =>
+																	handleUpdateQuoteStatus(
+																		quote.id,
+																		"rejected",
+																		"Khách hàng từ chối báo giá",
+																	)
+																}
+																disabled={loading}
+															>
+																<XCircle className="h-4 w-4 mr-1" />
+																Đánh dấu từ chối
+															</Button>
+														</>
+													)}
 
 												<Button size="sm" variant="outline" disabled={loading}>
 													<Eye className="h-4 w-4 mr-1" />
@@ -562,7 +719,7 @@ export function QuoteGenerationModal({
 					</Button>
 					<Button onClick={loadQuotes} disabled={loading}>
 						<FileText className="h-4 w-4 mr-2" />
-						{loading ? 'Đang tải...' : 'Làm mới'}
+						{loading ? "Đang tải..." : "Làm mới"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>

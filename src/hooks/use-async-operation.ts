@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
 export interface AsyncOperationOptions {
 	maxRetries?: number;
@@ -18,7 +18,7 @@ export interface AsyncOperationState<T> {
 
 export function useAsyncOperation<T = any>(
 	asyncFunction: () => Promise<T>,
-	options: AsyncOperationOptions = {}
+	options: AsyncOperationOptions = {},
 ) {
 	const {
 		maxRetries = 3,
@@ -36,49 +36,52 @@ export function useAsyncOperation<T = any>(
 		isRetrying: false,
 	});
 
-	const execute = useCallback(async (forceRefresh = false) => {
-		// Don't execute if already loading (prevent duplicate calls)
-		if (state.loading && !forceRefresh) return;
+	const execute = useCallback(
+		async (forceRefresh = false) => {
+			// Don't execute if already loading (prevent duplicate calls)
+			if (state.loading && !forceRefresh) return;
 
-		setState(prev => ({
-			...prev,
-			loading: true,
-			error: null,
-			isRetrying: prev.retryCount > 0,
-		}));
-
-		try {
-			const result = await asyncFunction();
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
-				data: result,
-				loading: false,
+				loading: true,
 				error: null,
-				isRetrying: false,
+				isRetrying: prev.retryCount > 0,
 			}));
 
-			onSuccess?.(result);
-			return result;
-		} catch (error) {
-			const err = error as Error;
-			setState(prev => ({
-				...prev,
-				loading: false,
-				error: err,
-				isRetrying: false,
-			}));
+			try {
+				const result = await asyncFunction();
+				setState((prev) => ({
+					...prev,
+					data: result,
+					loading: false,
+					error: null,
+					isRetrying: false,
+				}));
 
-			onError?.(err);
-			throw err;
-		}
-	}, [asyncFunction, onSuccess, onError, state.loading]);
+				onSuccess?.(result);
+				return result;
+			} catch (error) {
+				const err = error as Error;
+				setState((prev) => ({
+					...prev,
+					loading: false,
+					error: err,
+					isRetrying: false,
+				}));
+
+				onError?.(err);
+				throw err;
+			}
+		},
+		[asyncFunction, onSuccess, onError, state.loading],
+	);
 
 	const retry = useCallback(async () => {
 		if (state.retryCount >= maxRetries) {
 			return;
 		}
 
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			retryCount: prev.retryCount + 1,
 		}));
@@ -86,10 +89,10 @@ export function useAsyncOperation<T = any>(
 		// Exponential backoff with jitter
 		const delay = Math.min(
 			retryDelay * Math.pow(2, state.retryCount) + Math.random() * 1000,
-			10000
+			10000,
 		);
 
-		await new Promise(resolve => setTimeout(resolve, delay));
+		await new Promise((resolve) => setTimeout(resolve, delay));
 
 		try {
 			await execute(true);
@@ -125,7 +128,7 @@ export function useAsyncOperation<T = any>(
 // Specialized hook for Supabase operations
 export function useSupabaseOperation<T = any>(
 	asyncFunction: () => Promise<T>,
-	options: AsyncOperationOptions = {}
+	options: AsyncOperationOptions = {},
 ) {
 	return useAsyncOperation(asyncFunction, {
 		maxRetries: 3,
@@ -138,7 +141,7 @@ export function useSupabaseOperation<T = any>(
 // Hook for operations that should auto-retry on network errors
 export function useNetworkOperation<T = any>(
 	asyncFunction: () => Promise<T>,
-	options: AsyncOperationOptions = {}
+	options: AsyncOperationOptions = {},
 ) {
 	return useAsyncOperation(asyncFunction, {
 		maxRetries: 5,

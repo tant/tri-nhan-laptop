@@ -1,21 +1,21 @@
 "use client";
 
 import {
+	BarChart3,
+	FileText,
+	Home,
 	Monitor,
 	Package,
-	Users,
-	FileText,
-	BarChart3,
 	Settings,
-	Home,
+	Users,
 	Wrench,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
-import { TeamSwitcher } from "@/components/team-switcher";
 import { NotificationCenter } from "@/components/notifications/notification-center";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
 	Sidebar,
 	SidebarContent,
@@ -73,7 +73,11 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 	];
 
 	// Add inventory management for authorized users
-	if (hasPermission("can_manage_inventory") || isRole("shop_owner") || isRole("manager")) {
+	if (
+		hasPermission("can_manage_inventory") ||
+		isRole("shop_owner") ||
+		isRole("manager")
+	) {
 		navMain.push({
 			title: "Linh kiện",
 			url: "#",
@@ -88,7 +92,11 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 	}
 
 	// Add admin section for shop owners and managers
-	if (isRole("shop_owner") || isRole("manager") || hasPermission("can_create_users")) {
+	if (
+		isRole("shop_owner") ||
+		isRole("manager") ||
+		hasPermission("can_create_users")
+	) {
 		navMain.push({
 			title: "Hệ thống",
 			url: "#",
@@ -105,7 +113,11 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 	const projects = [];
 
 	// Add analytics dashboard for authorized users
-	if (hasPermission("can_view_financials") || isRole("shop_owner") || isRole("manager")) {
+	if (
+		hasPermission("can_view_financials") ||
+		isRole("shop_owner") ||
+		isRole("manager")
+	) {
 		projects.push({
 			name: "Phân tích & Báo cáo",
 			url: "/analytics",
@@ -114,7 +126,11 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 	}
 
 	// Add financial reports for authorized users
-	if (hasPermission("can_view_financials") || isRole("shop_owner") || isRole("manager")) {
+	if (
+		hasPermission("can_view_financials") ||
+		isRole("shop_owner") ||
+		isRole("manager")
+	) {
 		projects.push(
 			{
 				name: "Báo cáo doanh thu",
@@ -125,12 +141,16 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 				name: "Báo cáo sửa chữa",
 				url: "/reports/repairs",
 				icon: Wrench,
-			}
+			},
 		);
 	}
 
 	// Add inventory reports for inventory managers
-	if (hasPermission("can_manage_inventory") || isRole("shop_owner") || isRole("manager")) {
+	if (
+		hasPermission("can_manage_inventory") ||
+		isRole("shop_owner") ||
+		isRole("manager")
+	) {
 		projects.push({
 			name: "Báo cáo tồn kho",
 			url: "/reports/inventory",

@@ -288,9 +288,7 @@ export function CustomerPrivacyManager({
 							</DialogTrigger>
 							<DialogContent>
 								<DialogHeader>
-									<DialogTitle>
-										Cập nhật đồng ý xử lý dữ liệu
-									</DialogTitle>
+									<DialogTitle>Cập nhật đồng ý xử lý dữ liệu</DialogTitle>
 									<DialogDescription>
 										Cập nhật thông tin đồng ý từ khách hàng {customerName}
 									</DialogDescription>
@@ -368,7 +366,8 @@ export function CustomerPrivacyManager({
 								<h4 className="font-medium">Thông tin cá nhân</h4>
 								<div className="text-sm space-y-1">
 									<p>
-										<strong>Điện thoại:</strong> {dataSummary.personalInfo.phone}
+										<strong>Điện thoại:</strong>{" "}
+										{dataSummary.personalInfo.phone}
 									</p>
 									<p>
 										<strong>Họ tên:</strong> {dataSummary.personalInfo.fullName}
@@ -452,7 +451,9 @@ export function CustomerPrivacyManager({
 				<CardContent className="space-y-4">
 					{/* Data Export */}
 					<div className="space-y-3">
-						<Label className="text-sm font-medium">Xuất dữ liệu khách hàng</Label>
+						<Label className="text-sm font-medium">
+							Xuất dữ liệu khách hàng
+						</Label>
 						<div className="flex gap-2">
 							<Select
 								value={exportConfig.type}

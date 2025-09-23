@@ -1,21 +1,28 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-	Clock,
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
+import { usePartsManagement } from "@/hooks/use-parts-management";
+import {
+	AlertCircle,
 	AlertTriangle,
+	Calendar,
 	CheckCircle,
-	XCircle,
+	Clock,
 	Package,
 	User,
-	Calendar,
-	AlertCircle
+	XCircle,
 } from "lucide-react";
-import { usePartsManagement } from "@/hooks/use-parts-management";
+import { useEffect, useState } from "react";
 
 interface ReservationStatusModalProps {
 	isOpen: boolean;
@@ -28,17 +35,19 @@ export function ReservationStatusModal({
 	isOpen,
 	onClose,
 	repairId,
-	onReservationUpdate
+	onReservationUpdate,
 }: ReservationStatusModalProps) {
 	const [reservations, setReservations] = useState<any[]>([]);
 	const [loading, setLoading] = useState(false);
-	const [processingReservation, setProcessingReservation] = useState<string | null>(null);
+	const [processingReservation, setProcessingReservation] = useState<
+		string | null
+	>(null);
 
 	const {
 		getRepairReservations,
 		getActiveReservations,
 		confirmPartsReservation,
-		cancelPartsReservation
+		cancelPartsReservation,
 	} = usePartsManagement();
 
 	// Load reservations when modal opens
@@ -107,14 +116,26 @@ export function ReservationStatusModal({
 
 	const getStatusBadge = (status: string) => {
 		switch (status) {
-			case 'active':
-				return <Badge variant="default" className="bg-blue-100 text-blue-800">Đang đặt trước</Badge>;
-			case 'confirmed':
-				return <Badge variant="default" className="bg-green-100 text-green-800">Đã xác nhận</Badge>;
-			case 'cancelled':
+			case "active":
+				return (
+					<Badge variant="default" className="bg-blue-100 text-blue-800">
+						Đang đặt trước
+					</Badge>
+				);
+			case "confirmed":
+				return (
+					<Badge variant="default" className="bg-green-100 text-green-800">
+						Đã xác nhận
+					</Badge>
+				);
+			case "cancelled":
 				return <Badge variant="destructive">Đã hủy</Badge>;
-			case 'expired':
-				return <Badge variant="outline" className="text-orange-600">Đã hết hạn</Badge>;
+			case "expired":
+				return (
+					<Badge variant="outline" className="text-orange-600">
+						Đã hết hạn
+					</Badge>
+				);
 			default:
 				return <Badge variant="outline">{status}</Badge>;
 		}
@@ -130,7 +151,7 @@ export function ReservationStatusModal({
 			month: "short",
 			day: "numeric",
 			hour: "2-digit",
-			minute: "2-digit"
+			minute: "2-digit",
 		});
 	};
 
@@ -175,7 +196,9 @@ export function ReservationStatusModal({
 				<DialogHeader>
 					<DialogTitle className="flex items-center gap-2">
 						<Package className="h-5 w-5" />
-						{repairId ? "Linh kiện đặt trước cho sửa chữa" : "Tất cả linh kiện đặt trước"}
+						{repairId
+							? "Linh kiện đặt trước cho sửa chữa"
+							: "Tất cả linh kiện đặt trước"}
 					</DialogTitle>
 					<DialogDescription>
 						Quản lý trạng thái đặt trước linh kiện và xác nhận sử dụng
@@ -189,19 +212,21 @@ export function ReservationStatusModal({
 							<AlertDescription>
 								{repairId
 									? "Không có linh kiện nào được đặt trước cho sửa chữa này."
-									: "Hiện tại không có linh kiện nào được đặt trước."
-								}
+									: "Hiện tại không có linh kiện nào được đặt trước."}
 							</AlertDescription>
 						</Alert>
 					) : (
 						<div className="grid gap-4">
 							{reservations.map((reservation) => (
-								<Card key={reservation.id} className={`${isExpired(reservation.expires_at) ? 'border-orange-200 bg-orange-50' : ''}`}>
+								<Card
+									key={reservation.id}
+									className={`${isExpired(reservation.expires_at) ? "border-orange-200 bg-orange-50" : ""}`}
+								>
 									<CardHeader className="pb-3">
 										<div className="flex items-center justify-between">
 											<CardTitle className="text-lg flex items-center gap-2">
 												<Package className="h-4 w-4" />
-												{reservation.part?.name || 'Linh kiện không xác định'}
+												{reservation.part?.name || "Linh kiện không xác định"}
 											</CardTitle>
 											{getStatusBadge(reservation.status)}
 										</div>
@@ -210,12 +235,20 @@ export function ReservationStatusModal({
 										{/* Part Information */}
 										<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 											<div>
-												<div className="text-sm text-muted-foreground">Mã linh kiện</div>
-												<div className="font-medium">{reservation.part?.part_number || 'N/A'}</div>
+												<div className="text-sm text-muted-foreground">
+													Mã linh kiện
+												</div>
+												<div className="font-medium">
+													{reservation.part?.part_number || "N/A"}
+												</div>
 											</div>
 											<div>
-												<div className="text-sm text-muted-foreground">Số lượng đặt trước</div>
-												<div className="font-medium">{reservation.quantity_reserved} cái</div>
+												<div className="text-sm text-muted-foreground">
+													Số lượng đặt trước
+												</div>
+												<div className="font-medium">
+													{reservation.quantity_reserved} cái
+												</div>
 											</div>
 										</div>
 
@@ -226,15 +259,24 @@ export function ReservationStatusModal({
 											<div className="flex items-center gap-2">
 												<User className="h-4 w-4 text-muted-foreground" />
 												<div>
-													<div className="text-sm text-muted-foreground">Được đặt bởi</div>
-													<div className="font-medium">{reservation.reserved_by_user?.full_name || 'Không xác định'}</div>
+													<div className="text-sm text-muted-foreground">
+														Được đặt bởi
+													</div>
+													<div className="font-medium">
+														{reservation.reserved_by_user?.full_name ||
+															"Không xác định"}
+													</div>
 												</div>
 											</div>
 											<div className="flex items-center gap-2">
 												<Calendar className="h-4 w-4 text-muted-foreground" />
 												<div>
-													<div className="text-sm text-muted-foreground">Thời gian đặt</div>
-													<div className="font-medium">{formatDateTime(reservation.reserved_at)}</div>
+													<div className="text-sm text-muted-foreground">
+														Thời gian đặt
+													</div>
+													<div className="font-medium">
+														{formatDateTime(reservation.reserved_at)}
+													</div>
 												</div>
 											</div>
 										</div>
@@ -243,12 +285,20 @@ export function ReservationStatusModal({
 										<div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
 											<Clock className="h-4 w-4 text-muted-foreground" />
 											<div className="flex-1">
-												<div className="text-sm text-muted-foreground">Hết hạn lúc</div>
-												<div className="font-medium">{formatDateTime(reservation.expires_at)}</div>
+												<div className="text-sm text-muted-foreground">
+													Hết hạn lúc
+												</div>
+												<div className="font-medium">
+													{formatDateTime(reservation.expires_at)}
+												</div>
 											</div>
 											<div className="text-right">
-												<div className="text-sm text-muted-foreground">Thời gian còn lại</div>
-												<div className={`font-medium ${isExpired(reservation.expires_at) ? 'text-red-600' : 'text-green-600'}`}>
+												<div className="text-sm text-muted-foreground">
+													Thời gian còn lại
+												</div>
+												<div
+													className={`font-medium ${isExpired(reservation.expires_at) ? "text-red-600" : "text-green-600"}`}
+												>
 													{getTimeRemaining(reservation.expires_at)}
 												</div>
 											</div>
@@ -259,7 +309,8 @@ export function ReservationStatusModal({
 											<Alert variant="destructive">
 												<AlertTriangle className="h-4 w-4" />
 												<AlertDescription>
-													Đặt trước này đã hết hạn. Linh kiện sẽ được giải phóng để sử dụng cho các sửa chữa khác.
+													Đặt trước này đã hết hạn. Linh kiện sẽ được giải phóng
+													để sử dụng cho các sửa chữa khác.
 												</AlertDescription>
 											</Alert>
 										)}
@@ -267,33 +318,46 @@ export function ReservationStatusModal({
 										{/* Notes */}
 										{reservation.notes && (
 											<div>
-												<div className="text-sm text-muted-foreground">Ghi chú</div>
-												<div className="text-sm p-2 bg-muted rounded">{reservation.notes}</div>
+												<div className="text-sm text-muted-foreground">
+													Ghi chú
+												</div>
+												<div className="text-sm p-2 bg-muted rounded">
+													{reservation.notes}
+												</div>
 											</div>
 										)}
 
 										{/* Action Buttons */}
-										{reservation.status === 'active' && !isExpired(reservation.expires_at) && (
-											<div className="flex gap-2 pt-2">
-												<Button
-													onClick={() => handleConfirmReservation(reservation.id)}
-													disabled={processingReservation === reservation.id}
-													className="flex-1"
-												>
-													<CheckCircle className="h-4 w-4 mr-2" />
-													{processingReservation === reservation.id ? "Đang xác nhận..." : "Xác nhận sử dụng"}
-												</Button>
-												<Button
-													variant="outline"
-													onClick={() => handleCancelReservation(reservation.id)}
-													disabled={processingReservation === reservation.id}
-													className="flex-1"
-												>
-													<XCircle className="h-4 w-4 mr-2" />
-													{processingReservation === reservation.id ? "Đang hủy..." : "Hủy đặt trước"}
-												</Button>
-											</div>
-										)}
+										{reservation.status === "active" &&
+											!isExpired(reservation.expires_at) && (
+												<div className="flex gap-2 pt-2">
+													<Button
+														onClick={() =>
+															handleConfirmReservation(reservation.id)
+														}
+														disabled={processingReservation === reservation.id}
+														className="flex-1"
+													>
+														<CheckCircle className="h-4 w-4 mr-2" />
+														{processingReservation === reservation.id
+															? "Đang xác nhận..."
+															: "Xác nhận sử dụng"}
+													</Button>
+													<Button
+														variant="outline"
+														onClick={() =>
+															handleCancelReservation(reservation.id)
+														}
+														disabled={processingReservation === reservation.id}
+														className="flex-1"
+													>
+														<XCircle className="h-4 w-4 mr-2" />
+														{processingReservation === reservation.id
+															? "Đang hủy..."
+															: "Hủy đặt trước"}
+													</Button>
+												</div>
+											)}
 									</CardContent>
 								</Card>
 							))}

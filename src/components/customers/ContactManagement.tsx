@@ -56,8 +56,9 @@ export function ContactManagement({
 	const [emailValidation, setEmailValidation] = useState<EmailValidationResult>(
 		{ isValid: true, type: "valid" },
 	);
-	const [alternativePhoneValidation, setAlternativePhoneValidation] =
-		useState({ isValid: true });
+	const [alternativePhoneValidation, setAlternativePhoneValidation] = useState({
+		isValid: true,
+	});
 	const [emergencyPhoneValidation, setEmergencyPhoneValidation] = useState({
 		isValid: true,
 	});
@@ -251,7 +252,9 @@ export function ContactManagement({
 						<Input
 							id="emergency-name"
 							value={value.emergencyContactName || ""}
-							onChange={(e) => updateField("emergencyContactName", e.target.value)}
+							onChange={(e) =>
+								updateField("emergencyContactName", e.target.value)
+							}
 							placeholder="Tên người thân"
 							disabled={disabled}
 						/>
@@ -274,7 +277,7 @@ export function ContactManagement({
 									!emergencyPhoneValidation.isValid
 										? "border-red-500"
 										: value.emergencyContactPhone &&
-											  emergencyPhoneValidation.isValid
+												emergencyPhoneValidation.isValid
 											? "border-green-500"
 											: ""
 								}`}
@@ -354,11 +357,15 @@ export function ContactManagement({
 								<SelectValue />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="morning">Buổi sáng (8:00 - 12:00)</SelectItem>
+								<SelectItem value="morning">
+									Buổi sáng (8:00 - 12:00)
+								</SelectItem>
 								<SelectItem value="afternoon">
 									Buổi chiều (12:00 - 18:00)
 								</SelectItem>
-								<SelectItem value="evening">Buổi tối (18:00 - 20:00)</SelectItem>
+								<SelectItem value="evening">
+									Buổi tối (18:00 - 20:00)
+								</SelectItem>
 								<SelectItem value="any">Bất kỳ lúc nào</SelectItem>
 							</SelectContent>
 						</Select>

@@ -59,9 +59,7 @@ export interface CustomerDataSummary {
 /**
  * Check if customer has given required privacy consents
  */
-export async function validateCustomerConsent(
-	customerPhone: string,
-): Promise<{
+export async function validateCustomerConsent(customerPhone: string): Promise<{
 	hasValidConsent: boolean;
 	missingConsents: string[];
 	consentDate?: string;
@@ -84,7 +82,10 @@ export async function validateCustomerConsent(
 		}
 
 		// Check contact preferences for marketing consent
-		const contactPrefs = customer.contact_preferences as Record<string, unknown>;
+		const contactPrefs = customer.contact_preferences as Record<
+			string,
+			unknown
+		>;
 		if (contactPrefs?.allowMarketing === undefined) {
 			missingConsents.push("marketing_preferences");
 		}
@@ -468,9 +469,7 @@ function convertToCSV(data: Record<string, unknown>): string {
 /**
  * Check customer data retention period
  */
-export async function checkDataRetention(
-	customerPhone: string,
-): Promise<{
+export async function checkDataRetention(customerPhone: string): Promise<{
 	shouldRetain: boolean;
 	retentionReason?: string;
 	canDelete: boolean;

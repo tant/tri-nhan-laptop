@@ -1,35 +1,41 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-	User,
-	Phone,
-	Laptop,
-	Package,
-	DollarSign,
-	Clock,
-	Plus,
-	Edit,
-	Calculator,
-	Settings,
-	FileText,
-	Calendar
-} from "lucide-react";
-import { PartsPickerModal } from "./PartsPickerModal";
-import { ReservationStatusModal } from "@/components/inventory/ReservationStatusModal";
 import { CostBreakdownModal } from "@/components/costs/CostBreakdownModal";
 import { QuoteGenerationModal } from "@/components/costs/QuoteGenerationModal";
-import { usePartsManagement } from "@/hooks/use-parts-management";
+import { ReservationStatusModal } from "@/components/inventory/ReservationStatusModal";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { useCostTracking } from "@/hooks/use-cost-tracking";
+import { usePartsManagement } from "@/hooks/use-parts-management";
 import { formatVND, formatVNDDetailed } from "@/lib/currency";
 import type { Database } from "@/lib/supabase";
+import {
+	Calculator,
+	Calendar,
+	Clock,
+	DollarSign,
+	Edit,
+	FileText,
+	Laptop,
+	Package,
+	Phone,
+	Plus,
+	Settings,
+	User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { PartsPickerModal } from "./PartsPickerModal";
 
 type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
@@ -61,7 +67,12 @@ interface SelectedPart {
 	notes?: string;
 }
 
-export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: RepairDetailsModalProps) {
+export function RepairDetailsModal({
+	repair,
+	isOpen,
+	onClose,
+	onUpdate,
+}: RepairDetailsModalProps) {
 	const [isPartsPickerOpen, setIsPartsPickerOpen] = useState(false);
 	const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 	const [isCostBreakdownOpen, setIsCostBreakdownOpen] = useState(false);
@@ -76,13 +87,10 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 		addPartsToRepair,
 		calculateRepairPartsCost,
 		reservePartsForRepair,
-		addPartsToRepairWithReservation
+		addPartsToRepairWithReservation,
 	} = usePartsManagement();
 
-	const {
-		calculateRepairCosts,
-		loading: costLoading
-	} = useCostTracking();
+	const { calculateRepairCosts, loading: costLoading } = useCostTracking();
 
 	// Load current parts when repair changes
 	useEffect(() => {
@@ -105,7 +113,7 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 				part_name: item.part.name,
 				quantity: item.quantity_used,
 				unit_price: item.cost_per_unit,
-				total_cost: item.total_cost
+				total_cost: item.total_cost,
 			}));
 			setCurrentParts(formattedParts);
 		} catch (error) {
@@ -113,16 +121,19 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 		}
 	};
 
-	const handleAddParts = async (selectedParts: SelectedPart[], totalCost: number) => {
+	const handleAddParts = async (
+		selectedParts: SelectedPart[],
+		totalCost: number,
+	) => {
 		if (!repair?.id) return;
 
 		try {
 			// Transform selected parts to the format expected by addPartsToRepair
-			const partsToAdd = selectedParts.map(selected => ({
+			const partsToAdd = selectedParts.map((selected) => ({
 				part_id: selected.part.id,
 				quantity_used: selected.quantity,
 				cost_per_unit: selected.part.unit_price || 0,
-				notes: selected.notes
+				notes: selected.notes,
 			}));
 
 			// Add parts to repair
@@ -152,12 +163,14 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 					selected.quantity,
 					"current-user-id", // TODO: Get real user ID
 					24, // 24 hours reservation
-					selected.notes
+					selected.notes,
 				);
 			}
 
 			// Show success notification or update UI
-			console.log(`Reserved ${selectedParts.length} parts for repair ${repair.id}`);
+			console.log(
+				`Reserved ${selectedParts.length} parts for repair ${repair.id}`,
+			);
 
 			// Update parent component if callback provided
 			if (onUpdate) {
@@ -169,7 +182,10 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 	};
 
 	// Calculate total costs
-	const partsTotalCost = currentParts.reduce((sum, part) => sum + part.total_cost, 0);
+	const partsTotalCost = currentParts.reduce(
+		(sum, part) => sum + part.total_cost,
+		0,
+	);
 	const totalRepairCost = partsTotalCost + laborCost;
 
 	// Get status badge variant
@@ -211,7 +227,7 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 			month: "long",
 			day: "numeric",
 			hour: "2-digit",
-			minute: "2-digit"
+			minute: "2-digit",
 		});
 	};
 
@@ -252,7 +268,9 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 									</CardHeader>
 									<CardContent className="space-y-2">
 										<div className="flex items-center gap-2">
-											<span className="font-medium">{repair.customer.full_name}</span>
+											<span className="font-medium">
+												{repair.customer.full_name}
+											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<Phone className="h-4 w-4 text-muted-foreground" />
@@ -282,7 +300,8 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 											S/N: {repair.device_info?.serial_number || "Không có"}
 										</div>
 										<div className="text-sm">
-											Tình trạng ban đầu: {repair.device_info?.initial_condition}
+											Tình trạng ban đầu:{" "}
+											{repair.device_info?.initial_condition}
 										</div>
 									</CardContent>
 								</Card>
@@ -299,7 +318,9 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 								<CardContent className="space-y-4">
 									<div className="flex items-center gap-4">
 										<div>
-											<Label className="text-sm text-muted-foreground">Trạng thái:</Label>
+											<Label className="text-sm text-muted-foreground">
+												Trạng thái:
+											</Label>
 											<div>
 												<Badge variant={getStatusVariant(repair.status)}>
 													{repair.status}
@@ -307,19 +328,27 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 											</div>
 										</div>
 										<div>
-											<Label className="text-sm text-muted-foreground">Độ ưu tiên:</Label>
+											<Label className="text-sm text-muted-foreground">
+												Độ ưu tiên:
+											</Label>
 											<div>
 												<Badge variant="outline">{repair.priority}</Badge>
 											</div>
 										</div>
 										<div>
-											<Label className="text-sm text-muted-foreground">Ngày tạo:</Label>
-											<div className="text-sm">{formatDate(repair.created_at)}</div>
+											<Label className="text-sm text-muted-foreground">
+												Ngày tạo:
+											</Label>
+											<div className="text-sm">
+												{formatDate(repair.created_at)}
+											</div>
 										</div>
 									</div>
 
 									<div>
-										<Label className="text-sm text-muted-foreground">Mô tả vấn đề:</Label>
+										<Label className="text-sm text-muted-foreground">
+											Mô tả vấn đề:
+										</Label>
 										<div className="mt-1 p-2 bg-muted rounded">
 											{repair.problem_description}
 										</div>
@@ -327,12 +356,16 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 
 									<div className="grid grid-cols-2 gap-4">
 										<div>
-											<Label htmlFor="estimatedHours">Thời gian ước tính (giờ)</Label>
+											<Label htmlFor="estimatedHours">
+												Thời gian ước tính (giờ)
+											</Label>
 											<Input
 												id="estimatedHours"
 												type="number"
 												value={estimatedHours}
-												onChange={(e) => setEstimatedHours(Number(e.target.value))}
+												onChange={(e) =>
+													setEstimatedHours(Number(e.target.value))
+												}
 												min="0"
 												step="0.5"
 											/>
@@ -404,15 +437,21 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 									) : (
 										<div className="space-y-3">
 											{currentParts.map((part, index) => (
-												<div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+												<div
+													key={index}
+													className="flex items-center justify-between p-3 border rounded-lg"
+												>
 													<div className="flex-1">
 														<div className="font-medium">{part.part_name}</div>
 														<div className="text-sm text-muted-foreground">
-															Số lượng: {part.quantity} × {formatVND(part.unit_price)}
+															Số lượng: {part.quantity} ×{" "}
+															{formatVND(part.unit_price)}
 														</div>
 													</div>
 													<div className="text-right">
-														<div className="font-medium">{formatVND(part.total_cost)}</div>
+														<div className="font-medium">
+															{formatVND(part.total_cost)}
+														</div>
 													</div>
 												</div>
 											))}
@@ -458,7 +497,9 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 								<CardContent className="space-y-4">
 									<div className="grid grid-cols-2 gap-4">
 										<div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-											<div className="text-sm text-blue-700 mb-1">Chi phí linh kiện</div>
+											<div className="text-sm text-blue-700 mb-1">
+												Chi phí linh kiện
+											</div>
 											<div className="text-2xl font-bold text-blue-800">
 												{formatVND(partsTotalCost)}
 											</div>
@@ -468,7 +509,9 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 										</div>
 
 										<div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-											<div className="text-sm text-green-700 mb-1">Chi phí nhân công</div>
+											<div className="text-sm text-green-700 mb-1">
+												Chi phí nhân công
+											</div>
 											<div className="text-2xl font-bold text-green-800">
 												{formatVND(laborCost)}
 											</div>
@@ -498,7 +541,9 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 
 									{/* Cost Breakdown */}
 									<div className="space-y-2">
-										<Label className="text-sm font-medium">Chi tiết chi phí:</Label>
+										<Label className="text-sm font-medium">
+											Chi tiết chi phí:
+										</Label>
 										<div className="space-y-1 text-sm">
 											<div className="flex justify-between">
 												<span>Linh kiện:</span>
@@ -519,10 +564,13 @@ export function RepairDetailsModal({ repair, isOpen, onClose, onUpdate }: Repair
 									{/* Advanced Cost Tracking Info */}
 									<div className="mt-4 p-3 bg-gray-50 rounded-lg">
 										<div className="text-sm text-muted-foreground mb-2">
-											Sử dụng "Chi tiết chi phí" để theo dõi chi phí và lợi nhuận chi tiết bao gồm:
+											Sử dụng "Chi tiết chi phí" để theo dõi chi phí và lợi
+											nhuận chi tiết bao gồm:
 										</div>
 										<ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-											<li>Phân tích lợi nhuận theo từng linh kiện và dịch vụ</li>
+											<li>
+												Phân tích lợi nhuận theo từng linh kiện và dịch vụ
+											</li>
 											<li>Theo dõi chi phí overhead và thuế</li>
 											<li>Lịch sử thay đổi chi phí với audit trail</li>
 											<li>Tính toán tự động với tỷ suất lợi nhuận</li>

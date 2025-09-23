@@ -1,17 +1,35 @@
-import { useState, useEffect, useMemo } from "react";
+import { StockStatusBadge } from "@/components/parts/StockStatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { DataTable } from "@/components/ui/data-table";
-import { type ColumnDef } from "@tanstack/react-table";
-import { Search, Plus, Minus, ShoppingCart, Package, AlertTriangle, CheckCircle, Calculator, Clock, Bookmark } from "lucide-react";
 import { usePartsManagement } from "@/hooks/use-parts-management";
-import { StockStatusBadge } from "@/components/parts/StockStatusBadge";
 import type { Database } from "@/lib/supabase";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+	AlertTriangle,
+	Bookmark,
+	Calculator,
+	CheckCircle,
+	Clock,
+	Minus,
+	Package,
+	Plus,
+	Search,
+	ShoppingCart,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
@@ -40,20 +58,22 @@ export function PartsPickerModal({
 	onReserve,
 	repairTicket,
 	customerDeviceModel,
-	allowReservations = false
+	allowReservations = false,
 }: PartsPickerModalProps) {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [availableParts, setAvailableParts] = useState<Part[]>([]);
 	const [selectedParts, setSelectedParts] = useState<SelectedPart[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [isReservationMode, setIsReservationMode] = useState(false);
-	const [availableStock, setAvailableStock] = useState<Record<string, number>>({});
+	const [availableStock, setAvailableStock] = useState<Record<string, number>>(
+		{},
+	);
 
 	const {
 		getPartsWithStockStatus,
 		searchAvailableParts,
 		calculateRepairPartsCost,
-		getAvailableStock
+		getAvailableStock,
 	} = usePartsManagement();
 
 	// Load available parts on open
@@ -68,7 +88,7 @@ export function PartsPickerModal({
 			setLoading(true);
 			const parts = await getPartsWithStockStatus();
 			// Only show parts that are in stock
-			const inStockParts = parts.filter(part => part.current_stock > 0);
+			const inStockParts = parts.filter((part) => part.current_stock > 0);
 			setAvailableParts(inStockParts);
 		} catch (error) {
 			console.error("Error loading parts:", error);
@@ -84,28 +104,32 @@ export function PartsPickerModal({
 		// Filter by search term
 		if (searchTerm) {
 			const searchLower = searchTerm.toLowerCase();
-			filtered = filtered.filter(part =>
-				part.name?.toLowerCase().includes(searchLower) ||
-				part.brand?.toLowerCase().includes(searchLower) ||
-				part.category?.toLowerCase().includes(searchLower) ||
-				part.part_number?.toLowerCase().includes(searchLower)
+			filtered = filtered.filter(
+				(part) =>
+					part.name?.toLowerCase().includes(searchLower) ||
+					part.brand?.toLowerCase().includes(searchLower) ||
+					part.category?.toLowerCase().includes(searchLower) ||
+					part.part_number?.toLowerCase().includes(searchLower),
 			);
 		}
 
 		// Prioritize parts compatible with customer's device
 		if (customerDeviceModel) {
-			const compatibleParts = filtered.filter(part =>
-				part.model_compatibility?.some(model =>
-					model.toLowerCase().includes(customerDeviceModel.toLowerCase()) ||
-					customerDeviceModel.toLowerCase().includes(model.toLowerCase())
-				)
+			const compatibleParts = filtered.filter((part) =>
+				part.model_compatibility?.some(
+					(model) =>
+						model.toLowerCase().includes(customerDeviceModel.toLowerCase()) ||
+						customerDeviceModel.toLowerCase().includes(model.toLowerCase()),
+				),
 			);
 
-			const nonCompatibleParts = filtered.filter(part =>
-				!part.model_compatibility?.some(model =>
-					model.toLowerCase().includes(customerDeviceModel.toLowerCase()) ||
-					customerDeviceModel.toLowerCase().includes(model.toLowerCase())
-				)
+			const nonCompatibleParts = filtered.filter(
+				(part) =>
+					!part.model_compatibility?.some(
+						(model) =>
+							model.toLowerCase().includes(customerDeviceModel.toLowerCase()) ||
+							customerDeviceModel.toLowerCase().includes(model.toLowerCase()),
+					),
 			);
 
 			// Return compatible parts first, then others
@@ -117,34 +141,34 @@ export function PartsPickerModal({
 
 	// Calculate total cost
 	const totalCost = useMemo(() => {
-		return selectedParts.reduce((total, selected) =>
-			total + (selected.part.unit_price || 0) * selected.quantity, 0
+		return selectedParts.reduce(
+			(total, selected) =>
+				total + (selected.part.unit_price || 0) * selected.quantity,
+			0,
 		);
 	}, [selectedParts]);
 
 	// Add part to selection
 	const addPartToSelection = (part: Part) => {
-		const existing = selectedParts.find(s => s.part.id === part.id);
+		const existing = selectedParts.find((s) => s.part.id === part.id);
 		if (existing) {
 			// Increase quantity if not exceeding stock
 			if (existing.quantity < part.current_stock) {
-				setSelectedParts(prev =>
-					prev.map(s =>
-						s.part.id === part.id
-							? { ...s, quantity: s.quantity + 1 }
-							: s
-					)
+				setSelectedParts((prev) =>
+					prev.map((s) =>
+						s.part.id === part.id ? { ...s, quantity: s.quantity + 1 } : s,
+					),
 				);
 			}
 		} else {
 			// Add new part
-			setSelectedParts(prev => [...prev, { part, quantity: 1 }]);
+			setSelectedParts((prev) => [...prev, { part, quantity: 1 }]);
 		}
 	};
 
 	// Remove part from selection
 	const removePartFromSelection = (partId: string) => {
-		setSelectedParts(prev => prev.filter(s => s.part.id !== partId));
+		setSelectedParts((prev) => prev.filter((s) => s.part.id !== partId));
 	};
 
 	// Update part quantity
@@ -152,12 +176,12 @@ export function PartsPickerModal({
 		if (quantity <= 0) {
 			removePartFromSelection(partId);
 		} else {
-			setSelectedParts(prev =>
-				prev.map(s =>
+			setSelectedParts((prev) =>
+				prev.map((s) =>
 					s.part.id === partId
 						? { ...s, quantity: Math.min(quantity, s.part.current_stock) }
-						: s
-				)
+						: s,
+				),
 			);
 		}
 	};
@@ -165,9 +189,10 @@ export function PartsPickerModal({
 	// Check if part is compatible with customer device
 	const isPartCompatible = (part: Part): boolean => {
 		if (!customerDeviceModel || !part.model_compatibility) return false;
-		return part.model_compatibility.some(model =>
-			model.toLowerCase().includes(customerDeviceModel.toLowerCase()) ||
-			customerDeviceModel.toLowerCase().includes(model.toLowerCase())
+		return part.model_compatibility.some(
+			(model) =>
+				model.toLowerCase().includes(customerDeviceModel.toLowerCase()) ||
+				customerDeviceModel.toLowerCase().includes(model.toLowerCase()),
 		);
 	};
 
@@ -199,7 +224,9 @@ export function PartsPickerModal({
 			cell: ({ row }) => (
 				<div>
 					<div>{row.original.category}</div>
-					<div className="text-sm text-muted-foreground">{row.original.brand}</div>
+					<div className="text-sm text-muted-foreground">
+						{row.original.brand}
+					</div>
 				</div>
 			),
 		},
@@ -222,7 +249,7 @@ export function PartsPickerModal({
 						style: "currency",
 						currency: "VND",
 						minimumFractionDigits: 0,
-						maximumFractionDigits: 0
+						maximumFractionDigits: 0,
 					}).format(row.original.unit_price || 0)}
 				</div>
 			),
@@ -231,9 +258,12 @@ export function PartsPickerModal({
 			id: "actions",
 			header: "Thao tác",
 			cell: ({ row }) => {
-				const selectedPart = selectedParts.find(s => s.part.id === row.original.id);
+				const selectedPart = selectedParts.find(
+					(s) => s.part.id === row.original.id,
+				);
 				const isSelected = !!selectedPart;
-				const canAdd = row.original.current_stock > (selectedPart?.quantity || 0);
+				const canAdd =
+					row.original.current_stock > (selectedPart?.quantity || 0);
 
 				return (
 					<div className="flex items-center gap-1">
@@ -242,15 +272,27 @@ export function PartsPickerModal({
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => updatePartQuantity(row.original.id, selectedPart.quantity - 1)}
+									onClick={() =>
+										updatePartQuantity(
+											row.original.id,
+											selectedPart.quantity - 1,
+										)
+									}
 								>
 									<Minus className="h-3 w-3" />
 								</Button>
-								<span className="mx-2 font-medium">{selectedPart.quantity}</span>
+								<span className="mx-2 font-medium">
+									{selectedPart.quantity}
+								</span>
 								<Button
 									variant="outline"
 									size="sm"
-									onClick={() => updatePartQuantity(row.original.id, selectedPart.quantity + 1)}
+									onClick={() =>
+										updatePartQuantity(
+											row.original.id,
+											selectedPart.quantity + 1,
+										)
+									}
 									disabled={!canAdd}
 								>
 									<Plus className="h-3 w-3" />
@@ -278,7 +320,7 @@ export function PartsPickerModal({
 			style: "currency",
 			currency: "VND",
 			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
+			maximumFractionDigits: 0,
 		}).format(price);
 	};
 
@@ -292,7 +334,9 @@ export function PartsPickerModal({
 
 	const handleReserve = () => {
 		if (onReserve) {
-			onReserve(selectedParts.map(part => ({ ...part, isReservation: true })));
+			onReserve(
+				selectedParts.map((part) => ({ ...part, isReservation: true })),
+			);
 		}
 		setSelectedParts([]);
 		setSearchTerm("");
@@ -317,7 +361,9 @@ export function PartsPickerModal({
 					</DialogTitle>
 					<DialogDescription className="space-y-2">
 						{customerDeviceModel && (
-							<div>Thiết bị khách hàng: <strong>{customerDeviceModel}</strong></div>
+							<div>
+								Thiết bị khách hàng: <strong>{customerDeviceModel}</strong>
+							</div>
 						)}
 						{allowReservations && (
 							<div className="flex items-center gap-4">
@@ -365,7 +411,8 @@ export function PartsPickerModal({
 								<div className="flex items-center gap-2">
 									<CheckCircle className="h-4 w-4 text-blue-600" />
 									<span className="text-sm text-blue-700">
-										Linh kiện tương thích với <strong>{customerDeviceModel}</strong> được ưu tiên hiển thị
+										Linh kiện tương thích với{" "}
+										<strong>{customerDeviceModel}</strong> được ưu tiên hiển thị
 									</span>
 								</div>
 							</div>
@@ -407,10 +454,15 @@ export function PartsPickerModal({
 								) : (
 									<div className="space-y-3">
 										{selectedParts.map((selected) => (
-											<div key={selected.part.id} className="p-3 border rounded-lg">
+											<div
+												key={selected.part.id}
+												className="p-3 border rounded-lg"
+											>
 												<div className="flex justify-between items-start mb-2">
 													<div className="flex-1">
-														<div className="font-medium text-sm">{selected.part.name}</div>
+														<div className="font-medium text-sm">
+															{selected.part.name}
+														</div>
 														<div className="text-xs text-muted-foreground">
 															{selected.part.part_number}
 														</div>
@@ -418,7 +470,9 @@ export function PartsPickerModal({
 													<Button
 														variant="ghost"
 														size="sm"
-														onClick={() => removePartFromSelection(selected.part.id)}
+														onClick={() =>
+															removePartFromSelection(selected.part.id)
+														}
 														className="h-6 w-6 p-0"
 													>
 														<Minus className="h-3 w-3" />
@@ -430,17 +484,31 @@ export function PartsPickerModal({
 														<Button
 															variant="outline"
 															size="sm"
-															onClick={() => updatePartQuantity(selected.part.id, selected.quantity - 1)}
+															onClick={() =>
+																updatePartQuantity(
+																	selected.part.id,
+																	selected.quantity - 1,
+																)
+															}
 															className="h-6 w-6 p-0"
 														>
 															<Minus className="h-3 w-3" />
 														</Button>
-														<span className="font-medium">{selected.quantity}</span>
+														<span className="font-medium">
+															{selected.quantity}
+														</span>
 														<Button
 															variant="outline"
 															size="sm"
-															onClick={() => updatePartQuantity(selected.part.id, selected.quantity + 1)}
-															disabled={selected.quantity >= selected.part.current_stock}
+															onClick={() =>
+																updatePartQuantity(
+																	selected.part.id,
+																	selected.quantity + 1,
+																)
+															}
+															disabled={
+																selected.quantity >= selected.part.current_stock
+															}
 															className="h-6 w-6 p-0"
 														>
 															<Plus className="h-3 w-3" />
@@ -448,7 +516,10 @@ export function PartsPickerModal({
 													</div>
 													<div className="text-right">
 														<div className="font-medium">
-															{formatPrice((selected.part.unit_price || 0) * selected.quantity)}
+															{formatPrice(
+																(selected.part.unit_price || 0) *
+																	selected.quantity,
+															)}
 														</div>
 														<div className="text-xs text-muted-foreground">
 															{formatPrice(selected.part.unit_price || 0)}/cái
@@ -482,7 +553,9 @@ export function PartsPickerModal({
 									<div className="space-y-2">
 										<div className="flex justify-between text-sm">
 											<span>Tổng số linh kiện:</span>
-											<span>{selectedParts.reduce((sum, s) => sum + s.quantity, 0)}</span>
+											<span>
+												{selectedParts.reduce((sum, s) => sum + s.quantity, 0)}
+											</span>
 										</div>
 										<Separator />
 										<div className="flex justify-between font-medium">

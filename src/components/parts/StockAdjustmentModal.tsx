@@ -1,16 +1,36 @@
-import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Package, TrendingUp, TrendingDown, Plus, Minus } from "lucide-react";
-import { usePartsManagement } from "@/hooks/use-parts-management";
 import { useAuth } from "@/contexts/auth-context";
+import { usePartsManagement } from "@/hooks/use-parts-management";
 import type { Database } from "@/lib/supabase";
+import {
+	AlertTriangle,
+	Minus,
+	Package,
+	Plus,
+	TrendingDown,
+	TrendingUp,
+} from "lucide-react";
+import { useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
@@ -22,7 +42,14 @@ interface StockAdjustmentModalProps {
 }
 
 type AdjustmentType = "increase" | "decrease" | "set_absolute";
-type ReasonCode = "received_shipment" | "damaged_goods" | "theft_loss" | "used_in_repair" | "inventory_count" | "returned_goods" | "other";
+type ReasonCode =
+	| "received_shipment"
+	| "damaged_goods"
+	| "theft_loss"
+	| "used_in_repair"
+	| "inventory_count"
+	| "returned_goods"
+	| "other";
 
 const REASON_CODES: Record<ReasonCode, string> = {
 	received_shipment: "Nhận hàng từ nhà cung cấp",
@@ -31,11 +58,17 @@ const REASON_CODES: Record<ReasonCode, string> = {
 	used_in_repair: "Đã sử dụng trong sửa chữa",
 	inventory_count: "Kiểm kê kho",
 	returned_goods: "Hàng trả lại",
-	other: "Lý do khác"
+	other: "Lý do khác",
 };
 
-export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: StockAdjustmentModalProps) {
-	const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>("increase");
+export function StockAdjustmentModal({
+	part,
+	isOpen,
+	onClose,
+	onSuccess,
+}: StockAdjustmentModalProps) {
+	const [adjustmentType, setAdjustmentType] =
+		useState<AdjustmentType>("increase");
 	const [quantity, setQuantity] = useState<number>(0);
 	const [newStock, setNewStock] = useState<number>(0);
 	const [reasonCode, setReasonCode] = useState<ReasonCode>("received_shipment");
@@ -68,11 +101,23 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 	const getStockStatus = (stock: number) => {
 		const minStock = part?.min_stock_level || 5;
 		if (stock === 0) {
-			return { label: "Hết hàng", variant: "destructive" as const, icon: AlertTriangle };
+			return {
+				label: "Hết hàng",
+				variant: "destructive" as const,
+				icon: AlertTriangle,
+			};
 		} else if (stock <= minStock) {
-			return { label: "Sắp hết", variant: "outline" as const, icon: TrendingDown };
+			return {
+				label: "Sắp hết",
+				variant: "outline" as const,
+				icon: TrendingDown,
+			};
 		} else {
-			return { label: "Còn hàng", variant: "secondary" as const, icon: Package };
+			return {
+				label: "Còn hàng",
+				variant: "secondary" as const,
+				icon: Package,
+			};
 		}
 	};
 
@@ -87,7 +132,7 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 				finalStock,
 				cost,
 				user.id,
-				`${REASON_CODES[reasonCode]}${notes ? ` - ${notes}` : ""}`
+				`${REASON_CODES[reasonCode]}${notes ? ` - ${notes}` : ""}`,
 			);
 
 			onSuccess();
@@ -115,7 +160,7 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 			style: "currency",
 			currency: "VND",
 			minimumFractionDigits: 0,
-			maximumFractionDigits: 0
+			maximumFractionDigits: 0,
 		}).format(price);
 	};
 
@@ -145,9 +190,13 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 						<CardContent className="pt-6">
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<Label className="text-sm font-medium">Tồn kho hiện tại</Label>
+									<Label className="text-sm font-medium">
+										Tồn kho hiện tại
+									</Label>
 									<div className="flex items-center gap-2 mt-1">
-										<span className="text-2xl font-bold">{part.current_stock}</span>
+										<span className="text-2xl font-bold">
+											{part.current_stock}
+										</span>
 										<Badge variant={currentStatus.variant}>
 											<CurrentIcon className="h-3 w-3 mr-1" />
 											{currentStatus.label}
@@ -155,7 +204,9 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 									</div>
 								</div>
 								<div>
-									<Label className="text-sm font-medium">Tồn kho tối thiểu</Label>
+									<Label className="text-sm font-medium">
+										Tồn kho tối thiểu
+									</Label>
 									<div className="text-2xl font-bold text-muted-foreground mt-1">
 										{part.min_stock_level || 5}
 									</div>
@@ -167,7 +218,12 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 					{/* Adjustment Type */}
 					<div className="space-y-2">
 						<Label>Loại điều chỉnh</Label>
-						<Select value={adjustmentType} onValueChange={(value: AdjustmentType) => setAdjustmentType(value)}>
+						<Select
+							value={adjustmentType}
+							onValueChange={(value: AdjustmentType) =>
+								setAdjustmentType(value)
+							}
+						>
 							<SelectTrigger>
 								<SelectValue />
 							</SelectTrigger>
@@ -217,7 +273,11 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 									id="quantity"
 									type="number"
 									min="0"
-									max={adjustmentType === "decrease" ? part.current_stock : undefined}
+									max={
+										adjustmentType === "decrease"
+											? part.current_stock
+											: undefined
+									}
 									value={quantity}
 									onChange={(e) => setQuantity(Number(e.target.value))}
 									placeholder={`Nhập số lượng ${adjustmentType === "increase" ? "tăng" : "giảm"}`}
@@ -241,7 +301,10 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 					{/* Reason Code */}
 					<div className="space-y-2">
 						<Label>Lý do điều chỉnh</Label>
-						<Select value={reasonCode} onValueChange={(value: ReasonCode) => setReasonCode(value)}>
+						<Select
+							value={reasonCode}
+							onValueChange={(value: ReasonCode) => setReasonCode(value)}
+						>
 							<SelectTrigger>
 								<SelectValue />
 							</SelectTrigger>
@@ -272,9 +335,13 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 						<CardContent className="pt-6">
 							<div className="grid grid-cols-3 gap-4 text-center">
 								<div>
-									<Label className="text-sm text-muted-foreground">Hiện tại</Label>
+									<Label className="text-sm text-muted-foreground">
+										Hiện tại
+									</Label>
 									<div className="flex items-center justify-center gap-2 mt-1">
-										<span className="text-xl font-bold">{part.current_stock}</span>
+										<span className="text-xl font-bold">
+											{part.current_stock}
+										</span>
 										<Badge variant={currentStatus.variant} className="text-xs">
 											{currentStatus.label}
 										</Badge>
@@ -284,7 +351,9 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 									<TrendingUp className="h-6 w-6 text-muted-foreground" />
 								</div>
 								<div>
-									<Label className="text-sm text-muted-foreground">Sau điều chỉnh</Label>
+									<Label className="text-sm text-muted-foreground">
+										Sau điều chỉnh
+									</Label>
 									<div className="flex items-center justify-center gap-2 mt-1">
 										<span className="text-xl font-bold">{finalStock}</span>
 										<Badge variant={newStatus.variant} className="text-xs">
@@ -295,7 +364,9 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 							</div>
 							{cost > 0 && (
 								<div className="mt-4 pt-4 border-t text-center">
-									<Label className="text-sm text-muted-foreground">Tổng giá trị</Label>
+									<Label className="text-sm text-muted-foreground">
+										Tổng giá trị
+									</Label>
 									<div className="text-lg font-semibold text-green-600 mt-1">
 										{formatPrice(finalStock * cost)}
 									</div>
@@ -329,7 +400,11 @@ export function StockAdjustmentModal({ part, isOpen, onClose, onSuccess }: Stock
 					</Button>
 					<Button
 						onClick={handleSubmit}
-						disabled={loading || (adjustmentType !== "set_absolute" && quantity === 0) || (adjustmentType === "set_absolute" && newStock < 0)}
+						disabled={
+							loading ||
+							(adjustmentType !== "set_absolute" && quantity === 0) ||
+							(adjustmentType === "set_absolute" && newStock < 0)
+						}
 					>
 						{loading ? "Đang xử lý..." : "Xác nhận điều chỉnh"}
 					</Button>

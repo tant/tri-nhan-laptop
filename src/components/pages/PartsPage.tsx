@@ -1,25 +1,57 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DataTable } from "@/components/ui/data-table";
-import { type ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Edit, Package, AlertTriangle, RefreshCw, Bell, TrendingUp, DollarSign, Settings, Upload, Download } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
 import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { PartsInventorySkeleton } from "@/components/skeleton-loaders";
-import { usePartsManagement } from "@/hooks/use-parts-management";
+import { BulkImportModal } from "@/components/parts/BulkImportModal";
+import { ExportPartsModal } from "@/components/parts/ExportPartsModal";
+import { PartsFormModal } from "@/components/parts/PartsFormModal";
 import { PartsSearch } from "@/components/parts/PartsSearch";
 import { StockAdjustmentModal } from "@/components/parts/StockAdjustmentModal";
 import { StockStatusBadge } from "@/components/parts/StockStatusBadge";
-import { PartsFormModal } from "@/components/parts/PartsFormModal";
-import { BulkImportModal } from "@/components/parts/BulkImportModal";
-import { ExportPartsModal } from "@/components/parts/ExportPartsModal";
+import { PartsInventorySkeleton } from "@/components/skeleton-loaders";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { usePartsManagement } from "@/hooks/use-parts-management";
+import { supabase } from "@/lib/supabase";
+import type { Database } from "@/lib/supabase";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+	AlertTriangle,
+	Bell,
+	DollarSign,
+	Download,
+	Edit,
+	Package,
+	Plus,
+	RefreshCw,
+	Search,
+	Settings,
+	TrendingUp,
+	Upload,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 // Database types
 type Part = Database["public"]["Tables"]["parts"]["Row"];
@@ -48,7 +80,7 @@ export function PartsPage() {
 		totalInventoryValue,
 		getPartsWithStockStatus,
 		getLowStockParts,
-		calculateInventoryValue
+		calculateInventoryValue,
 	} = usePartsManagement();
 
 	// Fetch parts from database with enhanced stock status
@@ -62,11 +94,7 @@ export function PartsPage() {
 			setFilteredParts(partsWithStock); // Initialize filtered parts
 
 			// Also refresh low stock data and inventory value
-			await Promise.all([
-				getLowStockParts(),
-				calculateInventoryValue()
-			]);
-
+			await Promise.all([getLowStockParts(), calculateInventoryValue()]);
 		} catch (err) {
 			console.error("Error fetching parts:", err);
 			setError(err as Error);
@@ -95,7 +123,7 @@ export function PartsPage() {
 					console.log("Part change detected:", payload);
 					// Refetch data when changes occur
 					fetchParts();
-				}
+				},
 			)
 			.subscribe();
 
@@ -150,15 +178,17 @@ export function PartsPage() {
 	};
 
 	// Get urgent restock parts (out of stock)
-	const outOfStockParts = parts.filter(part => part.current_stock === 0);
+	const outOfStockParts = parts.filter((part) => part.current_stock === 0);
 
 	// Get critical stock parts (very low)
-	const criticalStockParts = parts.filter(part =>
-		part.current_stock > 0 && part.current_stock <= 50
+	const criticalStockParts = parts.filter(
+		(part) => part.current_stock > 0 && part.current_stock <= 50,
 	);
 
 	// Get unique categories for filter dropdown
-	const categories = [...new Set(parts.map(part => part.category).filter(Boolean))];
+	const categories = [
+		...new Set(parts.map((part) => part.category).filter(Boolean)),
+	];
 
 	// Table columns definition
 	const columns: ColumnDef<Part>[] = [
@@ -247,28 +277,22 @@ export function PartsPage() {
 			<div className="flex justify-between items-center">
 				<div>
 					<h1 className="text-3xl font-bold">Quản lý linh kiện</h1>
-					<p className="text-muted-foreground">Theo dõi kho linh kiện và phụ kiện laptop</p>
+					<p className="text-muted-foreground">
+						Theo dõi kho linh kiện và phụ kiện laptop
+					</p>
 				</div>
 				<div className="flex gap-2">
-					<Button
-						variant="outline"
-						onClick={fetchParts}
-						disabled={loading}
-					>
-						<RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+					<Button variant="outline" onClick={fetchParts} disabled={loading}>
+						<RefreshCw
+							className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+						/>
 						Làm mới
 					</Button>
-					<Button
-						variant="outline"
-						onClick={() => setIsExportOpen(true)}
-					>
+					<Button variant="outline" onClick={() => setIsExportOpen(true)}>
 						<Download className="h-4 w-4 mr-2" />
 						Xuất CSV
 					</Button>
-					<Button
-						variant="outline"
-						onClick={() => setIsBulkImportOpen(true)}
-					>
+					<Button variant="outline" onClick={() => setIsBulkImportOpen(true)}>
 						<Upload className="h-4 w-4 mr-2" />
 						Nhập CSV
 					</Button>
@@ -291,7 +315,9 @@ export function PartsPage() {
 			<div className="grid gap-4 md:grid-cols-5">
 				<Card>
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Tổng linh kiện</CardTitle>
+						<CardTitle className="text-sm font-medium">
+							Tổng linh kiện
+						</CardTitle>
 						<Package className="h-4 w-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
@@ -303,37 +329,51 @@ export function PartsPage() {
 				</Card>
 				<Card className="border-red-200 bg-red-50">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium text-red-800">Hết hàng</CardTitle>
+						<CardTitle className="text-sm font-medium text-red-800">
+							Hết hàng
+						</CardTitle>
 						<AlertTriangle className="h-4 w-4 text-red-500" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-red-800">{outOfStockParts.length}</div>
+						<div className="text-2xl font-bold text-red-800">
+							{outOfStockParts.length}
+						</div>
 						<p className="text-xs text-red-600">Cần nhập ngay</p>
 					</CardContent>
 				</Card>
 				<Card className="border-orange-200 bg-orange-50">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium text-orange-800">Sắp hết</CardTitle>
+						<CardTitle className="text-sm font-medium text-orange-800">
+							Sắp hết
+						</CardTitle>
 						<Bell className="h-4 w-4 text-orange-500" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-orange-800">{criticalStockParts.length}</div>
+						<div className="text-2xl font-bold text-orange-800">
+							{criticalStockParts.length}
+						</div>
 						<p className="text-xs text-orange-600">Cần theo dõi</p>
 					</CardContent>
 				</Card>
 				<Card className="border-blue-200 bg-blue-50">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium text-blue-800">Cảnh báo tồn kho</CardTitle>
+						<CardTitle className="text-sm font-medium text-blue-800">
+							Cảnh báo tồn kho
+						</CardTitle>
 						<TrendingUp className="h-4 w-4 text-blue-500" />
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold text-blue-800">{lowStockParts.length}</div>
+						<div className="text-2xl font-bold text-blue-800">
+							{lowStockParts.length}
+						</div>
 						<p className="text-xs text-blue-600">Tổng cảnh báo</p>
 					</CardContent>
 				</Card>
 				<Card className="border-green-200 bg-green-50">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium text-green-800">Giá trị kho</CardTitle>
+						<CardTitle className="text-sm font-medium text-green-800">
+							Giá trị kho
+						</CardTitle>
 						<DollarSign className="h-4 w-4 text-green-500" />
 					</CardHeader>
 					<CardContent>
@@ -359,8 +399,12 @@ export function PartsPage() {
 							Có {lowStockParts.length} linh kiện sắp hết hoặc đã hết hàng:
 						</p>
 						<div className="flex flex-wrap gap-2">
-							{lowStockParts.map(part => (
-								<Badge key={part.id} variant="outline" className="text-orange-700 border-orange-300">
+							{lowStockParts.map((part) => (
+								<Badge
+									key={part.id}
+									variant="outline"
+									className="text-orange-700 border-orange-300"
+								>
 									{part.name} ({part.current_stock}/100)
 								</Badge>
 							))}
@@ -408,7 +452,10 @@ export function PartsPage() {
 								<SelectContent>
 									<SelectItem value="all">Tất cả danh mục</SelectItem>
 									{categories.map((category, index) => (
-										<SelectItem key={category || `empty-${index}`} value={category || ""}>
+										<SelectItem
+											key={category || `empty-${index}`}
+											value={category || ""}
+										>
 											{category || "Không phân loại"}
 										</SelectItem>
 									))}
@@ -433,7 +480,9 @@ export function PartsPage() {
 
 					{/* Quick filter buttons */}
 					<div className="flex flex-wrap gap-2 mt-4 pt-4 border-t">
-						<span className="text-sm font-medium text-muted-foreground">Lọc nhanh:</span>
+						<span className="text-sm font-medium text-muted-foreground">
+							Lọc nhanh:
+						</span>
 						<Button
 							variant={stockFilter === "out_of_stock" ? "default" : "outline"}
 							size="sm"
@@ -484,8 +533,7 @@ export function PartsPage() {
 							<p className="text-muted-foreground">
 								{searchTerm || categoryFilter !== "all"
 									? "Không tìm thấy linh kiện phù hợp"
-									: "Chưa có linh kiện nào trong kho"
-								}
+									: "Chưa có linh kiện nào trong kho"}
 							</p>
 						</div>
 					)}

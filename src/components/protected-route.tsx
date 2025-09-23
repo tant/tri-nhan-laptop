@@ -1,6 +1,6 @@
 import { useAuth } from "@/contexts/auth-context";
-import { Navigate } from "@tanstack/react-router";
 import type { Database } from "@/lib/supabase";
+import { Navigate } from "@tanstack/react-router";
 
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
@@ -23,7 +23,9 @@ export function ProtectedRoute({
 			<div className="min-h-screen flex items-center justify-center">
 				<div className="text-center space-y-4">
 					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#299fce] mx-auto"></div>
-					<p className="text-muted-foreground">Đang kiểm tra quyền truy cập...</p>
+					<p className="text-muted-foreground">
+						Đang kiểm tra quyền truy cập...
+					</p>
 				</div>
 			</div>
 		);
@@ -44,7 +46,8 @@ export function ProtectedRoute({
 							Không có quyền truy cập
 						</h2>
 						<p className="text-red-600 text-sm">
-							Bạn không có quyền truy cập vào trang này. Yêu cầu vai trò: {requireRole}
+							Bạn không có quyền truy cập vào trang này. Yêu cầu vai trò:{" "}
+							{requireRole}
 						</p>
 						<p className="text-red-600 text-sm mt-2">
 							Vai trò hiện tại: {profile?.role || "Không xác định"}
@@ -61,18 +64,13 @@ export function ProtectedRoute({
 		);
 	}
 
-
 	// All checks passed, render children
 	return <>{children}</>;
 }
 
 // Convenience wrapper for admin-only routes
 export function AdminRoute({ children }: { children: React.ReactNode }) {
-	return (
-		<ProtectedRoute requireRole="shop_owner">
-			{children}
-		</ProtectedRoute>
-	);
+	return <ProtectedRoute requireRole="shop_owner">{children}</ProtectedRoute>;
 }
 
 // Convenience wrapper for shop_owner routes
@@ -81,11 +79,7 @@ export function ManagerRoute({ children }: { children: React.ReactNode }) {
 
 	// Allow shop_owner only
 	if (!isRole("shop_owner")) {
-		return (
-			<ProtectedRoute requireRole="shop_owner">
-				{children}
-			</ProtectedRoute>
-		);
+		return <ProtectedRoute requireRole="shop_owner">{children}</ProtectedRoute>;
 	}
 
 	return <ProtectedRoute>{children}</ProtectedRoute>;

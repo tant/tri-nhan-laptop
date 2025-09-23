@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { AdminPage } from "@/components/pages/AdminPage";
 import { AdminRoute } from "@/components/protected-route";
+import { createFileRoute } from "@tanstack/react-router";
 
 function ProtectedAdmin() {
 	return (

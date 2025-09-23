@@ -295,7 +295,9 @@ export function validateVietnameseAddress(address: {
 /**
  * Validate Vietnamese ID card number
  */
-export function validateVietnameseIDCard(idCard: string): IDCardValidationResult {
+export function validateVietnameseIDCard(
+	idCard: string,
+): IDCardValidationResult {
 	if (!idCard?.trim()) {
 		return {
 			isValid: false,
@@ -431,9 +433,11 @@ export function validateBusinessData(data: {
 /**
  * Validate date of birth
  */
-export function validateDateOfBirth(
-	dateString: string,
-): { isValid: boolean; error?: string; age?: number } {
+export function validateDateOfBirth(dateString: string): {
+	isValid: boolean;
+	error?: string;
+	age?: number;
+} {
 	if (!dateString?.trim()) {
 		return {
 			isValid: false,

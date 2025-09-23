@@ -1,15 +1,15 @@
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
 
-// Import the generated route tree
-import { routeTree } from "./routeTree.gen";
-// Import Supabase connection test
-import { testSupabaseConnection } from "@/lib/supabase";
 // Import error boundary
 import { ErrorBoundary } from "@/components/error-boundary";
 // Import auth provider
 import { AuthProvider } from "@/contexts/auth-context";
+// Import Supabase connection test
+import { testSupabaseConnection } from "@/lib/supabase";
+// Import the generated route tree
+import { routeTree } from "./routeTree.gen";
 
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";

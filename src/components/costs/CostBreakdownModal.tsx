@@ -1,29 +1,55 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import {
+	type CostBreakdown,
+	type CostSummary,
+	useCostTracking,
+} from "@/hooks/use-cost-tracking";
+import {
+	CostTerms,
+	formatNumberInput,
+	formatPercentage,
+	formatVND,
+	formatVNDDetailed,
+	getProfitAmountColor,
+	getProfitMarginColor,
+	parseVND,
+} from "@/lib/currency";
+import {
+	AlertCircle,
 	Calculator,
-	Plus,
-	Minus,
-	Edit3,
-	Trash2,
-	DollarSign,
-	TrendingUp,
-	Package,
 	Clock,
+	DollarSign,
+	Edit3,
+	Minus,
+	Package,
+	Plus,
 	Settings,
-	AlertCircle
+	Trash2,
+	TrendingUp,
 } from "lucide-react";
-import { useCostTracking, type CostBreakdown, type CostSummary } from "@/hooks/use-cost-tracking";
-import { formatVND, formatVNDDetailed, formatPercentage, getProfitMarginColor, getProfitAmountColor, CostTerms, formatNumberInput, parseVND } from "@/lib/currency";
+import { useEffect, useState } from "react";
 
 interface CostBreakdownModalProps {
 	isOpen: boolean;
@@ -33,7 +59,7 @@ interface CostBreakdownModalProps {
 }
 
 interface AddCostItemForm {
-	breakdown_type: CostBreakdown['breakdown_type'];
+	breakdown_type: CostBreakdown["breakdown_type"];
 	item_name: string;
 	quantity: number;
 	unit_cost: number;
@@ -45,19 +71,19 @@ export function CostBreakdownModal({
 	isOpen,
 	onClose,
 	repairId,
-	onCostUpdate
+	onCostUpdate,
 }: CostBreakdownModalProps) {
 	const [costBreakdown, setCostBreakdown] = useState<CostBreakdown[]>([]);
 	const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [showAddForm, setShowAddForm] = useState(false);
 	const [addItemForm, setAddItemForm] = useState<AddCostItemForm>({
-		breakdown_type: 'parts',
-		item_name: '',
+		breakdown_type: "parts",
+		item_name: "",
 		quantity: 1,
 		unit_cost: 0,
 		unit_price: 0,
-		notes: ''
+		notes: "",
 	});
 
 	const {
@@ -65,7 +91,7 @@ export function CostBreakdownModal({
 		calculateRepairCosts,
 		addCostBreakdown,
 		removeCostBreakdown,
-		updateRepairTotals
+		updateRepairTotals,
 	} = useCostTracking();
 
 	// Load cost breakdown when modal opens
@@ -89,7 +115,7 @@ export function CostBreakdownModal({
 			const summary = await calculateRepairCosts(repairId);
 			setCostSummary(summary);
 		} catch (error) {
-			console.error('Error loading cost breakdown:', error);
+			console.error("Error loading cost breakdown:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -110,7 +136,7 @@ export function CostBreakdownModal({
 				addItemForm.unit_price,
 				undefined, // item_id
 				addItemForm.notes || undefined,
-				'current-user-id' // TODO: Get real user ID
+				"current-user-id", // TODO: Get real user ID
 			);
 
 			if (newItem) {
@@ -122,12 +148,12 @@ export function CostBreakdownModal({
 
 				// Reset form
 				setAddItemForm({
-					breakdown_type: 'parts',
-					item_name: '',
+					breakdown_type: "parts",
+					item_name: "",
 					quantity: 1,
 					unit_cost: 0,
 					unit_price: 0,
-					notes: ''
+					notes: "",
 				});
 
 				setShowAddForm(false);
@@ -137,7 +163,7 @@ export function CostBreakdownModal({
 				}
 			}
 		} catch (error) {
-			console.error('Error adding cost item:', error);
+			console.error("Error adding cost item:", error);
 		} finally {
 			setLoading(false);
 		}
@@ -160,36 +186,36 @@ export function CostBreakdownModal({
 				}
 			}
 		} catch (error) {
-			console.error('Error removing cost item:', error);
+			console.error("Error removing cost item:", error);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const getBreakdownTypeIcon = (type: CostBreakdown['breakdown_type']) => {
+	const getBreakdownTypeIcon = (type: CostBreakdown["breakdown_type"]) => {
 		switch (type) {
-			case 'parts':
+			case "parts":
 				return <Package className="h-4 w-4" />;
-			case 'labor':
+			case "labor":
 				return <Clock className="h-4 w-4" />;
-			case 'overhead':
+			case "overhead":
 				return <Settings className="h-4 w-4" />;
-			case 'tax':
+			case "tax":
 				return <TrendingUp className="h-4 w-4" />;
-			case 'discount':
+			case "discount":
 				return <Minus className="h-4 w-4" />;
 			default:
 				return <DollarSign className="h-4 w-4" />;
 		}
 	};
 
-	const getBreakdownTypeBadge = (type: CostBreakdown['breakdown_type']) => {
+	const getBreakdownTypeBadge = (type: CostBreakdown["breakdown_type"]) => {
 		const colors = {
-			parts: 'bg-blue-100 text-blue-800',
-			labor: 'bg-green-100 text-green-800',
-			overhead: 'bg-gray-100 text-gray-800',
-			tax: 'bg-orange-100 text-orange-800',
-			discount: 'bg-red-100 text-red-800'
+			parts: "bg-blue-100 text-blue-800",
+			labor: "bg-green-100 text-green-800",
+			overhead: "bg-gray-100 text-gray-800",
+			tax: "bg-orange-100 text-orange-800",
+			discount: "bg-red-100 text-red-800",
 		};
 
 		return (
@@ -201,19 +227,22 @@ export function CostBreakdownModal({
 	};
 
 	const handleFormFieldChange = (field: keyof AddCostItemForm, value: any) => {
-		setAddItemForm(prev => ({
+		setAddItemForm((prev) => ({
 			...prev,
-			[field]: value
+			[field]: value,
 		}));
 	};
 
-	const handleNumberInput = (field: 'quantity' | 'unit_cost' | 'unit_price', value: string) => {
-		if (field === 'quantity') {
-			const numValue = parseFloat(value) || 0;
-			setAddItemForm(prev => ({ ...prev, [field]: numValue }));
+	const handleNumberInput = (
+		field: "quantity" | "unit_cost" | "unit_price",
+		value: string,
+	) => {
+		if (field === "quantity") {
+			const numValue = Number.parseFloat(value) || 0;
+			setAddItemForm((prev) => ({ ...prev, [field]: numValue }));
 		} else {
 			const numValue = parseVND(value);
-			setAddItemForm(prev => ({ ...prev, [field]: numValue }));
+			setAddItemForm((prev) => ({ ...prev, [field]: numValue }));
 		}
 	};
 
@@ -228,7 +257,9 @@ export function CostBreakdownModal({
 						</DialogTitle>
 					</DialogHeader>
 					<div className="flex items-center justify-center py-8">
-						<div className="text-muted-foreground">Đang tải chi tiết chi phí...</div>
+						<div className="text-muted-foreground">
+							Đang tải chi tiết chi phí...
+						</div>
 					</div>
 				</DialogContent>
 			</Dialog>
@@ -244,7 +275,8 @@ export function CostBreakdownModal({
 						Chi tiết chi phí sửa chữa
 					</DialogTitle>
 					<DialogDescription>
-						Quản lý chi phí chi tiết và theo dõi lợi nhuận cho phiếu sửa chữa này
+						Quản lý chi phí chi tiết và theo dõi lợi nhuận cho phiếu sửa chữa
+						này
 					</DialogDescription>
 				</DialogHeader>
 
@@ -261,22 +293,38 @@ export function CostBreakdownModal({
 							<CardContent>
 								<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Chi phí tổng</div>
-										<div className="text-lg font-semibold">{formatVNDDetailed(costSummary.total_cost)}</div>
+										<div className="text-sm text-muted-foreground">
+											Chi phí tổng
+										</div>
+										<div className="text-lg font-semibold">
+											{formatVNDDetailed(costSummary.total_cost)}
+										</div>
 									</div>
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Doanh thu</div>
-										<div className="text-lg font-semibold">{formatVNDDetailed(costSummary.total_revenue)}</div>
+										<div className="text-sm text-muted-foreground">
+											Doanh thu
+										</div>
+										<div className="text-lg font-semibold">
+											{formatVNDDetailed(costSummary.total_revenue)}
+										</div>
 									</div>
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Lợi nhuận</div>
-										<div className={`text-lg font-semibold ${getProfitAmountColor(costSummary.profit_amount)}`}>
+										<div className="text-sm text-muted-foreground">
+											Lợi nhuận
+										</div>
+										<div
+											className={`text-lg font-semibold ${getProfitAmountColor(costSummary.profit_amount)}`}
+										>
 											{formatVNDDetailed(costSummary.profit_amount)}
 										</div>
 									</div>
 									<div className="text-center p-4 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Tỷ suất LN</div>
-										<div className={`text-lg font-semibold ${getProfitMarginColor(costSummary.profit_margin)}`}>
+										<div className="text-sm text-muted-foreground">
+											Tỷ suất LN
+										</div>
+										<div
+											className={`text-lg font-semibold ${getProfitMarginColor(costSummary.profit_margin)}`}
+										>
 											{formatPercentage(costSummary.profit_margin)}
 										</div>
 									</div>
@@ -288,25 +336,47 @@ export function CostBreakdownModal({
 									<div className="flex justify-between">
 										<span>Linh kiện:</span>
 										<div className="text-right">
-											<div>{formatVND(costSummary.parts_revenue)} - {formatVND(costSummary.parts_cost)}</div>
-											<div className={getProfitAmountColor(costSummary.parts_revenue - costSummary.parts_cost)}>
-												= {formatVNDDetailed(costSummary.parts_revenue - costSummary.parts_cost)}
+											<div>
+												{formatVND(costSummary.parts_revenue)} -{" "}
+												{formatVND(costSummary.parts_cost)}
+											</div>
+											<div
+												className={getProfitAmountColor(
+													costSummary.parts_revenue - costSummary.parts_cost,
+												)}
+											>
+												={" "}
+												{formatVNDDetailed(
+													costSummary.parts_revenue - costSummary.parts_cost,
+												)}
 											</div>
 										</div>
 									</div>
 									<div className="flex justify-between">
 										<span>Công lao động:</span>
 										<div className="text-right">
-											<div>{formatVND(costSummary.labor_revenue)} - {formatVND(costSummary.labor_cost)}</div>
-											<div className={getProfitAmountColor(costSummary.labor_revenue - costSummary.labor_cost)}>
-												= {formatVNDDetailed(costSummary.labor_revenue - costSummary.labor_cost)}
+											<div>
+												{formatVND(costSummary.labor_revenue)} -{" "}
+												{formatVND(costSummary.labor_cost)}
+											</div>
+											<div
+												className={getProfitAmountColor(
+													costSummary.labor_revenue - costSummary.labor_cost,
+												)}
+											>
+												={" "}
+												{formatVNDDetailed(
+													costSummary.labor_revenue - costSummary.labor_cost,
+												)}
 											</div>
 										</div>
 									</div>
 									<div className="flex justify-between">
 										<span>Chi phí khác:</span>
 										<div className="text-right">
-											<div className="text-red-600">{formatVND(costSummary.overhead_cost)}</div>
+											<div className="text-red-600">
+												{formatVND(costSummary.overhead_cost)}
+											</div>
 										</div>
 									</div>
 								</div>
@@ -329,7 +399,9 @@ export function CostBreakdownModal({
 										<Label htmlFor="breakdown_type">Loại chi phí</Label>
 										<Select
 											value={addItemForm.breakdown_type}
-											onValueChange={(value) => handleFormFieldChange('breakdown_type', value)}
+											onValueChange={(value) =>
+												handleFormFieldChange("breakdown_type", value)
+											}
 										>
 											<SelectTrigger>
 												<SelectValue placeholder="Chọn loại chi phí" />
@@ -337,9 +409,13 @@ export function CostBreakdownModal({
 											<SelectContent>
 												<SelectItem value="parts">{CostTerms.parts}</SelectItem>
 												<SelectItem value="labor">{CostTerms.labor}</SelectItem>
-												<SelectItem value="overhead">{CostTerms.overhead}</SelectItem>
+												<SelectItem value="overhead">
+													{CostTerms.overhead}
+												</SelectItem>
 												<SelectItem value="tax">{CostTerms.tax}</SelectItem>
-												<SelectItem value="discount">{CostTerms.discount}</SelectItem>
+												<SelectItem value="discount">
+													{CostTerms.discount}
+												</SelectItem>
 											</SelectContent>
 										</Select>
 									</div>
@@ -348,7 +424,9 @@ export function CostBreakdownModal({
 										<Input
 											id="item_name"
 											value={addItemForm.item_name}
-											onChange={(e) => handleFormFieldChange('item_name', e.target.value)}
+											onChange={(e) =>
+												handleFormFieldChange("item_name", e.target.value)
+											}
 											placeholder="Mô tả chi phí..."
 										/>
 									</div>
@@ -363,15 +441,21 @@ export function CostBreakdownModal({
 											step="0.01"
 											min="0"
 											value={addItemForm.quantity}
-											onChange={(e) => handleNumberInput('quantity', e.target.value)}
+											onChange={(e) =>
+												handleNumberInput("quantity", e.target.value)
+											}
 										/>
 									</div>
 									<div>
 										<Label htmlFor="unit_cost">Đơn giá vốn (₫)</Label>
 										<Input
 											id="unit_cost"
-											value={formatNumberInput(addItemForm.unit_cost.toString())}
-											onChange={(e) => handleNumberInput('unit_cost', e.target.value)}
+											value={formatNumberInput(
+												addItemForm.unit_cost.toString(),
+											)}
+											onChange={(e) =>
+												handleNumberInput("unit_cost", e.target.value)
+											}
 											placeholder="0"
 										/>
 									</div>
@@ -379,8 +463,12 @@ export function CostBreakdownModal({
 										<Label htmlFor="unit_price">Đơn giá bán (₫)</Label>
 										<Input
 											id="unit_price"
-											value={formatNumberInput(addItemForm.unit_price.toString())}
-											onChange={(e) => handleNumberInput('unit_price', e.target.value)}
+											value={formatNumberInput(
+												addItemForm.unit_price.toString(),
+											)}
+											onChange={(e) =>
+												handleNumberInput("unit_price", e.target.value)
+											}
 											placeholder="0"
 										/>
 									</div>
@@ -391,7 +479,9 @@ export function CostBreakdownModal({
 									<Textarea
 										id="notes"
 										value={addItemForm.notes}
-										onChange={(e) => handleFormFieldChange('notes', e.target.value)}
+										onChange={(e) =>
+											handleFormFieldChange("notes", e.target.value)
+										}
 										placeholder="Ghi chú thêm về chi phí này..."
 										rows={2}
 									/>
@@ -400,26 +490,62 @@ export function CostBreakdownModal({
 								{/* Preview */}
 								{addItemForm.item_name && addItemForm.quantity > 0 && (
 									<div className="p-3 bg-muted rounded-lg">
-										<div className="text-sm text-muted-foreground">Xem trước:</div>
+										<div className="text-sm text-muted-foreground">
+											Xem trước:
+										</div>
 										<div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm mt-2">
 											<div>
 												<span className="font-medium">Chi phí: </span>
-												{formatVND(addItemForm.quantity * addItemForm.unit_cost)}
+												{formatVND(
+													addItemForm.quantity * addItemForm.unit_cost,
+												)}
 											</div>
 											<div>
 												<span className="font-medium">Doanh thu: </span>
-												{formatVND(addItemForm.quantity * addItemForm.unit_price)}
+												{formatVND(
+													addItemForm.quantity * addItemForm.unit_price,
+												)}
 											</div>
 											<div>
 												<span className="font-medium">Lợi nhuận: </span>
-												<span className={getProfitAmountColor((addItemForm.quantity * addItemForm.unit_price) - (addItemForm.quantity * addItemForm.unit_cost))}>
-													{formatVND((addItemForm.quantity * addItemForm.unit_price) - (addItemForm.quantity * addItemForm.unit_cost))}
+												<span
+													className={getProfitAmountColor(
+														addItemForm.quantity * addItemForm.unit_price -
+															addItemForm.quantity * addItemForm.unit_cost,
+													)}
+												>
+													{formatVND(
+														addItemForm.quantity * addItemForm.unit_price -
+															addItemForm.quantity * addItemForm.unit_cost,
+													)}
 												</span>
 											</div>
 											<div>
 												<span className="font-medium">Tỷ suất: </span>
-												<span className={getProfitMarginColor(addItemForm.unit_price > 0 ? (((addItemForm.quantity * addItemForm.unit_price) - (addItemForm.quantity * addItemForm.unit_cost)) / (addItemForm.quantity * addItemForm.unit_price)) * 100 : 0)}>
-													{formatPercentage(addItemForm.unit_price > 0 ? (((addItemForm.quantity * addItemForm.unit_price) - (addItemForm.quantity * addItemForm.unit_cost)) / (addItemForm.quantity * addItemForm.unit_price)) * 100 : 0)}
+												<span
+													className={getProfitMarginColor(
+														addItemForm.unit_price > 0
+															? ((addItemForm.quantity *
+																	addItemForm.unit_price -
+																	addItemForm.quantity *
+																		addItemForm.unit_cost) /
+																	(addItemForm.quantity *
+																		addItemForm.unit_price)) *
+																	100
+															: 0,
+													)}
+												>
+													{formatPercentage(
+														addItemForm.unit_price > 0
+															? ((addItemForm.quantity *
+																	addItemForm.unit_price -
+																	addItemForm.quantity *
+																		addItemForm.unit_cost) /
+																	(addItemForm.quantity *
+																		addItemForm.unit_price)) *
+																	100
+															: 0,
+													)}
 												</span>
 											</div>
 										</div>
@@ -427,14 +553,22 @@ export function CostBreakdownModal({
 								)}
 
 								<div className="flex gap-2 justify-end">
-									<Button variant="outline" onClick={() => setShowAddForm(false)} disabled={loading}>
+									<Button
+										variant="outline"
+										onClick={() => setShowAddForm(false)}
+										disabled={loading}
+									>
 										Hủy
 									</Button>
 									<Button
 										onClick={handleAddCostItem}
-										disabled={loading || !addItemForm.item_name || addItemForm.quantity <= 0}
+										disabled={
+											loading ||
+											!addItemForm.item_name ||
+											addItemForm.quantity <= 0
+										}
 									>
-										{loading ? 'Đang thêm...' : 'Thêm chi phí'}
+										{loading ? "Đang thêm..." : "Thêm chi phí"}
 									</Button>
 								</div>
 							</CardContent>
@@ -444,7 +578,9 @@ export function CostBreakdownModal({
 					{/* Cost Breakdown Items */}
 					<div className="space-y-4">
 						<div className="flex items-center justify-between">
-							<h3 className="text-lg font-semibold">Chi tiết chi phí ({costBreakdown.length} mục)</h3>
+							<h3 className="text-lg font-semibold">
+								Chi tiết chi phí ({costBreakdown.length} mục)
+							</h3>
 							{!showAddForm && (
 								<Button onClick={() => setShowAddForm(true)} disabled={loading}>
 									<Plus className="h-4 w-4 mr-2" />
@@ -457,7 +593,8 @@ export function CostBreakdownModal({
 							<Alert>
 								<AlertCircle className="h-4 w-4" />
 								<AlertDescription>
-									Chưa có chi phí nào được thêm cho phiếu sửa chữa này. Nhấn "Thêm chi phí" để bắt đầu theo dõi chi phí.
+									Chưa có chi phí nào được thêm cho phiếu sửa chữa này. Nhấn
+									"Thêm chi phí" để bắt đầu theo dõi chi phí.
 								</AlertDescription>
 							</Alert>
 						) : (
@@ -474,31 +611,55 @@ export function CostBreakdownModal({
 
 													<div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-sm">
 														<div>
-															<div className="text-muted-foreground">Số lượng</div>
+															<div className="text-muted-foreground">
+																Số lượng
+															</div>
 															<div className="font-medium">{item.quantity}</div>
 														</div>
 														<div>
-															<div className="text-muted-foreground">Giá vốn/đơn vị</div>
-															<div className="font-medium">{formatVND(item.unit_cost)}</div>
+															<div className="text-muted-foreground">
+																Giá vốn/đơn vị
+															</div>
+															<div className="font-medium">
+																{formatVND(item.unit_cost)}
+															</div>
 														</div>
 														<div>
-															<div className="text-muted-foreground">Giá bán/đơn vị</div>
-															<div className="font-medium">{formatVND(item.unit_price)}</div>
+															<div className="text-muted-foreground">
+																Giá bán/đơn vị
+															</div>
+															<div className="font-medium">
+																{formatVND(item.unit_price)}
+															</div>
 														</div>
 														<div>
-															<div className="text-muted-foreground">Tổng chi phí</div>
-															<div className="font-medium text-red-600">{formatVND(item.total_cost)}</div>
+															<div className="text-muted-foreground">
+																Tổng chi phí
+															</div>
+															<div className="font-medium text-red-600">
+																{formatVND(item.total_cost)}
+															</div>
 														</div>
 														<div>
-															<div className="text-muted-foreground">Tổng doanh thu</div>
-															<div className="font-medium text-green-600">{formatVND(item.total_price)}</div>
+															<div className="text-muted-foreground">
+																Tổng doanh thu
+															</div>
+															<div className="font-medium text-green-600">
+																{formatVND(item.total_price)}
+															</div>
 														</div>
 														<div>
-															<div className="text-muted-foreground">Lợi nhuận</div>
-															<div className={`font-medium ${getProfitAmountColor(item.profit_amount)}`}>
+															<div className="text-muted-foreground">
+																Lợi nhuận
+															</div>
+															<div
+																className={`font-medium ${getProfitAmountColor(item.profit_amount)}`}
+															>
 																{formatVND(item.profit_amount)}
 															</div>
-															<div className={`text-xs ${getProfitMarginColor(item.profit_margin)}`}>
+															<div
+																className={`text-xs ${getProfitMarginColor(item.profit_margin)}`}
+															>
 																{formatPercentage(item.profit_margin)}
 															</div>
 														</div>
@@ -546,7 +707,7 @@ export function CostBreakdownModal({
 					</Button>
 					<Button onClick={loadCostBreakdown} disabled={loading}>
 						<Calculator className="h-4 w-4 mr-2" />
-						{loading ? 'Đang tải...' : 'Làm mới'}
+						{loading ? "Đang tải..." : "Làm mới"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
