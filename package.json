@@ -1,18 +1,14 @@
 {
-  "name": "try-vite",
+  "name": "laptop-repair-shop",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:docker": "vite --port 3000 --host 0.0.0.0",
-    "start": "vite --port 3000",
     "build": "vite build && tsc",
-    "serve": "vite preview",
+    "preview": "vite preview",
     "test": "vitest run",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed",
-    "test:e2e:console": "playwright test --reporter=list",
+    "test:ui": "vitest --ui",
+    "test:watch": "vitest",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check"

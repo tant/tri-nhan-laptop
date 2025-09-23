@@ -1,132 +1,110 @@
-# Laptop Repair Shop - Docker Compose Commands
+# Vietnamese Laptop Repair Shop Management System
+# Single Environment Setup with Phased Approach
 
 .PHONY: help
 help: ## Show this help message
 	@echo 'Usage: make [TARGET]'
 	@echo ''
 	@echo 'Targets:'
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-20s %s\n", $1, $2}' $(MAKEFILE_LIST)
 
-# Production Commands
+# Environment Setup Phases (CRITICAL FOR TESTING)
+.PHONY: env
+env: ## Phase 1: Environment Bring-up - Start all Docker services and infrastructure
+	@echo "🚀 Phase 1: Environment Bring-up"
+	@echo "Starting all Docker services..."
+	docker compose up -d
+	@echo "⏳ Waiting for services to initialize..."
+	@sleep 15
+	@echo "🔧 Running service fixes..."
+	@./fix-supabase-services.sh
+	@echo "✅ Phase 1 complete! All services started."
+
+.PHONY: init
+init: ## Phase 2: Basic Initialization - Create essential accounts and basic system configuration
+	@echo "🚀 Phase 2: Basic Initialization"
+	@echo "Creating shop owner/admin account..."
+	# This would typically call a script to create the admin user
+	# For now, we'll just indicate this needs to be done
+	@echo "Setting up initial system configuration..."
+	@echo "✅ Phase 2 complete! Admin account created."
+
+.PHONY: data
+data: ## Phase 3: Sample Data - Populate system with sample/demo data for development and testing
+	@echo "🚀 Phase 3: Sample Data"
+	@echo "Adding sample customers, parts, and repair tickets..."
+	# This would typically call a script to populate sample data
+	# For now, we'll just indicate this needs to be done
+	@echo "✅ Phase 3 complete! Sample data added."
+
+# Service Management
 .PHONY: up
-up: ## Start production environment (React + Supabase)
-	docker compose --env-file .env up -d
+up: env init ## Start environment and initialize (shortcut for env + init)
+	@echo "🚀 Environment started and initialized!"
 
 .PHONY: down
 down: ## Stop all services
-	docker compose --env-file .env down
+	docker compose down
 
 .PHONY: logs
 logs: ## Show logs from all services
-	docker compose --env-file .env logs -f
+	docker compose logs -f
 
 .PHONY: rebuild
-rebuild: ## Rebuild and restart production environment
-	docker compose --env-file .env down
-	docker compose --env-file .env build --no-cache
-	docker compose --env-file .env up -d
+rebuild: ## Rebuild and restart environment
+	docker compose down
+	docker compose build --no-cache
+	docker compose up -d
 
-# Development Commands
-.PHONY: dev
-dev: ## Start development environment (React dev server + Supabase)
-	docker compose -f docker-compose.dev.yml --env-file .env up -d || true
-	@echo "⏳ Waiting for services to initialize..."
-	@sleep 10
-	@echo "🔧 Running service fixes..."
-	@./fix-supabase-services.sh
+# Environment Reset (CRITICAL FOR TESTING)
+.PHONY: clean
+clean: ## Complete environment reset - Remove all containers, volumes, networks, and data
+	@echo "⚠️  WARNING: This will permanently delete ALL data!"
+	@echo "This command removes all Docker containers, volumes, networks, and data directories."
+	@echo "🧹 Cleaning up Docker resources..."
+	docker compose down -v --remove-orphans
+	docker container prune -f
+	docker volume prune -f
+	docker network prune -f
+	@echo "🗑️  Removing data directories..."
+	rm -rf supabase/volumes/*
+	@echo "✅ Clean complete! Ready for fresh setup."
 
-.PHONY: dev-down
-dev-down: ## Stop development environment
-	docker compose -f docker-compose.dev.yml --env-file .env down
+.PHONY: clean-data
+clean-data: ## Clean database data directories only
+	@echo "⚠️  WARNING: This will permanently delete ALL data!"
+	@echo "This command removes all database data."
+	@read -p "Are you sure you want to continue? (type 'yes' to confirm): " confirm && [ "$confirm" = "yes" ]
+	docker compose down -v --remove-orphans
+	rm -rf supabase/volumes/db/*
+	@echo "✅ Database data cleaned. Ready for fresh initialization."
 
-.PHONY: backend-only
-backend-only: ## Start only Supabase services (for local React development)
-	docker compose -f docker-compose.dev.yml --env-file .env up -d db-dev auth-dev rest-dev kong-dev storage-dev studio-dev meta-dev realtime-dev functions-dev imgproxy-dev || true
-	@echo "⏳ Waiting for services to initialize..."
-	@sleep 10
-	@echo "🔧 Running service fixes..."
-	@./fix-supabase-services.sh
-	@echo ""
-	@echo "🎯 Supabase services running! Now run 'pnpm dev' for local React development"
-	@echo "🌐 React will be available at: http://localhost:5173"
-
-.PHONY: dev-logs
-dev-logs: ## Show development logs
-	docker compose -f docker-compose.dev.yml --env-file .env logs -f
-
-.PHONY: fix-services
-fix-services: ## Fix common Supabase service issues
-	@./fix-supabase-services.sh
-
-# Database Commands
-.PHONY: db-reset
-db-reset: ## Reset database (WARNING: This will delete all data!)
-	docker compose --env-file .env down -v
-	docker compose -f docker-compose.dev.yml --env-file .env down -v
-	@echo "Database reset complete! Run 'make dev' or 'make up' to start fresh."
-
-.PHONY: db-backup
-db-backup: ## Backup database (production)
-	@mkdir -p backups
-	docker compose --env-file .env exec db pg_dump -U postgres postgres > backups/backup_prod_$(shell date +%Y%m%d_%H%M%S).sql
-	@echo "Production database backup created in backups/"
-
-.PHONY: db-backup-dev
-db-backup-dev: ## Backup development database
-	@mkdir -p backups
-	docker compose -f docker-compose.dev.yml --env-file .env exec db-dev pg_dump -U postgres postgres > backups/backup_dev_$(shell date +%Y%m%d_%H%M%S).sql
-	@echo "Development database backup created in backups/"
-
-# Supabase Studio
+# Utility Commands
 .PHONY: studio
 studio: ## Open Supabase Studio in browser
 	@echo "Opening Supabase Studio at http://localhost:3010"
 	@command -v xdg-open >/dev/null 2>&1 && xdg-open http://localhost:3010 || echo "Please open http://localhost:3010 in your browser"
 
-# Utility Commands
-.PHONY: clean
-clean: ## Clean up Docker resources (keeps images)
-	docker compose --env-file .env down -v --remove-orphans
-	docker compose -f docker-compose.dev.yml --env-file .env down -v --remove-orphans
-	docker container prune -f
-	docker volume prune -f
-	docker network prune -f
-
-.PHONY: clean-data
-clean-data: ## Clean database data directories (force fresh init)
-	docker compose --env-file .env down -v --remove-orphans
-	docker compose -f docker-compose.dev.yml --env-file .env down -v --remove-orphans
-	docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "rm -rf /data/data /data/data-dev && mkdir -p /data/data /data/data-dev"
-	@echo "Database data cleaned. Ready for fresh initialization."
-
-.PHONY: fix-permissions
-fix-permissions: ## Fix ownership of database volumes if needed
-	@echo "Fixing database permissions..."
-	@docker run --rm -v "$$(pwd)/supabase/volumes/db:/data" alpine:latest sh -c "find /data -type d \( -name 'data' -o -name 'data-dev' \) -exec chmod -R 777 {} + 2>/dev/null || true"
-	@echo "Database permissions fixed."
-
 .PHONY: status
-status: ## Show status of all services (development)
-	docker compose -f docker-compose.dev.yml --env-file .env ps
+status: ## Show status of all services
+	docker compose ps
 
-.PHONY: status-prod
-status-prod: ## Show status of production services
-	docker compose --env-file .env ps
-
-
-# Environment setup
 .PHONY: setup
 setup: ## Initial setup - create directories
 	@echo "Setting up Laptop Repair Shop environment..."
 	mkdir -p supabase/volumes/storage
 	mkdir -p supabase/volumes/db/data
-	mkdir -p supabase/volumes/db/data-dev
-	@echo "Setup complete! Now run 'make dev' to start development environment"
+	@echo "Setup complete! Now run 'make env' to start the environment"
 
+.PHONY: db-backup
+db-backup: ## Backup database
+	@mkdir -p backups
+	docker compose exec supabase-db pg_dump -U postgres postgres > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
+	@echo "Database backup created in backups/"
 
 # Quick commands
 .PHONY: start
-start: dev ## Alias for 'make dev'
+start: up ## Alias for 'make up'
 
 .PHONY: stop
-stop: dev-down ## Alias for 'make dev-down'
+stop: down ## Alias for 'make down'

@@ -240,3 +240,6 @@ make env
 make init
 make data  # Optional: add sample data
 ```
+
+## Qwen Added Memories
+- Never remove Docker images when working with this project

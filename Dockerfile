@@ -15,8 +15,8 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build the app using Docker-specific config
-RUN pnpm vite build --config ./vite.config.docker.ts && pnpm tsc --noEmit
+# Build the app
+RUN pnpm vite build && pnpm tsc --noEmit
 
 # Production stage
 FROM nginx:alpine

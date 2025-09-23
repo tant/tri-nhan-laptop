@@ -55,6 +55,9 @@ pnpm test
 pnpm test:ui
 pnpm test:watch
 
+# Run e2e tests (requires environment to be running)
+pnpm playwright test
+
 # Lint and format
 pnpm lint
 pnpm format
@@ -177,8 +180,9 @@ The system is completely automated and ready to use:
 
 ## Code Quality
 - **TypeScript**: Strict mode enabled with comprehensive type checking
-- **Biome**: Used for linting and formatting (replaces ESLint/Prettier)
-- **Vitest**: Test runner with jsdom environment
+- **Biome**: Used for linting and formatting (replaces ESLint/Prettier), configured with tab indentation and double quotes
+- **Vitest**: Test runner with jsdom environment for unit tests
+- **Playwright**: E2e testing framework configured for Chrome with automatic dev server startup
 - **Path Aliases**: `@/*` maps to `src/*` for clean imports
 
 ## Vietnamese Localization
