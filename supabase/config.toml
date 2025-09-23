@@ -104,10 +104,18 @@ enable_confirmations = false
 # admin_email = ""
 # sender_name = ""
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Vietnamese email templates
+[auth.email.template.invite]
+subject = "Lời mời tham gia - Hệ thống quản lý Trinh An Laptop"
+content_path = "./supabase/templates/invite.html"
+
+[auth.email.template.confirmation]
+subject = "Xác nhận tài khoản - Hệ thống quản lý Trinh An Laptop"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Đặt lại mật khẩu - Hệ thống quản lý Trinh An Laptop"
+content_path = "./supabase/templates/recovery.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

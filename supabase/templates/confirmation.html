@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xác nhận tài khoản - Hệ thống quản lý tiệm sửa laptop</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      line-height: 1.6;
+      color: #1E282A;
+      background-color: #f8f9fa;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #299fce 0%, #1a7ba6 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    .content {
+      padding: 40px 30px;
+    }
+    .greeting {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #1E282A;
+    }
+    .message {
+      margin-bottom: 30px;
+      color: #4a5568;
+      line-height: 1.7;
+    }
+    .cta-button {
+      display: inline-block;
+      background: #299fce;
+      color: white;
+      padding: 16px 32px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+      background: #1a7ba6;
+    }
+    .welcome-box {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1px solid #bae6fd;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 30px 0;
+    }
+    .welcome-title {
+      font-weight: 600;
+      color: #0c4a6e;
+      margin-bottom: 10px;
+    }
+    .welcome-text {
+      color: #0369a1;
+      font-size: 14px;
+    }
+    .features {
+      margin: 25px 0;
+    }
+    .feature {
+      display: flex;
+      align-items: center;
+      margin: 12px 0;
+      color: #4a5568;
+      font-size: 14px;
+    }
+    .feature-icon {
+      margin-right: 10px;
+      font-size: 16px;
+    }
+    .footer {
+      background: #f8f9fa;
+      padding: 25px 30px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer-text {
+      color: #6c757d;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .business-info {
+      color: #299fce;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .divider {
+      height: 1px;
+      background: #e2e8f0;
+      margin: 30px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🔧 Trinh An Laptop</div>
+      <div class="subtitle">Hệ thống quản lý tiệm sửa laptop</div>
+    </div>
+
+    <div class="content">
+      <div class="greeting">Chào mừng bạn đến với Trinh An Laptop!</div>
+
+      <div class="message">
+        <p>Cảm ơn bạn đã đăng ký tài khoản trong hệ thống quản lý tiệm sửa laptop của chúng tôi.</p>
+
+        <p>Để hoàn tất việc tạo tài khoản và bắt đầu sử dụng hệ thống, vui lòng nhấp vào nút bên dưới để xác nhận email:</p>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup" class="cta-button">
+          Xác nhận tài khoản
+        </a>
+      </div>
+
+      <div class="welcome-box">
+        <div class="welcome-title">🎉 Chào mừng bạn gia nhập đội ngũ!</div>
+        <div class="welcome-text">
+          Sau khi xác nhận, bạn sẽ có thể truy cập đầy đủ các tính năng của hệ thống quản lý tiệm sửa laptop.
+        </div>
+      </div>
+
+      <div class="features">
+        <div style="font-weight: 600; margin-bottom: 15px; color: #2d3748;">Các tính năng chính:</div>
+        <div class="feature">
+          <span class="feature-icon">📋</span>
+          Quản lý phiếu sửa chữa với 16 trạng thái chi tiết
+        </div>
+        <div class="feature">
+          <span class="feature-icon">👥</span>
+          Quản lý thông tin khách hàng và lịch sử sửa chữa
+        </div>
+        <div class="feature">
+          <span class="feature-icon">📦</span>
+          Quản lý kho linh kiện và theo dõi tồn kho
+        </div>
+        <div class="feature">
+          <span class="feature-icon">💰</span>
+          Theo dõi chi phí và tạo báo giá tự động
+        </div>
+        <div class="feature">
+          <span class="feature-icon">📊</span>
+          Báo cáo và thống kê hiệu suất kinh doanh
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="message">
+        <p style="font-size: 14px; color: #6c757d;">
+          Nếu nút không hoạt động, bạn có thể sao chép và dán liên kết sau vào trình duyệt:
+        </p>
+        <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px; color: #299fce;">
+          {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup
+        </p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-text">
+        Email này được gửi tự động từ hệ thống. Vui lòng không trả lời email này.
+      </div>
+      <div class="business-info">
+        Trinh An Laptop - Chuyên sửa chữa laptop chuyên nghiệp
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #999;">
+        📧 admin@trinhanlaptop.vn | 📞 0901234567
+      </div>
+    </div>
+  </div>
+</body>
+</html>

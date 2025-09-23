@@ -1,5 +1,6 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { translateAuthError } from "@/lib/auth-errors";
 import { AlertTriangle, RefreshCw, Server, WifiOff } from "lucide-react";
 import {
 	Component,
@@ -271,29 +272,8 @@ export function SupabaseErrorAlert({
 	};
 
 	const getErrorMessage = (error: any): string => {
-		if (error?.message) {
-			// Map common Supabase errors to Vietnamese messages
-			if (error.message.includes("Failed to fetch")) {
-				return "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.";
-			}
-			if (error.message.includes("JWT")) {
-				return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-			}
-			if (error.message.includes("not authenticated")) {
-				return "Bạn cần đăng nhập để thực hiện chức năng này.";
-			}
-			if (error.message.includes("insufficient permissions")) {
-				return "Bạn không có quyền thực hiện chức năng này.";
-			}
-			if (error.message.includes("duplicate key")) {
-				return "Dữ liệu đã tồn tại trong hệ thống.";
-			}
-			if (error.message.includes("foreign key")) {
-				return "Không thể xóa do có dữ liệu liên quan.";
-			}
-			return error.message;
-		}
-		return "Đã xảy ra lỗi không xác định";
+		// Use the comprehensive Vietnamese translation utility
+		return translateAuthError(error);
 	};
 
 	const networkError = isNetworkError(error);

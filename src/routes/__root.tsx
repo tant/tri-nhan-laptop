@@ -19,7 +19,10 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { getSuccessMessage } from "@/lib/auth-errors";
 import { TanstackDevtools } from "@tanstack/react-devtools";
 import {
 	Link,
@@ -41,10 +44,18 @@ import {
 
 function UserMenu() {
 	const { profile, signOut } = useAuth();
+	const { toast } = useToast();
 
 	const handleSignOut = async () => {
 		await signOut();
-		window.location.href = "/login";
+		toast({
+			variant: "success",
+			title: "Đăng xuất thành công!",
+			description: getSuccessMessage('logoutSuccess'),
+		});
+		setTimeout(() => {
+			window.location.href = "/login";
+		}, 1000);
 	};
 
 	return (
@@ -183,6 +194,7 @@ const RootComponent = () => {
 						]}
 					/>
 					<NetworkStatus />
+					<Toaster />
 				</SidebarProvider>
 			</ErrorBoundary>
 		);
@@ -203,6 +215,7 @@ const RootComponent = () => {
 				]}
 			/>
 			<NetworkStatus />
+			<Toaster />
 		</ErrorBoundary>
 	);
 };

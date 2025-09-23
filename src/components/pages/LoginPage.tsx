@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { getValidationMessage, getSuccessMessage } from "@/lib/auth-errors";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { Laptop, LogIn } from "lucide-react";
@@ -13,13 +15,44 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<Error | null>(null);
+	const [validationErrors, setValidationErrors] = useState<{
+		email?: string;
+		password?: string;
+	}>({});
 	const { signIn } = useAuth();
 	const navigate = useNavigate();
+	const { toast } = useToast();
+
+	const validateForm = (): boolean => {
+		const errors: { email?: string; password?: string } = {};
+
+		// Email validation
+		if (!email.trim()) {
+			errors.email = getValidationMessage('emailRequired');
+		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+			errors.email = getValidationMessage('emailInvalid');
+		}
+
+		// Password validation
+		if (!password) {
+			errors.password = getValidationMessage('passwordRequired');
+		}
+
+		setValidationErrors(errors);
+		return Object.keys(errors).length === 0;
+	};
 
 	const handleLogin = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setIsLoading(true);
 		setError(null);
+		setValidationErrors({});
+
+		// Client-side validation
+		if (!validateForm()) {
+			return;
+		}
+
+		setIsLoading(true);
 
 		try {
 			const { error } = await signIn(email, password);
@@ -27,10 +60,17 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 			if (error) {
 				setError(error);
 			} else {
+				// Show success message
+				toast({
+					variant: "success",
+					title: "Đăng nhập thành công!",
+					description: getSuccessMessage('loginSuccess'),
+				});
+
 				// Wait a bit for auth state to update, then navigate
 				setTimeout(() => {
 					navigate({ to: "/dashboard" });
-				}, 100);
+				}, 500);
 			}
 		} catch (err) {
 			setError(err as Error);
@@ -76,10 +116,22 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 						type="email"
 						placeholder="admin@trinhanlaptop.vn"
 						value={email}
-						onChange={(e) => setEmail(e.target.value)}
-						className="border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"
+						onChange={(e) => {
+							setEmail(e.target.value);
+							// Clear validation error when user starts typing
+							if (validationErrors.email) {
+								setValidationErrors(prev => ({ ...prev, email: undefined }));
+							}
+						}}
+						className={cn(
+							"border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
+							validationErrors.email && "border-red-500 focus:border-red-500 focus:ring-red-500"
+						)}
 						required
 					/>
+					{validationErrors.email && (
+						<p className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
+					)}
 				</div>
 				<div className="grid gap-3">
 					<div className="flex items-center">
@@ -97,10 +149,22 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 						type="password"
 						placeholder="Nhập mật khẩu"
 						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						className="border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]"
+						onChange={(e) => {
+							setPassword(e.target.value);
+							// Clear validation error when user starts typing
+							if (validationErrors.password) {
+								setValidationErrors(prev => ({ ...prev, password: undefined }));
+							}
+						}}
+						className={cn(
+							"border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
+							validationErrors.password && "border-red-500 focus:border-red-500 focus:ring-red-500"
+						)}
 						required
 					/>
+					{validationErrors.password && (
+						<p className="text-sm text-red-600 mt-1">{validationErrors.password}</p>
+					)}
 				</div>
 				<Button
 					type="submit"
