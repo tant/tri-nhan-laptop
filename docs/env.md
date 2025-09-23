@@ -1,53 +1,15 @@
-# Biến môi trường (.env) — Self-host all-in-one
+# Biến môi trường (.env) — External Supabase Connection
 
-Bạn sẽ tự điền các giá trị trong file `.env`. Danh sách dưới đây tổng hợp đầy đủ các biến cần cho docker-compose all-in-one (app + Supabase: db, auth, rest, realtime, storage, imgproxy, meta, studio, functions, kong).
+Bạn sẽ tự điền các giá trị trong file `.env`. Danh sách dưới đây tổng hợp các biến cần để kết nối frontend application với external self-hosted Supabase instance.
 
-Gợi ý: Với triển khai nội bộ có reverse proxy phía trước, bạn có thể để Kong (HTTP) ở cổng 8000 và chỉ publish một domain công khai qua proxy.
+**Lưu ý:** Supabase backend infrastructure được quản lý bên ngoài repository này. Ứng dụng frontend chỉ cần thông tin kết nối đến Supabase instance đã có sẵn.
 
-## URLs & Routing
-- SITE_URL= URL công khai của web app (VD: https://your-domain.com hoặc http://localhost:3000)
-- SUPABASE_PUBLIC_URL= URL công khai qua Kong (VD: https://api.your-domain.com hoặc http://localhost:8000)
-- API_EXTERNAL_URL= Base URL mà GoTrue (auth) dùng để sinh liên kết (thường trùng SUPABASE_PUBLIC_URL)
-- ADDITIONAL_REDIRECT_URLS= Danh sách URL redirect hợp lệ (nếu cần), phân tách bằng dấu phẩy
+## External Supabase Connection
+- VITE_SUPABASE_URL= URL của external Supabase instance (VD: https://your-external-supabase.example.com)
+- VITE_SUPABASE_ANON_KEY= Anon key từ external Supabase instance
+- VITE_SERVICE_ROLE_KEY= Service role key từ external Supabase instance (cho admin operations)
 
-## Kong (API Gateway)
-- KONG_HTTP_PORT=8000
-- KONG_HTTPS_PORT=8443
-
-## Supabase Keys & JWT
-- JWT_SECRET= Chuỗi bí mật ký JWT (ít nhất 32 ký tự)
-- JWT_EXPIRY=3600  (hoặc giá trị bạn muốn)
-- ANON_KEY= Khóa anon (public)
-- SERVICE_ROLE_KEY= Khóa service role (bí mật)
-
-## Database (chạy nội bộ qua docker network)
-- POSTGRES_HOST=db  (tên service trong compose)
-- POSTGRES_PORT=5432
-- POSTGRES_DB=postgres
-- POSTGRES_PASSWORD= Mật khẩu Postgres chính
-- POSTGRES_USER=postgres  (optional, mặc định)
-
-## Service User Passwords (Supabase Internal)
-- SUPABASE_AUTH_ADMIN_PASSWORD= Mật khẩu cho supabase_auth_admin user
-- SUPABASE_STORAGE_ADMIN_PASSWORD= Mật khẩu cho supabase_storage_admin user
-- AUTHENTICATOR_PASSWORD= Mật khẩu cho authenticator user
-
-## Realtime
-- SECRET_KEY_BASE= Bí mật cho Realtime (chuỗi dài, random)
-
-## Storage / Imgproxy
-- IMGPROXY_ENABLE_WEBP_DETECTION=false  (true để tối ưu ảnh)
-
-## Supabase REST (PostgREST)
-- PGRST_DB_SCHEMAS=public,storage,graphql_public  (các schema được expose qua API)
-
-## Edge Functions
-- FUNCTIONS_VERIFY_JWT=false  (true để bắt buộc JWT verification)
-
-## Vite App (frontend)
-- VITE_SUPABASE_URL= Nên trỏ tới Kong HTTP (VD: http://localhost:8000)
-- VITE_SUPABASE_ANON_KEY= Trùng ANON_KEY
-- VITE_SERVICE_ROLE_KEY= Trùng SERVICE_ROLE_KEY (cho admin operations)
+## Application Configuration
 - VITE_APP_ENVIRONMENT=development  (hoặc production)
 - VITE_APP_NAME="Hệ thống Quản lý Sửa chữa Laptop"
 - VITE_APP_VERSION=1.0.0
