@@ -26,7 +26,7 @@ export function DashboardPage() {
           <p className="text-muted-foreground">Tổng quan hệ thống quản lý sửa chữa laptop</p>
         </div>
         <Button asChild>
-          <Link to="/phieu" search={{ new: "true" }}>
+          <Link to="/phieu-sua-chua" search={{ new: "true" }}>
             <Wrench className="h-4 w-4 mr-2" />
             Tạo phiếu
           </Link>
@@ -91,9 +91,9 @@ export function DashboardPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start" asChild>
-                  <Link to="/linh-kien">
+                  <Link to="/ton-kho">
                     <Package className="h-4 w-4 mr-2" />
-                    Quản lý kho linh kiện
+                    Quản lý tồn kho
                   </Link>
                 </Button>
                 <Button variant="outline" className="w-full justify-start" asChild>

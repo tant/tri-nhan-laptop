@@ -8,19 +8,16 @@ insert into customers (phone, full_name, address, notes) values
 ('0934567890', 'Phạm Thị Dung', '321 Đường JKL, Quận 4, TP.HCM', 'Có laptop gaming'),
 ('0945678901', 'Hoàng Văn Em', '654 Đường MNO, Quận 5, TP.HCM', null);
 
--- Create admin user (this needs to be done through Supabase Auth)
--- For now, we'll prepare sample user profiles that can be linked later
-
 -- Insert sample parts inventory
-insert into parts (name, category, brand, model_compatibility, current_stock, unit_cost, unit_price, supplier_info) values
-('RAM DDR4 8GB', 'Memory', 'Samsung', '{"Dell Inspiron", "HP Pavilion", "Lenovo ThinkPad"}', 25, 800000, 1200000, 'Nhà cung cấp A - 0901111111'),
-('SSD 256GB', 'Storage', 'Samsung', '{"Universal"}', 15, 1500000, 2200000, 'Nhà cung cấp B - 0902222222'),
-('Màn hình laptop 15.6"', 'Display', 'BOE', '{"Dell Inspiron 15", "HP 15"}', 8, 2000000, 3500000, 'Nhà cung cấp C - 0903333333'),
-('Pin laptop Dell', 'Battery', 'Dell', '{"Dell Inspiron", "Dell Latitude"}', 12, 1200000, 1800000, 'Nhà cung cấp D - 0904444444'),
-('Bàn phím laptop HP', 'Input', 'HP', '{"HP Pavilion", "HP ProBook"}', 10, 500000, 800000, 'Nhà cung cấp E - 0905555555'),
-('Quạt tản nhiệt', 'Cooling', 'Generic', '{"Universal"}', 20, 300000, 500000, 'Nhà cung cấp F - 0906666666'),
-('Adapter 65W', 'Power', 'Generic', '{"Universal"}', 18, 400000, 600000, 'Nhà cung cấp G - 0907777777'),
-('Hard Drive 1TB', 'Storage', 'Western Digital', '{"Universal"}', 6, 1800000, 2800000, 'Nhà cung cấp H - 0908888888');
+insert into parts (name, category, brand, model_compatibility, current_stock, unit_cost, unit_price, selling_price, supplier_info) values
+('RAM DDR4 8GB', 'Memory', 'Samsung', '{"Dell Inspiron", "HP Pavilion", "Lenovo ThinkPad"}', 25, 800000, 1200000, 1200000, 'Nhà cung cấp A - 0901111111'),
+('SSD 256GB', 'Storage', 'Samsung', '{"Universal"}', 15, 1500000, 2200000, 2200000, 'Nhà cung cấp B - 0902222222'),
+('Màn hình laptop 15.6"', 'Display', 'BOE', '{"Dell Inspiron 15", "HP 15"}', 8, 2000000, 3500000, 3500000, 'Nhà cung cấp C - 0903333333'),
+('Pin laptop Dell', 'Battery', 'Dell', '{"Dell Inspiron", "Dell Latitude"}', 12, 1200000, 1800000, 1800000, 'Nhà cung cấp D - 0904444444'),
+('Bàn phím laptop HP', 'Input', 'HP', '{"HP Pavilion", "HP ProBook"}', 10, 500000, 800000, 800000, 'Nhà cung cấp E - 0905555555'),
+('Quạt tản nhiệt', 'Cooling', 'Generic', '{"Universal"}', 20, 300000, 500000, 500000, 'Nhà cung cấp F - 0906666666'),
+('Adapter 65W', 'Power', 'Generic', '{"Universal"}', 18, 400000, 600000, 600000, 'Nhà cung cấp G - 0907777777'),
+('Hard Drive 1TB', 'Storage', 'Western Digital', '{"Universal"}', 6, 1800000, 2800000, 2800000, 'Nhà cung cấp H - 0908888888');
 
 -- Insert sample repair tickets
 insert into repair_tickets (
@@ -77,20 +74,3 @@ insert into repair_tickets (
   600000,
   now()
 );
-
--- Sample data for demonstration
--- Note: To create actual admin users, you'll need to use Supabase Auth signup
--- This can be done through the application or Supabase Studio
-
--- Instructions for creating admin user:
--- 1. Go to Supabase Studio (http://127.0.0.1:54323)
--- 2. Navigate to Authentication > Users
--- 3. Click "Add user"
--- 4. Create user with:
---    - Email: admin@laptop-repair-shop.local
---    - Password: AdminPass123!
---    - User Metadata: {"full_name": "Shop Manager", "role": "shop_owner"}
--- 5. The trigger will automatically create the user profile
-
--- Alternative: Use the application's signup feature (if implemented)
--- or use SQL to manually insert auth user (requires proper password hashing)

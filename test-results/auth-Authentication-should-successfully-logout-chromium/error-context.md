@@ -1,0 +1,123 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - img [ref=e10]
+        - generic [ref=e12]: Laptop Repair
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Dashboard" [ref=e16] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e17] [cursor=pointer]
+            - generic [ref=e22] [cursor=pointer]: Dashboard
+        - listitem [ref=e23]:
+          - link "Phiếu sửa chữa" [ref=e24] [cursor=pointer]:
+            - /url: /phieu-sua-chua
+            - img [ref=e25] [cursor=pointer]
+            - generic [ref=e27] [cursor=pointer]: Phiếu sửa chữa
+        - listitem [ref=e28]:
+          - link "Khách hàng" [ref=e29] [cursor=pointer]:
+            - /url: /khach-hang
+            - img [ref=e30] [cursor=pointer]
+            - generic [ref=e35] [cursor=pointer]: Khách hàng
+        - listitem [ref=e36]:
+          - link "Cửa hàng" [ref=e37] [cursor=pointer]:
+            - /url: /cua-hang
+            - img [ref=e38] [cursor=pointer]
+            - generic [ref=e43] [cursor=pointer]: Cửa hàng
+        - listitem [ref=e44]:
+          - link "Tồn kho" [ref=e45] [cursor=pointer]:
+            - /url: /ton-kho
+            - img [ref=e46] [cursor=pointer]
+            - generic [ref=e50] [cursor=pointer]: Tồn kho
+        - listitem [ref=e51]:
+          - link "Quản trị" [ref=e52] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e53] [cursor=pointer]
+            - generic [ref=e56] [cursor=pointer]: Quản trị
+    - generic [ref=e57]:
+      - banner [ref=e58]:
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - button "Toggle Sidebar" [ref=e61]:
+              - img
+              - generic [ref=e62]: Toggle Sidebar
+            - heading "Hệ thống quản lý sửa chữa laptop" [level=1] [ref=e63]
+          - button "User" [ref=e64]:
+            - img
+            - generic [ref=e65]: User
+      - main [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - generic [ref=e69]:
+              - heading "Dashboard" [level=1] [ref=e70]
+              - paragraph [ref=e71]: Tổng quan hệ thống quản lý sửa chữa laptop
+            - link "Tạo phiếu" [ref=e72] [cursor=pointer]:
+              - /url: /phieu-sua-chua?new=%22true%22
+              - img
+              - text: Tạo phiếu
+          - generic [ref=e73]:
+            - generic [ref=e76]:
+              - generic [ref=e77]:
+                - paragraph [ref=e78]: Phiếu hôm nay
+                - paragraph [ref=e79]: "12"
+              - img [ref=e80]
+            - generic [ref=e84]:
+              - generic [ref=e85]:
+                - paragraph [ref=e86]: Đang sửa chữa
+                - paragraph [ref=e87]: "8"
+              - img [ref=e88]
+            - generic [ref=e92]:
+              - generic [ref=e93]:
+                - paragraph [ref=e94]: Hoàn thành
+                - paragraph [ref=e95]: "24"
+              - img [ref=e96]
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - paragraph [ref=e103]: Doanh thu tháng
+                - paragraph [ref=e104]: 85M
+              - img [ref=e105]
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - generic [ref=e109]:
+                - generic [ref=e110]: Phiếu gần đây
+                - generic [ref=e111]: Các phiếu sửa chữa mới nhất
+              - generic [ref=e113]:
+                - generic [ref=e114]:
+                  - generic [ref=e115]:
+                    - paragraph [ref=e116]: LRS001
+                    - paragraph [ref=e117]: Nguyễn Văn A - MacBook Pro
+                  - generic [ref=e119]: Đang sửa
+                - generic [ref=e120]:
+                  - generic [ref=e121]:
+                    - paragraph [ref=e122]: LRS002
+                    - paragraph [ref=e123]: Trần Thị B - Dell Inspiron
+                  - generic [ref=e125]: Chờ linh kiện
+                - generic [ref=e126]:
+                  - generic [ref=e127]:
+                    - paragraph [ref=e128]: LRS003
+                    - paragraph [ref=e129]: Lê Văn C - HP Pavilion
+                  - generic [ref=e131]: Hoàn thành
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - generic [ref=e134]: Thao tác khác
+                - generic [ref=e135]: Các chức năng hỗ trợ khác
+              - generic [ref=e136]:
+                - link "Thêm khách hàng mới" [ref=e137] [cursor=pointer]:
+                  - /url: /khach-hang?new=%22true%22
+                  - img
+                  - text: Thêm khách hàng mới
+                - link "Quản lý tồn kho" [ref=e138] [cursor=pointer]:
+                  - /url: /ton-kho
+                  - img
+                  - text: Quản lý tồn kho
+                - link "Báo cáo & thống kê" [ref=e139] [cursor=pointer]:
+                  - /url: /admin
+                  - img
+                  - text: Báo cáo & thống kê
+  - button "Open TanStack Devtools" [ref=e140] [cursor=pointer]:
+    - img [ref=e141] [cursor=pointer]
+```

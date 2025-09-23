@@ -30,8 +30,10 @@ function LoginForm({
       if (error) {
         setError(error);
       } else {
-        // Navigate to dashboard on successful login
-        navigate({ to: "/dashboard" });
+        // Wait a bit for auth state to update, then navigate
+        setTimeout(() => {
+          navigate({ to: "/dashboard" });
+        }, 100);
       }
     } catch (err) {
       setError(err as Error);

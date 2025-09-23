@@ -184,10 +184,10 @@ export function useAnalytics(dateRange?: { from: Date; to: Date }) {
       // Get parts metrics
       const { data: parts } = await supabase
         .from("parts")
-        .select("stock_quantity, min_stock_level, selling_price");
+        .select("current_stock, min_stock_level, selling_price");
 
-      const lowStockItems = parts?.filter(p => p.stock_quantity <= p.min_stock_level).length || 0;
-      const totalInventoryValue = parts?.reduce((sum, p) => sum + (p.stock_quantity * p.selling_price), 0) || 0;
+      const lowStockItems = parts?.filter(p => p.current_stock <= p.min_stock_level).length || 0;
+      const totalInventoryValue = parts?.reduce((sum, p) => sum + (p.current_stock * p.selling_price), 0) || 0;
 
       // Calculate parts usage value
       const partsUsageValue = repairs?.reduce((sum, repair) => {

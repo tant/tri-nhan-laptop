@@ -238,6 +238,8 @@ export type Database = {
 					current_stock: number;
 					unit_cost: number;
 					unit_price: number;
+					min_stock_level: number;
+					selling_price: number;
 					supplier_info: string | null;
 				};
 				Insert: {
@@ -248,6 +250,8 @@ export type Database = {
 					current_stock?: number;
 					unit_cost: number;
 					unit_price: number;
+					min_stock_level?: number;
+					selling_price?: number;
 					supplier_info?: string | null;
 				};
 				Update: {
@@ -258,6 +262,8 @@ export type Database = {
 					current_stock?: number;
 					unit_cost?: number;
 					unit_price?: number;
+					min_stock_level?: number;
+					selling_price?: number;
 					supplier_info?: string | null;
 				};
 			};

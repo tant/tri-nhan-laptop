@@ -4,11 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { type ColumnDef } from "@tanstack/react-table";
-import { Plus, RefreshCw, ArrowUpDown, Eye, Edit } from "lucide-react";
+import { Plus, RefreshCw, ArrowUpDown, Eye, Edit, Package } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import { SupabaseErrorAlert } from "@/components/error-boundary";
 import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
+import { RepairDetailsModal } from "@/components/repairs/RepairDetailsModal";
 // Workflow components temporarily disabled for Phase 3 development
 
 // Database types
@@ -27,8 +28,8 @@ export function RepairTicketsPage() {
 	const [repairs, setRepairs] = useState<RepairWithDetails[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
-	// Temporarily disabled for Phase 3 development
-	// const [selectedRepair, setSelectedRepair] = useState<RepairWithDetails | null>(null);
+	const [selectedRepair, setSelectedRepair] = useState<RepairWithDetails | null>(null);
+	const [isRepairDetailsOpen, setIsRepairDetailsOpen] = useState(false);
 	// const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 	// const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
 	// const currentUser = { id: "mock-user-id", role: "manager" };
@@ -65,6 +66,22 @@ export function RepairTicketsPage() {
 	useEffect(() => {
 		fetchRepairs();
 	}, []);
+
+	// Handle repair details modal
+	const openRepairDetails = (repair: RepairWithDetails) => {
+		setSelectedRepair(repair);
+		setIsRepairDetailsOpen(true);
+	};
+
+	const closeRepairDetails = () => {
+		setSelectedRepair(null);
+		setIsRepairDetailsOpen(false);
+	};
+
+	const handleRepairUpdate = () => {
+		// Refresh repairs list after update
+		fetchRepairs();
+	};
 
 	// Real-time subscription to repair changes
 	useEffect(() => {
@@ -253,11 +270,18 @@ export function RepairTicketsPage() {
 						<Button
 							variant="ghost"
 							size="sm"
+							onClick={() => openRepairDetails(repair)}
+							title="Xem chi tiết và quản lý linh kiện"
+						>
+							<Package className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="sm"
 							onClick={() => {
-								// setSelectedRepair(repair);
-								// setTimelineDialogOpen(true);
-								console.log("View repair:", repair.id);
+								console.log("View repair timeline:", repair.id);
 							}}
+							title="Xem lịch sử sửa chữa"
 						>
 							<Eye className="h-4 w-4" />
 						</Button>
@@ -265,10 +289,9 @@ export function RepairTicketsPage() {
 							variant="ghost"
 							size="sm"
 							onClick={() => {
-								// setSelectedRepair(repair);
-								// setStatusDialogOpen(true);
 								console.log("Edit repair:", repair.id);
 							}}
+							title="Chỉnh sửa phiếu sửa chữa"
 						>
 							<Edit className="h-4 w-4" />
 						</Button>
@@ -410,6 +433,14 @@ export function RepairTicketsPage() {
 					</DialogContent>
 				</Dialog>
 			)} - Temporarily disabled */}
+
+			{/* Repair Details Modal with Parts Management */}
+			<RepairDetailsModal
+				repair={selectedRepair}
+				isOpen={isRepairDetailsOpen}
+				onClose={closeRepairDetails}
+				onUpdate={handleRepairUpdate}
+			/>
 		</div>
 	);
 }

@@ -47,32 +47,48 @@ cd try-vite
 pnpm install
 ```
 
-### 2. Environment Setup
+### 2. Complete Fresh Setup (100% Verified ✅)
 ```bash
-# Copy environment template
+# Step 1: Copy environment template
 cp .env.example .env
 
-# Edit .env with your settings (see Environment Variables section)
-```
-
-### 3. Database Setup
-```bash
-# Initialize Supabase (creates supabase/ directory)
-pnpx supabase init
-
-# Start all Supabase services
+# Step 2: Start Supabase services (automatically applies migrations and seed data)
 pnpm run db:start
 
-# Create admin user from environment variables
+# Step 3: Create admin user from environment variables
 pnpm run create-admin
+
+# Step 4: Start development server
+pnpm run dev
 ```
 
-### 4. Start Development
+**📝 Setup Notes:**
+- Supabase configuration, migration and seed files are included in the repository
+- `pnpm run db:start` automatically detects and applies all migrations and seed data
+- No need to run `supabase init` - all config files are ready
+- Admin credentials are read from `.env` file
+
+**✅ All Services Running:**
+- **Application**: http://localhost:5173
+- **Supabase Studio**: http://127.0.0.1:54323
+- **API Endpoint**: http://127.0.0.1:54321
+- **Database**: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+- **Email Testing**: http://127.0.0.1:54324
+
+**🔑 Default Admin Login:**
+- Email: `admin@laptop-repair-shop.local`
+- Password: `AdminPass123!`
+
+### 3. Daily Development Workflow
 ```bash
-# Start the frontend development server
+# Start services
+pnpm run db:start
+
+# Start application
 pnpm run dev
 
-# Visit http://localhost:5173
+# When done
+pnpm run db:stop
 ```
 
 ## 📋 Environment Variables

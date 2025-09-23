@@ -9,34 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TonKhoRouteImport } from './routes/ton-kho'
 import { Route as SetupRouteImport } from './routes/setup'
-import { Route as PhieuRouteImport } from './routes/phieu'
+import { Route as PhieuSuaChuaRouteImport } from './routes/phieu-sua-chua'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as LinhKienRouteImport } from './routes/linh-kien'
 import { Route as KhachHangRouteImport } from './routes/khach-hang'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CuaHangRouteImport } from './routes/cua-hang'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TonKhoRoute = TonKhoRouteImport.update({
+  id: '/ton-kho',
+  path: '/ton-kho',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PhieuRoute = PhieuRouteImport.update({
-  id: '/phieu',
-  path: '/phieu',
+const PhieuSuaChuaRoute = PhieuSuaChuaRouteImport.update({
+  id: '/phieu-sua-chua',
+  path: '/phieu-sua-chua',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LinhKienRoute = LinhKienRouteImport.update({
-  id: '/linh-kien',
-  path: '/linh-kien',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KhachHangRoute = KhachHangRouteImport.update({
@@ -47,6 +48,11 @@ const KhachHangRoute = KhachHangRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuaHangRoute = CuaHangRouteImport.update({
+  id: '/cua-hang',
+  path: '/cua-hang',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -69,35 +75,38 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
+  '/cua-hang': typeof CuaHangRoute
   '/dashboard': typeof DashboardRoute
   '/khach-hang': typeof KhachHangRoute
-  '/linh-kien': typeof LinhKienRoute
   '/login': typeof LoginRoute
-  '/phieu': typeof PhieuRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaRoute
   '/setup': typeof SetupRoute
+  '/ton-kho': typeof TonKhoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
+  '/cua-hang': typeof CuaHangRoute
   '/dashboard': typeof DashboardRoute
   '/khach-hang': typeof KhachHangRoute
-  '/linh-kien': typeof LinhKienRoute
   '/login': typeof LoginRoute
-  '/phieu': typeof PhieuRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaRoute
   '/setup': typeof SetupRoute
+  '/ton-kho': typeof TonKhoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
+  '/cua-hang': typeof CuaHangRoute
   '/dashboard': typeof DashboardRoute
   '/khach-hang': typeof KhachHangRoute
-  '/linh-kien': typeof LinhKienRoute
   '/login': typeof LoginRoute
-  '/phieu': typeof PhieuRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaRoute
   '/setup': typeof SetupRoute
+  '/ton-kho': typeof TonKhoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,50 +114,61 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/analytics'
+    | '/cua-hang'
     | '/dashboard'
     | '/khach-hang'
-    | '/linh-kien'
     | '/login'
-    | '/phieu'
+    | '/phieu-sua-chua'
     | '/setup'
+    | '/ton-kho'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/analytics'
+    | '/cua-hang'
     | '/dashboard'
     | '/khach-hang'
-    | '/linh-kien'
     | '/login'
-    | '/phieu'
+    | '/phieu-sua-chua'
     | '/setup'
+    | '/ton-kho'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/analytics'
+    | '/cua-hang'
     | '/dashboard'
     | '/khach-hang'
-    | '/linh-kien'
     | '/login'
-    | '/phieu'
+    | '/phieu-sua-chua'
     | '/setup'
+    | '/ton-kho'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  CuaHangRoute: typeof CuaHangRoute
   DashboardRoute: typeof DashboardRoute
   KhachHangRoute: typeof KhachHangRoute
-  LinhKienRoute: typeof LinhKienRoute
   LoginRoute: typeof LoginRoute
-  PhieuRoute: typeof PhieuRoute
+  PhieuSuaChuaRoute: typeof PhieuSuaChuaRoute
   SetupRoute: typeof SetupRoute
+  TonKhoRoute: typeof TonKhoRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/ton-kho': {
+      id: '/ton-kho'
+      path: '/ton-kho'
+      fullPath: '/ton-kho'
+      preLoaderRoute: typeof TonKhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup': {
       id: '/setup'
       path: '/setup'
@@ -156,11 +176,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SetupRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/phieu': {
-      id: '/phieu'
-      path: '/phieu'
-      fullPath: '/phieu'
-      preLoaderRoute: typeof PhieuRouteImport
+    '/phieu-sua-chua': {
+      id: '/phieu-sua-chua'
+      path: '/phieu-sua-chua'
+      fullPath: '/phieu-sua-chua'
+      preLoaderRoute: typeof PhieuSuaChuaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -168,13 +188,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/linh-kien': {
-      id: '/linh-kien'
-      path: '/linh-kien'
-      fullPath: '/linh-kien'
-      preLoaderRoute: typeof LinhKienRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/khach-hang': {
@@ -189,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cua-hang': {
+      id: '/cua-hang'
+      path: '/cua-hang'
+      fullPath: '/cua-hang'
+      preLoaderRoute: typeof CuaHangRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -219,12 +239,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AnalyticsRoute: AnalyticsRoute,
+  CuaHangRoute: CuaHangRoute,
   DashboardRoute: DashboardRoute,
   KhachHangRoute: KhachHangRoute,
-  LinhKienRoute: LinhKienRoute,
   LoginRoute: LoginRoute,
-  PhieuRoute: PhieuRoute,
+  PhieuSuaChuaRoute: PhieuSuaChuaRoute,
   SetupRoute: SetupRoute,
+  TonKhoRoute: TonKhoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

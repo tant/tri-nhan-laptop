@@ -12,9 +12,11 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-# Load environment variables
+# Load environment variables safely
 if [ -f ".env" ]; then
-    export $(grep -v '^#' .env | xargs)
+    set -a
+    source .env
+    set +a
 fi
 
 echo -e "${BLUE}🏪 Vietnamese Laptop Repair Shop - Admin User Creator${NC}"

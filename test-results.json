@@ -1,0 +1,509 @@
+{
+  "config": {
+    "configFile": "/home/tan/work/try-vite/playwright.config.ts",
+    "rootDir": "/home/tan/work/try-vite/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 7
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/home/tan/work/try-vite/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 7
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/tan/work/try-vite/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.55.0",
+    "workers": 7,
+    "webServer": {
+      "command": "pnpm dev",
+      "url": "http://localhost:5173",
+      "reuseExistingServer": true
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.test.ts",
+      "file": "auth.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication",
+          "file": "auth.test.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect to login when accessing protected route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1552,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.660Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-a5167a6f1227e1a39ac5",
+              "file": "auth.test.ts",
+              "line": 9,
+              "column": 3
+            },
+            {
+              "title": "should successfully login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "passed",
+                      "duration": 2177,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.621Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-bcf6f19e28add3aee3b0",
+              "file": "auth.test.ts",
+              "line": 18,
+              "column": 3
+            },
+            {
+              "title": "should show error for invalid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 1850,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.688Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-834ec3bd50606a1594f1",
+              "file": "auth.test.ts",
+              "line": 43,
+              "column": 3
+            },
+            {
+              "title": "should successfully logout",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "timedOut",
+                      "duration": 30032,
+                      "error": {
+                        "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m",
+                        "stack": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                      },
+                      "errors": [
+                        {
+                          "message": "\u001b[31mTest timeout of 30000ms exceeded.\u001b[39m"
+                        },
+                        {
+                          "location": {
+                            "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                            "column": 16,
+                            "line": 71
+                          },
+                          "message": "Error: page.click: Test timeout of 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('button:has-text(\"Shop Manager\")')\u001b[22m\n\n\n  69 |\n  70 |     // Click user menu\n> 71 |     await page.click('button:has-text(\"Shop Manager\")');\n     |                ^\n  72 |\n  73 |     // Wait for dropdown to appear and click logout\n  74 |     await page.waitForSelector('text=Đăng xuất');\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:71:16"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.646Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/tan/work/try-vite/test-results/auth-Authentication-should-successfully-logout-chromium/error-context.md"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-1df3f4c138c3f90a3ddb",
+              "file": "auth.test.ts",
+              "line": 60,
+              "column": 3
+            },
+            {
+              "title": "should maintain session after page refresh",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 7400,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('button').filter({ hasText: 'Shop Manager' })\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Shop Manager' })\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('button').filter({ hasText: 'Shop Manager' })\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Shop Manager' })\u001b[22m\n\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:96:78",
+                        "location": {
+                          "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                          "column": 78,
+                          "line": 96
+                        },
+                        "snippet": "  94 |     // Should still be logged in\n  95 |     await expect(page).toHaveURL('/dashboard');\n> 96 |     await expect(page.locator('button').filter({ hasText: 'Shop Manager' })).toBeVisible();\n     |                                                                              ^\n  97 |   });\n  98 |\n  99 |   test('should navigate between protected pages when authenticated', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                            "column": 78,
+                            "line": 96
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('button').filter({ hasText: 'Shop Manager' })\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('button').filter({ hasText: 'Shop Manager' })\u001b[22m\n\n\n  94 |     // Should still be logged in\n  95 |     await expect(page).toHaveURL('/dashboard');\n> 96 |     await expect(page.locator('button').filter({ hasText: 'Shop Manager' })).toBeVisible();\n     |                                                                              ^\n  97 |   });\n  98 |\n  99 |   test('should navigate between protected pages when authenticated', async ({ page }) => {\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:96:78"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.644Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/tan/work/try-vite/test-results/auth-Authentication-should-1604a--session-after-page-refresh-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                        "column": 78,
+                        "line": 96
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-c1cd80a1e0d30417dd59",
+              "file": "auth.test.ts",
+              "line": 81,
+              "column": 3
+            },
+            {
+              "title": "should navigate between protected pages when authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 5,
+                      "status": "passed",
+                      "duration": 3033,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.622Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-a89d2328c0014adf59b9",
+              "file": "auth.test.ts",
+              "line": 99,
+              "column": 3
+            },
+            {
+              "title": "should show role-based content for shop owner",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 6,
+                      "status": "failed",
+                      "duration": 7436,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('text=Chủ tiệm')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Chủ tiệm')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('text=Chủ tiệm')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Chủ tiệm')\u001b[22m\n\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:138:49",
+                        "location": {
+                          "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                          "column": 49,
+                          "line": 138
+                        },
+                        "snippet": "  136 |     // Check role display in user menu\n  137 |     await page.click('button:has-text(\"User\")');\n> 138 |     await expect(page.locator('text=Chủ tiệm')).toBeVisible();\n      |                                                 ^\n  139 |   });\n  140 |\n  141 |   test('shop owner can access admin panel and see admin features', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                            "column": 49,
+                            "line": 138
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m()\u001b[22m failed\n\nLocator:  locator('text=Chủ tiệm')\nExpected: visible\nReceived: <element(s) not found>\nTimeout:  5000ms\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=Chủ tiệm')\u001b[22m\n\n\n  136 |     // Check role display in user menu\n  137 |     await page.click('button:has-text(\"User\")');\n> 138 |     await expect(page.locator('text=Chủ tiệm')).toBeVisible();\n      |                                                 ^\n  139 |   });\n  140 |\n  141 |   test('shop owner can access admin panel and see admin features', async ({ page }) => {\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:138:49"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:46.668Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/tan/work/try-vite/test-results/auth-Authentication-should-3a026-ased-content-for-shop-owner-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                        "column": 49,
+                        "line": 138
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-afd61ae431f565945771",
+              "file": "auth.test.ts",
+              "line": 123,
+              "column": 3
+            },
+            {
+              "title": "shop owner can access admin panel and see admin features",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1652,
+                      "error": {
+                        "message": "Error: expect.toContainText: Error: strict mode violation: locator('h1') resolved to 2 elements:\n    1) <h1 class=\"font-semibold\">Hệ thống quản lý sửa chữa laptop</h1> aka getByRole('heading', { name: 'Hệ thống quản lý sửa chữa' })\n    2) <h1 class=\"text-3xl font-bold\">Dashboard</h1> aka getByRole('heading', { name: 'Dashboard' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n",
+                        "stack": "Error: expect.toContainText: Error: strict mode violation: locator('h1') resolved to 2 elements:\n    1) <h1 class=\"font-semibold\">Hệ thống quản lý sửa chữa laptop</h1> aka getByRole('heading', { name: 'Hệ thống quản lý sửa chữa' })\n    2) <h1 class=\"text-3xl font-bold\">Dashboard</h1> aka getByRole('heading', { name: 'Dashboard' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:157:38",
+                        "location": {
+                          "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                          "column": 38,
+                          "line": 157
+                        },
+                        "snippet": "  155 |\n  156 |     // Verify admin page loads correctly\n> 157 |     await expect(page.locator('h1')).toContainText('Quản trị hệ thống');\n      |                                      ^\n  158 |\n  159 |     // Check that admin features are visible (this depends on admin page content)\n  160 |     // Update these selectors based on actual admin page content"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                            "column": 38,
+                            "line": 157
+                          },
+                          "message": "Error: expect.toContainText: Error: strict mode violation: locator('h1') resolved to 2 elements:\n    1) <h1 class=\"font-semibold\">Hệ thống quản lý sửa chữa laptop</h1> aka getByRole('heading', { name: 'Hệ thống quản lý sửa chữa' })\n    2) <h1 class=\"text-3xl font-bold\">Dashboard</h1> aka getByRole('heading', { name: 'Dashboard' })\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\n\n  155 |\n  156 |     // Verify admin page loads correctly\n> 157 |     await expect(page.locator('h1')).toContainText('Quản trị hệ thống');\n      |                                      ^\n  158 |\n  159 |     // Check that admin features are visible (this depends on admin page content)\n  160 |     // Update these selectors based on actual admin page content\n    at /home/tan/work/try-vite/tests/e2e/auth.test.ts:157:38"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:48.400Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/tan/work/try-vite/test-results/auth-Authentication-shop-o-82ec3-anel-and-see-admin-features-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/tan/work/try-vite/tests/e2e/auth.test.ts",
+                        "column": 38,
+                        "line": 157
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-4e49c4d9c55c1056aeda",
+              "file": "auth.test.ts",
+              "line": 141,
+              "column": 3
+            },
+            {
+              "title": "shop owner can navigate between all sections including admin",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "passed",
+                      "duration": 2089,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-09-23T08:52:48.803Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "f0c50cfc8142f74e2e08-9ce727640f1d6affbd97",
+              "file": "auth.test.ts",
+              "line": 178,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-09-23T08:52:45.804Z",
+    "duration": 31103.051,
+    "expected": 5,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}

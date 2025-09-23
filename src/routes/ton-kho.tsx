@@ -7,9 +7,9 @@ function ProtectedParts() {
 		<ProtectedRoute requirePermission="can_manage_inventory">
 			<PartsPage />
 		</ProtectedRoute>
-	);
+	)
 }
 
-export const Route = createFileRoute("/linh-kien")({
+export const Route = createFileRoute("/ton-kho")({
 	component: ProtectedParts,
 });

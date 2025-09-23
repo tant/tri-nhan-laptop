@@ -441,13 +441,13 @@ export function useRepairWorkflow() {
       .from("repair_parts")
       .select(`
         quantity_used,
-        part:parts(name, stock_quantity)
+        part:parts(name, current_stock)
       `)
       .eq("repair_id", repairId);
 
     if (repairParts) {
       const unavailableParts = repairParts.filter(rp =>
-        (rp.part as any)?.stock_quantity < rp.quantity_used
+        (rp.part as any)?.current_stock < rp.quantity_used
       );
 
       if (unavailableParts.length > 0) {

@@ -8,20 +8,37 @@ import { DataTable } from "@/components/ui/data-table";
 import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Search, Plus, Edit, Package, AlertTriangle, RefreshCw, Bell, TrendingUp, DollarSign } from "lucide-react";
+import { Search, Plus, Edit, Package, AlertTriangle, RefreshCw, Bell, TrendingUp, DollarSign, Settings, Upload, Download } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import { SupabaseErrorAlert } from "@/components/error-boundary";
 import { PartsInventorySkeleton } from "@/components/skeleton-loaders";
 import { usePartsManagement } from "@/hooks/use-parts-management";
+import { PartsSearch } from "@/components/parts/PartsSearch";
+import { StockAdjustmentModal } from "@/components/parts/StockAdjustmentModal";
+import { StockStatusBadge } from "@/components/parts/StockStatusBadge";
+import { PartsFormModal } from "@/components/parts/PartsFormModal";
+import { BulkImportModal } from "@/components/parts/BulkImportModal";
+import { ExportPartsModal } from "@/components/parts/ExportPartsModal";
 
 // Database types
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
 export function PartsPage() {
 	const [parts, setParts] = useState<Part[]>([]);
+	const [filteredParts, setFilteredParts] = useState<Part[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
+
+	// Modal states
+	const [selectedPart, setSelectedPart] = useState<Part | null>(null);
+	const [isStockAdjustmentOpen, setIsStockAdjustmentOpen] = useState(false);
+	const [isPartsFormOpen, setIsPartsFormOpen] = useState(false);
+	const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+	const [isExportOpen, setIsExportOpen] = useState(false);
+	const [editingPart, setEditingPart] = useState<Part | null>(null);
+
+	// Legacy search state (to be removed once old search UI is cleaned up)
 	const [searchTerm, setSearchTerm] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("all");
 	const [stockFilter, setStockFilter] = useState("all");
@@ -42,6 +59,7 @@ export function PartsPage() {
 
 			const partsWithStock = await getPartsWithStockStatus();
 			setParts(partsWithStock);
+			setFilteredParts(partsWithStock); // Initialize filtered parts
 
 			// Also refresh low stock data and inventory value
 			await Promise.all([
@@ -86,32 +104,41 @@ export function PartsPage() {
 		};
 	}, []);
 
-	// Get stock status badge
-	const getStockBadge = (stock: number, minStock: number) => {
-		if (stock === 0) {
-			return <Badge variant="destructive">Hết hàng</Badge>;
-		} else if (stock <= minStock) {
-			return <Badge variant="outline">Sắp hết</Badge>;
-		} else {
-			return <Badge variant="secondary">Còn hàng</Badge>;
-		}
+	// Handle stock adjustment
+	const openStockAdjustment = (part: Part) => {
+		setSelectedPart(part);
+		setIsStockAdjustmentOpen(true);
 	};
 
-	// Filter parts based on search, category, and stock status
-	const filteredParts = parts.filter(part => {
-		const matchesSearch = part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			part.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			part.supplier_info?.toLowerCase().includes(searchTerm.toLowerCase());
+	const closeStockAdjustment = () => {
+		setSelectedPart(null);
+		setIsStockAdjustmentOpen(false);
+	};
 
-		const matchesCategory = categoryFilter === "all" || part.category === categoryFilter;
+	const handleStockAdjustmentSuccess = () => {
+		// Refresh parts data after successful adjustment
+		fetchParts();
+	};
 
-		const matchesStock = stockFilter === "all" ||
-			(stockFilter === "in_stock" && part.current_stock > 100) ||
-			(stockFilter === "low_stock" && part.current_stock <= 100 && part.current_stock > 0) ||
-			(stockFilter === "out_of_stock" && part.current_stock === 0);
+	// Handle parts form
+	const openPartsForm = (part?: Part) => {
+		setEditingPart(part || null);
+		setIsPartsFormOpen(true);
+	};
 
-		return matchesSearch && matchesCategory && matchesStock;
-	});
+	const closePartsForm = () => {
+		setEditingPart(null);
+		setIsPartsFormOpen(false);
+	};
+
+	const handlePartsFormSuccess = () => {
+		fetchParts();
+	};
+
+	// Handle search results from the enhanced search component
+	const handleSearchResults = (searchResults: Part[]) => {
+		setFilteredParts(searchResults);
+	};
 
 	// Format currency (Vietnamese dong)
 	const formatPrice = (price: number | null) => {
@@ -174,7 +201,7 @@ export function PartsPage() {
 				<div className="text-center">
 					<span className="font-medium">{row.getValue("current_stock")}</span>
 					<div className="text-xs text-muted-foreground">
-						Tối thiểu: 100
+						Tối thiểu: {row.original.min_stock_level || 5}
 					</div>
 				</div>
 			),
@@ -182,14 +209,27 @@ export function PartsPage() {
 		{
 			id: "status",
 			header: "Trạng thái",
-			cell: ({ row }) => getStockBadge(row.original.current_stock, 100),
+			cell: ({ row }) => <StockStatusBadge part={row.original} />,
 		},
 		{
 			id: "actions",
 			header: "Thao tác",
-			cell: () => (
+			cell: ({ row }) => (
 				<div className="flex space-x-2">
-					<Button variant="outline" size="sm">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => openStockAdjustment(row.original)}
+						title="Điều chỉnh tồn kho"
+					>
+						<Settings className="h-4 w-4" />
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => openPartsForm(row.original)}
+						title="Chỉnh sửa linh kiện"
+					>
 						<Edit className="h-4 w-4" />
 					</Button>
 				</div>
@@ -218,82 +258,24 @@ export function PartsPage() {
 						<RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
 						Làm mới
 					</Button>
-					<Dialog>
-						<DialogTrigger asChild>
-							<Button>
-								<Plus className="mr-2 h-4 w-4" />
-								Thêm linh kiện
-							</Button>
-						</DialogTrigger>
-						<DialogContent className="max-w-2xl">
-							<DialogHeader>
-								<DialogTitle>Thêm linh kiện mới</DialogTitle>
-								<DialogDescription>
-									Nhập thông tin chi tiết cho linh kiện mới
-								</DialogDescription>
-							</DialogHeader>
-							<div className="grid gap-4 py-4">
-								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="partName">Tên linh kiện</Label>
-										<Input id="partName" placeholder="Nhập tên linh kiện" />
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="category">Danh mục</Label>
-										<Select>
-											<SelectTrigger>
-												<SelectValue placeholder="Chọn danh mục" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="Màn hình">Màn hình</SelectItem>
-												<SelectItem value="Pin">Pin</SelectItem>
-												<SelectItem value="RAM">RAM</SelectItem>
-												<SelectItem value="Tản nhiệt">Tản nhiệt</SelectItem>
-												<SelectItem value="Bàn phím">Bàn phím</SelectItem>
-												<SelectItem value="Ổ cứng">Ổ cứng</SelectItem>
-												<SelectItem value="Bo mạch chủ">Bo mạch chủ</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
-								</div>
-								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="brand">Thương hiệu</Label>
-										<Input id="brand" placeholder="Nhập thương hiệu" />
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="model">Model</Label>
-										<Input id="model" placeholder="Nhập model" />
-									</div>
-								</div>
-								<div className="grid grid-cols-3 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="price">Giá</Label>
-										<Input id="price" type="number" placeholder="Nhập giá" />
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="stock">Số lượng</Label>
-										<Input id="stock" type="number" placeholder="Số lượng" />
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="minStock">Tồn kho tối thiểu</Label>
-										<Input id="minStock" type="number" placeholder="Tối thiểu" />
-									</div>
-								</div>
-								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="supplier">Nhà cung cấp</Label>
-										<Input id="supplier" placeholder="Nhập nhà cung cấp" />
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="location">Vị trí</Label>
-										<Input id="location" placeholder="Vị trí trong kho" />
-									</div>
-								</div>
-								<Button className="w-full">Thêm linh kiện</Button>
-							</div>
-						</DialogContent>
-					</Dialog>
+					<Button
+						variant="outline"
+						onClick={() => setIsExportOpen(true)}
+					>
+						<Download className="h-4 w-4 mr-2" />
+						Xuất CSV
+					</Button>
+					<Button
+						variant="outline"
+						onClick={() => setIsBulkImportOpen(true)}
+					>
+						<Upload className="h-4 w-4 mr-2" />
+						Nhập CSV
+					</Button>
+					<Button onClick={() => openPartsForm()}>
+						<Plus className="mr-2 h-4 w-4" />
+						Thêm linh kiện
+					</Button>
 				</div>
 			</div>
 
@@ -386,6 +368,13 @@ export function PartsPage() {
 					</CardContent>
 				</Card>
 			)}
+
+			{/* Enhanced Search and Filter */}
+			<PartsSearch
+				parts={parts}
+				onSearchResults={handleSearchResults}
+				loading={loading}
+			/>
 
 			{/* Enhanced Search and Filter */}
 			<Card>
@@ -502,6 +491,33 @@ export function PartsPage() {
 					)}
 				</CardContent>
 			</Card>
+
+			{/* Modals */}
+			<StockAdjustmentModal
+				part={selectedPart}
+				isOpen={isStockAdjustmentOpen}
+				onClose={closeStockAdjustment}
+				onSuccess={handleStockAdjustmentSuccess}
+			/>
+
+			<PartsFormModal
+				part={editingPart}
+				isOpen={isPartsFormOpen}
+				onClose={closePartsForm}
+				onSuccess={handlePartsFormSuccess}
+			/>
+
+			<BulkImportModal
+				isOpen={isBulkImportOpen}
+				onClose={() => setIsBulkImportOpen(false)}
+				onSuccess={handlePartsFormSuccess}
+			/>
+
+			<ExportPartsModal
+				isOpen={isExportOpen}
+				onClose={() => setIsExportOpen(false)}
+				parts={parts}
+			/>
 		</div>
 	);
 }

@@ -234,7 +234,7 @@ begin
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'full_name', new.email),
-    coalesce((new.raw_user_meta_data->>'role')::user_role, 'staff')
+    coalesce((new.raw_user_meta_data->>'role')::public.user_role, 'staff'::public.user_role)
   );
   return new;
 end;

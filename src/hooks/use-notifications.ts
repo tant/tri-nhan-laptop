@@ -194,7 +194,7 @@ export function useNotifications(userId?: string) {
           event: "UPDATE",
           schema: "public",
           table: "parts",
-          filter: "stock_quantity=lte.min_stock_level"
+          filter: "current_stock=lte.min_stock_level"
         },
         (payload) => {
           const part = payload.new as Part;
@@ -267,7 +267,7 @@ export function useNotifications(userId?: string) {
         const { data: lowStockParts, error } = await supabase
           .from("parts")
           .select("*")
-          .or("stock_quantity.lte.min_stock_level,stock_quantity.eq.0");
+          .or("current_stock.lte.min_stock_level,current_stock.eq.0");
 
         if (error) throw error;
 
@@ -277,9 +277,9 @@ export function useNotifications(userId?: string) {
             addNotification({
               type: "low_stock",
               title: "Cảnh báo tồn kho thấp",
-              message: `${part.name} chỉ còn ${part.stock_quantity} cái (tối thiểu: ${part.min_stock_level})`,
+              message: `${part.name} chỉ còn ${part.current_stock} cái (tối thiểu: ${part.min_stock_level})`,
               data: { partId: part.id },
-              priority: part.stock_quantity === 0 ? "urgent" : "high"
+              priority: part.current_stock === 0 ? "urgent" : "high"
             });
           });
         }

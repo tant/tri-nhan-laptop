@@ -7,9 +7,9 @@ function ProtectedRepairTickets() {
 		<ProtectedRoute>
 			<RepairTicketsPage />
 		</ProtectedRoute>
-	);
+	)
 }
 
-export const Route = createFileRoute("/phieu")({
+export const Route = createFileRoute("/phieu-sua-chua")({
 	component: ProtectedRepairTickets,
 });
