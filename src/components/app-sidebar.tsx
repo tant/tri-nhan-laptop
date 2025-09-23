@@ -151,10 +151,10 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const { profile, hasPermission, isRole } = useAuth();
+	const { profile, isRole } = useAuth();
 
 	// Generate navigation data based on user role and permissions
-	const data = getNavigationData(profile, hasPermission, isRole);
+	const data = getNavigationData(profile, () => true, isRole);
 
 	return (
 		<Sidebar collapsible="icon" {...props}>

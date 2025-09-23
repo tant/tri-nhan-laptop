@@ -17,7 +17,7 @@ type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
 // Combined type for repair with related data
-type RepairWithDetails = Repair & {
+type RepairWithDetails = RepairTicket & {
 	customer: Customer;
 	technician: UserProfile | null;
 	ticket_number?: string;
@@ -40,7 +40,7 @@ export function RepairTicketsPage() {
 			setError(null);
 
 			const { data, error } = await supabase
-				.from("repairs")
+				.from("repair_tickets")
 				.select(`
 					*,
 					customer:customers(*),
@@ -69,13 +69,13 @@ export function RepairTicketsPage() {
 	// Real-time subscription to repair changes
 	useEffect(() => {
 		const channel = supabase
-			.channel("repairs-changes")
+			.channel("repair_tickets-changes")
 			.on(
 				"postgres_changes",
 				{
 					event: "*",
 					schema: "public",
-					table: "repairs",
+					table: "repair_tickets",
 				},
 				(payload) => {
 					console.log("Repair change detected:", payload);
@@ -91,16 +91,24 @@ export function RepairTicketsPage() {
 	}, []);
 
 	// Status badge mapping
-	const getStatusBadge = (status: Repair["status"]) => {
+	const getStatusBadge = (status: RepairTicket["status"]) => {
 		const statusMap = {
-			received: { label: "Tiếp nhận", variant: "outline" as const },
-			diagnosed: { label: "Đã chẩn đoán", variant: "secondary" as const },
+			device_received: { label: "Tiếp nhận thiết bị", variant: "outline" as const },
+			preliminary_inspection: { label: "Kiểm tra sơ bộ", variant: "secondary" as const },
+			awaiting_repair_plan: { label: "Chờ phương án sửa chữa", variant: "secondary" as const },
+			approved_for_repair: { label: "Đã phê duyệt sửa chữa", variant: "default" as const },
+			in_diagnosis: { label: "Đang chẩn đoán", variant: "default" as const },
 			waiting_parts: { label: "Chờ linh kiện", variant: "destructive" as const },
-			in_progress: { label: "Đang sửa chữa", variant: "default" as const },
+			in_repair: { label: "Đang sửa chữa", variant: "default" as const },
+			quality_testing: { label: "Kiểm tra chất lượng", variant: "default" as const },
+			ready_for_pickup: { label: "Sẵn sàng nhận", variant: "default" as const },
 			completed: { label: "Hoàn thành", variant: "default" as const },
-			ready_for_pickup: { label: "Sẵn sàng giao", variant: "default" as const },
-			delivered: { label: "Đã giao", variant: "outline" as const },
-			cancelled: { label: "Đã hủy", variant: "destructive" as const },
+			cannot_repair: { label: "Không thể sửa", variant: "destructive" as const },
+			cancelled_by_customer: { label: "Khách hàng hủy", variant: "destructive" as const },
+			repair_failed: { label: "Sửa chữa thất bại", variant: "destructive" as const },
+			customer_no_show: { label: "Khách không đến", variant: "destructive" as const },
+			ready_for_return: { label: "Sẵn sàng trả", variant: "outline" as const },
+			abandoned: { label: "Bỏ qua", variant: "destructive" as const },
 		};
 
 		const statusInfo = statusMap[status] || { label: status, variant: "outline" as const };
@@ -108,7 +116,7 @@ export function RepairTicketsPage() {
 	};
 
 	// Priority badge mapping
-	const getPriorityBadge = (priority: Repair["priority"]) => {
+	const getPriorityBadge = (priority: string) => {
 		const priorityMap = {
 			low: { label: "Thấp", variant: "outline" as const },
 			normal: { label: "Bình thường", variant: "secondary" as const },
@@ -162,21 +170,24 @@ export function RepairTicketsPage() {
 				const customer = row.original.customer;
 				return (
 					<div>
-						<div className="font-medium">{customer.name}</div>
+						<div className="font-medium">{customer.full_name}</div>
 						<div className="text-sm text-muted-foreground">{customer.phone}</div>
 					</div>
 				);
 			},
 		},
 		{
-			accessorKey: "device_type",
+			accessorKey: "device_info",
 			header: "Thiết bị",
-			cell: ({ row }) => (
-				<div>
-					<div className="font-medium">{row.getValue("device_type")}</div>
-					<div className="text-sm text-muted-foreground">{row.original.device_model}</div>
-				</div>
-			),
+			cell: ({ row }) => {
+				const deviceInfo = row.original.device_info;
+				return (
+					<div>
+						<div className="font-medium">{deviceInfo.brand}</div>
+						<div className="text-sm text-muted-foreground">{deviceInfo.model}</div>
+					</div>
+				);
+			},
 		},
 		{
 			accessorKey: "issue_description",

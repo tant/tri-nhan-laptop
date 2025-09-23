@@ -123,19 +123,19 @@ export function useNotifications(userId?: string) {
         {
           event: "UPDATE",
           schema: "public",
-          table: "repairs",
+          table: "repair_tickets",
           filter: `status=neq.old_record.status`
         },
         async (payload) => {
-          const repair = payload.new as Repair;
-          const oldRepair = payload.old as Repair;
+          const repair = payload.new as RepairTicket;
+          const oldRepair = payload.old as RepairTicket;
 
           if (repair.status !== oldRepair.status) {
             // Get customer info for notification
             const { data: customer } = await supabase
               .from("customers")
-              .select("name, phone")
-              .eq("id", repair.customer_id)
+              .select("full_name, phone")
+              .eq("phone", repair.customer_phone)
               .single();
 
             addNotification({
@@ -160,16 +160,16 @@ export function useNotifications(userId?: string) {
         {
           event: "INSERT",
           schema: "public",
-          table: "repairs"
+          table: "repair_tickets"
         },
         async (payload) => {
-          const repair = payload.new as Repair;
+          const repair = payload.new as RepairTicket;
 
           // Get customer info
           const { data: customer } = await supabase
             .from("customers")
-            .select("name, phone")
-            .eq("id", repair.customer_id)
+            .select("full_name, phone")
+            .eq("phone", repair.customer_phone)
             .single();
 
           addNotification({

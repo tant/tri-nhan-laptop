@@ -1,13 +1,21 @@
-# Biến môi trường (.env) — External Supabase Connection
+# Biến môi trường (.env) — Local Supabase Connection
 
-Bạn sẽ tự điền các giá trị trong file `.env`. Danh sách dưới đây tổng hợp các biến cần để kết nối frontend application với external self-hosted Supabase instance.
+Bạn sẽ tự điền các giá trị trong file `.env`. Danh sách dưới đây tổng hợp các biến cần để kết nối frontend application với local self-hosted Supabase instance.
 
-**Lưu ý:** Supabase backend infrastructure được quản lý bên ngoài repository này. Ứng dụng frontend chỉ cần thông tin kết nối đến Supabase instance đã có sẵn.
+**Lưu ý:** Supabase backend infrastructure chạy trên cùng máy nhưng được quản lý riêng biệt với repository này. Ứng dụng frontend chỉ cần thông tin kết nối đến Supabase instance đang chạy trên localhost.
 
-## External Supabase Connection
-- VITE_SUPABASE_URL= URL của external Supabase instance (VD: https://your-external-supabase.example.com)
-- VITE_SUPABASE_ANON_KEY= Anon key từ external Supabase instance
-- VITE_SERVICE_ROLE_KEY= Service role key từ external Supabase instance (cho admin operations)
+## Local Supabase Connection
+- VITE_SUPABASE_URL= URL của local Supabase instance (http://127.0.0.1:54321)
+- VITE_SUPABASE_ANON_KEY= Anon key từ local Supabase instance
+- VITE_SERVICE_ROLE_KEY= Service role key từ local Supabase instance (cho admin operations)
+
+## Supabase Development URLs
+- **API URL**: http://127.0.0.1:54321
+- **GraphQL URL**: http://127.0.0.1:54321/graphql/v1
+- **S3 Storage URL**: http://127.0.0.1:54321/storage/v1/s3
+- **Database URL**: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+- **Studio URL**: http://127.0.0.1:54323 (Supabase Studio dashboard)
+- **Inbucket URL**: http://127.0.0.1:54324 (Email testing)
 
 ## Application Configuration
 - VITE_APP_ENVIRONMENT=development  (hoặc production)
@@ -19,123 +27,21 @@ Bạn sẽ tự điền các giá trị trong file `.env`. Danh sách dưới đ
 - VITE_DEFAULT_TIMEZONE=Asia/Ho_Chi_Minh
 - VITE_DEFAULT_LOCALE=vi-VN
 
-## SMTP (tùy chọn cho email)
-- SMTP_ADMIN_EMAIL=
-- SMTP_HOST=
-- SMTP_PORT=587
-- SMTP_USER=
-- SMTP_PASS=
-- SMTP_SENDER_NAME=
-- MAILER_URLPATHS_INVITE="/auth/v1/verify"
-- MAILER_URLPATHS_CONFIRMATION="/auth/v1/verify"
-- MAILER_URLPATHS_RECOVERY="/auth/v1/verify"
-- MAILER_URLPATHS_EMAIL_CHANGE="/auth/v1/verify"
-
-## Thiết lập hành vi Auth
-- DISABLE_SIGNUP=true  (khóa self-signup, chỉ admin tạo tài khoản staff)
-- ENABLE_EMAIL_SIGNUP=true
-- ENABLE_EMAIL_AUTOCONFIRM=true  (nếu không dùng SMTP)
-- ENABLE_ANONYMOUS_USERS=false
-- ENABLE_PHONE_SIGNUP=false
-- ENABLE_PHONE_AUTOCONFIRM=false
-
-## Studio (UI quản trị DB)
-- STUDIO_DEFAULT_ORGANIZATION="Laptop Repair Shop"
-- STUDIO_DEFAULT_PROJECT="Repair Management System"
-
-## Shop Admin Account (Bootstrap)
-Các biến này dùng để tạo tài khoản admin đầu tiên:
-- SHOP_ADMIN_EMAIL=admin@laptop-repair-shop.local
-- SHOP_ADMIN_PASSWORD=AdminPass123!
-- SHOP_ADMIN_NAME="Shop Manager"
-- SHOP_ADMIN_ROLE=shop_owner
-
-## Tóm tắt cổng publish mặc định
-- App (React): 3001
-- Kong (HTTP/HTTPS): 8000 / 8443
-- Studio: 3010
-- Database: Chỉ nội bộ (không expose ra ngoài)
+## Development Configuration
+- PORT=3000  (cổng cho development server)
+- HOST=localhost  (host cho development server)
 
 ## Ví dụ cấu hình hoàn chỉnh
 
 ```env
-# Supabase Configuration for Laptop Repair Shop
+# Frontend Application Configuration
 
-# PostgreSQL
-POSTGRES_HOST=db
-POSTGRES_PORT=5432
-POSTGRES_DB=postgres
-POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
-POSTGRES_USER=postgres
-
-# Service User Passwords
-SUPABASE_AUTH_ADMIN_PASSWORD=your-super-secret-and-long-postgres-password
-SUPABASE_STORAGE_ADMIN_PASSWORD=your-super-secret-and-long-postgres-password
-AUTHENTICATOR_PASSWORD=your-super-secret-and-long-postgres-password
-
-# JWT
-JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long
-JWT_EXPIRY=3600
-ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
-SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
-
-# API
-API_EXTERNAL_URL=http://localhost:8000
-SUPABASE_PUBLIC_URL=http://localhost:8000
-
-# Kong
-KONG_HTTP_PORT=8000
-KONG_HTTPS_PORT=8443
-
-# Database Schemas
-PGRST_DB_SCHEMAS=public,storage,graphql_public
-
-# Auth
-SITE_URL=http://localhost:3000
-ADDITIONAL_REDIRECT_URLS=""
-DISABLE_SIGNUP=true
-ENABLE_EMAIL_SIGNUP=true
-ENABLE_EMAIL_AUTOCONFIRM=true
-ENABLE_PHONE_SIGNUP=false
-ENABLE_PHONE_AUTOCONFIRM=false
-ENABLE_ANONYMOUS_USERS=false
-
-# Shop Admin Account (Owner/Manager)
-SHOP_ADMIN_EMAIL=admin@laptop-repair-shop.local
-SHOP_ADMIN_PASSWORD=AdminPass123!
-SHOP_ADMIN_NAME="Shop Manager"
-SHOP_ADMIN_ROLE=shop_owner
-
-# Email (SMTP) - Configure for production
-SMTP_ADMIN_EMAIL=""
-SMTP_HOST=""
-SMTP_PORT=587
-SMTP_USER=""
-SMTP_PASS=""
-SMTP_SENDER_NAME=""
-
-# Mailer URLs
-MAILER_URLPATHS_INVITE="/auth/v1/verify"
-MAILER_URLPATHS_CONFIRMATION="/auth/v1/verify"
-MAILER_URLPATHS_RECOVERY="/auth/v1/verify"
-MAILER_URLPATHS_EMAIL_CHANGE="/auth/v1/verify"
-
-# Studio
-STUDIO_DEFAULT_ORGANIZATION="Laptop Repair Shop"
-STUDIO_DEFAULT_PROJECT="Repair Management System"
-
-# Storage
-IMGPROXY_ENABLE_WEBP_DETECTION=false
-
-# Functions
-FUNCTIONS_VERIFY_JWT=false
-
-# Secrets
-SECRET_KEY_BASE=AbCdEfGhIjKlMnOpQrStUvWxYz1234567890AbCdEfGhIjKlMnOpQrStUvWxYz
-
-# Frontend Environment Variables (Vite)
-VITE_SUPABASE_URL=http://localhost:8000
+# Local Supabase Development Environment
+VITE_SUPABASE_URL=http://127.0.0.1:54321
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+VITE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+
+# Application Settings
 VITE_APP_ENVIRONMENT=development
 VITE_APP_NAME="Hệ thống Quản lý Sửa chữa Laptop"
 VITE_APP_VERSION=1.0.0
@@ -145,15 +51,113 @@ VITE_DEFAULT_CURRENCY=VND
 VITE_DEFAULT_TIMEZONE=Asia/Ho_Chi_Minh
 VITE_DEFAULT_LOCALE=vi-VN
 
-# Admin user setup (Frontend access)
-VITE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+# Development Server
+PORT=3000
+HOST=localhost
+```
+
+## Setup Commands
+
+```bash
+# Cài đặt Supabase CLI làm dev dependency
+pnpm add supabase --save-dev
+
+# Khởi tạo Supabase project
+pnpx supabase init
+
+# Khởi động local Supabase development environment
+pnpx supabase start
+
+# Dừng local environment
+pnpx supabase stop
 ```
 
 ## Lưu ý bảo mật
 
-1. **JWT Keys**: Sử dụng keys được generate từ Supabase CLI hoặc tạo custom với cùng payload structure
-2. **Passwords**: Thay đổi tất cả mật khẩu mặc định trước khi deploy production
-3. **SERVICE_ROLE_KEY**: Bảo mật tuyệt đối, có quyền bypass RLS
-4. **VITE_SERVICE_ROLE_KEY**: Chỉ dùng cho admin operations, cân nhắc giới hạn scope
+1. **VITE_SUPABASE_URL**: URL của local Supabase instance (http://127.0.0.1:54321)
+2. **VITE_SUPABASE_ANON_KEY**: Anon key từ local Supabase instance (public, nhưng vẫn cần bảo mật)
+3. **VITE_SERVICE_ROLE_KEY**: Service role key từ local instance (bảo mật tuyệt đối, có quyền bypass RLS)
+4. **JWT Secret**: super-secret-jwt-token-with-at-least-32-characters-long
+5. **S3 Credentials**: Access Key và Secret Key cho local storage
+6. **Credentials Management**: Tất cả credentials được tự động tạo khi chạy `pnpx supabase start`
 
-Lưu ý: Các cổng có thể thay đổi theo nhu cầu, miễn là nhất quán với reverse proxy bên ngoài và các biến URL ở trên.
+## Phạm vi Repository
+
+**Repository này chỉ chứa:**
+- Frontend application (React/Vite)
+- Client-side configuration
+- UI components và business logic
+
+**Repository này KHÔNG chứa:**
+- Supabase backend infrastructure
+- Database schemas, tables, và migrations
+- Docker compose files cho Supabase
+- Server-side configuration
+- RLS (Row Level Security) policies
+- Database functions và triggers
+- Supabase auth configuration
+
+**Supabase Management**: Local Supabase development environment được quản lý trong project này thông qua Supabase CLI và npm scripts.
+
+## Development Workflow
+
+1. **Lần đầu setup**:
+   ```bash
+   # Dependencies đã được cài sẵn
+   pnpm install
+
+   # Khởi tạo Supabase (tạo thư mục supabase/ với migrations)
+   pnpx supabase init
+
+   # Khởi động và apply database schema
+   pnpm run db:start
+
+   # Tạo admin user từ environment variables
+   pnpm run create-admin
+   ```
+
+2. **Daily development workflow**:
+   ```bash
+   # Khởi động Supabase services
+   pnpm run db:start
+
+   # Kiểm tra trạng thái services
+   pnpm run db:status
+
+   # Khởi động frontend application
+   pnpm run dev
+
+   # Khi kết thúc, dừng services
+   pnpm run db:stop
+   ```
+
+3. **Database management**:
+   ```bash
+   pnpm run db:reset    # Reset database và apply migrations + seed data
+   pnpm run db:status   # Kiểm tra trạng thái services
+   ```
+
+4. **Access các services**:
+   - **Application**: http://localhost:5173
+   - **Studio UI**: http://127.0.0.1:54323
+   - **API**: http://127.0.0.1:54321
+   - **Database**: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+   - **Email Testing**: http://127.0.0.1:54324
+
+## Admin User Creation
+
+Admin user được tạo tự động từ environment variables:
+
+```bash
+# Sử dụng Node.js script (recommended)
+pnpm run create-admin
+
+# Hoặc sử dụng Bash script
+pnpm run create-admin:bash
+```
+
+Credentials được đọc từ các biến môi trường:
+- `SHOP_ADMIN_EMAIL`
+- `SHOP_ADMIN_PASSWORD`
+- `SHOP_ADMIN_NAME`
+- `SHOP_ADMIN_ROLE`

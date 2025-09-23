@@ -38,8 +38,8 @@ export interface WorkflowState {
 
 // Repair workflow configuration
 const REPAIR_WORKFLOW: Record<RepairStatus, WorkflowStep> = {
-  received: {
-    status: "received",
+  device_received: {
+    status: "device_received",
     name: "Tiếp nhận",
     description: "Tiếp nhận thiết bị và tạo phiếu sửa chữa",
     estimatedHours: 0.5,

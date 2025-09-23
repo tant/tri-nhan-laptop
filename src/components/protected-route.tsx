@@ -7,19 +7,15 @@ type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 interface ProtectedRouteProps {
 	children: React.ReactNode;
 	requireRole?: UserProfile["role"];
-	requirePermission?: keyof Pick<UserProfile,
-		'can_create_users' | 'can_manage_inventory' | 'can_view_financials' | 'can_delete_repairs'
-	>;
 	fallbackPath?: string;
 }
 
 export function ProtectedRoute({
 	children,
 	requireRole,
-	requirePermission,
 	fallbackPath = "/login",
 }: ProtectedRouteProps) {
-	const { isAuthenticated, loading, profile, isRole, hasPermission } = useAuth();
+	const { isAuthenticated, loading, profile, isRole } = useAuth();
 
 	// Show loading spinner while checking authentication
 	if (loading) {
@@ -65,29 +61,6 @@ export function ProtectedRoute({
 		);
 	}
 
-	// Check permission requirement
-	if (requirePermission && !hasPermission(requirePermission)) {
-		return (
-			<div className="min-h-screen flex items-center justify-center">
-				<div className="text-center space-y-4 max-w-md">
-					<div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-						<h2 className="text-lg font-semibold text-red-800 mb-2">
-							Không có quyền thực hiện
-						</h2>
-						<p className="text-red-600 text-sm">
-							Bạn không có quyền thực hiện chức năng này. Liên hệ quản trị viên để được cấp quyền.
-						</p>
-					</div>
-					<button
-						onClick={() => window.history.back()}
-						className="text-[#299fce] hover:underline text-sm"
-					>
-						← Quay lại trang trước
-					</button>
-				</div>
-			</div>
-		);
-	}
 
 	// All checks passed, render children
 	return <>{children}</>;
@@ -102,14 +75,14 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
 	);
 }
 
-// Convenience wrapper for manager+ routes
+// Convenience wrapper for shop_owner routes
 export function ManagerRoute({ children }: { children: React.ReactNode }) {
 	const { isRole } = useAuth();
 
-	// Allow shop_owner or manager
-	if (!isRole("shop_owner") && !isRole("manager")) {
+	// Allow shop_owner only
+	if (!isRole("shop_owner")) {
 		return (
-			<ProtectedRoute requireRole="manager">
+			<ProtectedRoute requireRole="shop_owner">
 				{children}
 			</ProtectedRoute>
 		);

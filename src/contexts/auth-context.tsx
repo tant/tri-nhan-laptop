@@ -20,9 +20,6 @@ interface AuthContextType {
 	signIn: (email: string, password: string) => Promise<{ error?: Error }>;
 	signOut: () => Promise<void>;
 	isAuthenticated: boolean;
-	hasPermission: (permission: keyof Pick<UserProfile,
-		'can_create_users' | 'can_manage_inventory' | 'can_view_financials' | 'can_delete_repairs'
-	>) => boolean;
 	isRole: (role: UserProfile["role"]) => boolean;
 }
 
@@ -89,13 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	};
 
-	// Check if user has specific permission
-	const hasPermission = (permission: keyof Pick<UserProfile,
-		'can_create_users' | 'can_manage_inventory' | 'can_view_financials' | 'can_delete_repairs'
-	>): boolean => {
-		if (!profile) return false;
-		return profile[permission] === true;
-	};
 
 	// Check if user has specific role
 	const isRole = (role: UserProfile["role"]): boolean => {
@@ -155,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		signIn,
 		signOut,
 		isAuthenticated: !!user,
-		hasPermission,
 		isRole,
 	};
 
@@ -215,23 +204,3 @@ export function RequireRole({
 	return <>{children}</>;
 }
 
-// Permission-based access control component
-export function RequirePermission({
-	permission,
-	children,
-	fallback = null,
-}: {
-	permission: keyof Pick<UserProfile,
-		'can_create_users' | 'can_manage_inventory' | 'can_view_financials' | 'can_delete_repairs'
-	>;
-	children: ReactNode;
-	fallback?: ReactNode;
-}) {
-	const { hasPermission } = useAuth();
-
-	if (!hasPermission(permission)) {
-		return <>{fallback}</>;
-	}
-
-	return <>{children}</>;
-}

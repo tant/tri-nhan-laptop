@@ -300,14 +300,22 @@ export function useAnalytics(dateRange?: { from: Date; to: Date }) {
       if (!repairs) return;
 
       const statusCounts: Record<RepairStatus, number> = {
-        received: 0,
-        diagnosed: 0,
+        device_received: 0,
+        preliminary_inspection: 0,
+        awaiting_repair_plan: 0,
+        approved_for_repair: 0,
+        in_diagnosis: 0,
         waiting_parts: 0,
-        in_progress: 0,
-        completed: 0,
+        in_repair: 0,
+        quality_testing: 0,
         ready_for_pickup: 0,
-        delivered: 0,
-        cancelled: 0
+        completed: 0,
+        cannot_repair: 0,
+        cancelled_by_customer: 0,
+        repair_failed: 0,
+        customer_no_show: 0,
+        ready_for_return: 0,
+        abandoned: 0
       };
 
       repairs.forEach(repair => {
@@ -450,14 +458,22 @@ export function useAnalytics(dateRange?: { from: Date; to: Date }) {
   // Vietnamese status mapping
   const getVietnameseStatus = (status: RepairStatus): string => {
     const statusMap: Record<RepairStatus, string> = {
-      received: "Đã tiếp nhận",
-      diagnosed: "Đã chẩn đoán",
+      device_received: "Tiếp nhận thiết bị",
+      preliminary_inspection: "Kiểm tra sơ bộ",
+      awaiting_repair_plan: "Chờ phương án sửa chữa",
+      approved_for_repair: "Đã phê duyệt sửa chữa",
+      in_diagnosis: "Đang chẩn đoán",
       waiting_parts: "Chờ linh kiện",
-      in_progress: "Đang sửa chữa",
+      in_repair: "Đang sửa chữa",
+      quality_testing: "Kiểm tra chất lượng",
+      ready_for_pickup: "Sẵn sàng nhận",
       completed: "Hoàn thành",
-      ready_for_pickup: "Sẵn sàng giao",
-      delivered: "Đã giao",
-      cancelled: "Đã hủy"
+      cannot_repair: "Không thể sửa",
+      cancelled_by_customer: "Khách hàng hủy",
+      repair_failed: "Sửa chữa thất bại",
+      customer_no_show: "Khách không đến",
+      ready_for_return: "Sẵn sàng trả",
+      abandoned: "Bỏ qua"
     };
     return statusMap[status];
   };
