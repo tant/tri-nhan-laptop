@@ -301,15 +301,15 @@ export function HomePage() {
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Số Phiếu</Label>
-                    <p className="font-mono text-lg font-bold">{repairInfo.ticket_number || `TNL-${repairInfo.id.slice(0, 8)}`}</p>
+                    <p className="font-mono text-lg font-bold">{repairInfo.ticket_code}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Khách Hàng</Label>
-                    <p className="text-lg">{repairInfo.customer.name}</p>
+                    <p className="text-lg">{repairInfo.customer.full_name}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Thiết Bị</Label>
-                    <p className="text-lg">{repairInfo.device_type} - {repairInfo.brand} {repairInfo.model}</p>
+                    <p className="text-lg">{repairInfo.device_info.brand} {repairInfo.device_info.model}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Vấn Đề</Label>
@@ -336,13 +336,11 @@ export function HomePage() {
                   </div>
                 </div>
 
-                {(repairInfo.estimated_cost || repairInfo.final_cost) && (
+                {repairInfo.total_cost && (
                   <div className="border-t pt-4">
-                    <Label className="text-sm font-medium text-gray-600">
-                      {repairInfo.final_cost ? "Chi Phí Thực Tế" : "Chi Phí Dự Kiến"}
-                    </Label>
+                    <Label className="text-sm font-medium text-gray-600">Chi Phí Thực Tế</Label>
                     <p className="text-2xl font-bold text-[#299fce]">
-                      {formatCurrency(repairInfo.final_cost || repairInfo.estimated_cost || 0)}
+                      {formatCurrency(repairInfo.total_cost)}
                     </p>
                   </div>
                 )}
@@ -376,8 +374,8 @@ export function HomePage() {
                     <div className="mt-2 space-y-2">
                       {repairInfo.parts_used.map((part, index) => (
                         <div key={index} className="flex justify-between items-center text-sm">
-                          <span>{part.part_name} (x{part.quantity_used})</span>
-                          <span className="font-medium">{formatCurrency(part.total_cost)}</span>
+                          <span>{part.name} (x{part.quantity})</span>
+                          <span className="font-medium">{formatCurrency(part.unit_price * part.quantity)}</span>
                         </div>
                       ))}
                     </div>

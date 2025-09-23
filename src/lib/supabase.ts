@@ -1,11 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
 // Environment variables for Supabase connection
+// ✅ CORRECT: App connects to Kong endpoint only (aggregates all Supabase services)
 const supabaseUrl =
 	import.meta.env.VITE_SUPABASE_URL || "http://localhost:8000";
 const supabaseAnonKey =
 	import.meta.env.VITE_SUPABASE_ANON_KEY ||
-	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOuoJeHxjNa-NEHSDqmaFTUo1fKTbX_C-VzE";
 
 // Create Supabase client with Vietnamese repair shop configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -31,138 +32,198 @@ export type Database = {
 					id: string;
 					created_at: string;
 					updated_at: string;
+					email: string;
 					full_name: string;
-					role: "shop_owner" | "manager" | "technician" | "staff";
+					role: "shop_owner" | "staff";
 					phone: string | null;
 					is_active: boolean;
-					can_create_users: boolean;
-					can_manage_inventory: boolean;
-					can_view_financials: boolean;
-					can_delete_repairs: boolean;
-					created_by: string | null;
 				};
 				Insert: {
 					id: string;
+					email: string;
 					full_name: string;
-					role?: "shop_owner" | "manager" | "technician" | "staff";
+					role?: "shop_owner" | "staff";
 					phone?: string | null;
 					is_active?: boolean;
-					can_create_users?: boolean;
-					can_manage_inventory?: boolean;
-					can_view_financials?: boolean;
-					can_delete_repairs?: boolean;
-					created_by?: string | null;
 				};
 				Update: {
+					email?: string;
 					full_name?: string;
-					role?: "shop_owner" | "manager" | "technician" | "staff";
+					role?: "shop_owner" | "staff";
 					phone?: string | null;
 					is_active?: boolean;
-					can_create_users?: boolean;
-					can_manage_inventory?: boolean;
-					can_view_financials?: boolean;
-					can_delete_repairs?: boolean;
 				};
 			};
 			customers: {
 				Row: {
-					id: string;
-					created_at: string;
-					updated_at: string;
-					name: string;
-					phone: string;
-					email: string | null;
+					phone: string; // Primary key
+					full_name: string;
 					address: string | null;
 					notes: string | null;
+					created_at: string;
+					updated_at: string;
 				};
 				Insert: {
-					name: string;
 					phone: string;
-					email?: string | null;
+					full_name: string;
 					address?: string | null;
 					notes?: string | null;
 				};
 				Update: {
-					name?: string;
-					phone?: string;
-					email?: string | null;
+					full_name?: string;
 					address?: string | null;
 					notes?: string | null;
 				};
 			};
-			repairs: {
+			repair_tickets: {
 				Row: {
 					id: string;
 					created_at: string;
 					updated_at: string;
-					ticket_number: string;
-					customer_id: string;
-					device_type: string;
-					device_model: string;
+					ticket_code: string; // LRP-YYYY-XXXXXX format
+					customer_phone: string; // References customers(phone)
+					device_info: {
+						brand: string;
+						model: string;
+						serial_number?: string;
+						initial_condition: string;
+					};
 					issue_description: string;
 					status:
-						| "received"
-						| "diagnosed"
+						| "device_received"
+						| "preliminary_inspection"
+						| "awaiting_repair_plan"
+						| "approved_for_repair"
+						| "in_diagnosis"
 						| "waiting_parts"
-						| "in_progress"
-						| "completed"
+						| "in_repair"
+						| "quality_testing"
 						| "ready_for_pickup"
-						| "delivered"
-						| "cancelled";
-					priority: "low" | "normal" | "high" | "urgent";
-					estimated_cost: number | null;
-					final_cost: number | null;
-					technician_id: string | null;
-					notes: string | null;
-					images: string[] | null;
+						| "completed"
+						| "cannot_repair"
+						| "cancelled_by_customer"
+						| "repair_failed"
+						| "customer_no_show"
+						| "ready_for_return"
+						| "abandoned";
+					assigned_technician_id: string | null;
+					parts_used: Array<{
+						part_id: string;
+						name: string;
+						quantity: number;
+						unit_price: number;
+					}> | null;
 					estimated_completion: string | null;
-					completed_at: string | null;
+					total_cost: number | null;
+					deposit_amount: number | null;
+					is_paid: boolean;
+					paid_at: string | null;
+					payment_method: "cash" | "transfer" | "other" | null;
+					receipt_note: string | null;
+					warranty_until: string | null;
+					has_issue_report: boolean;
+					customer_approved_at: string | null;
+					customer_approved_by: string | null;
+					repair_completed_at: string | null;
+					repair_completed_by: string | null;
+					paid_by: string | null;
 				};
 				Insert: {
-					ticket_number?: string;
-					customer_id: string;
-					device_type: string;
-					device_model: string;
+					ticket_code?: string;
+					customer_phone: string;
+					device_info: {
+						brand: string;
+						model: string;
+						serial_number?: string;
+						initial_condition: string;
+					};
 					issue_description: string;
 					status?:
-						| "received"
-						| "diagnosed"
+						| "device_received"
+						| "preliminary_inspection"
+						| "awaiting_repair_plan"
+						| "approved_for_repair"
+						| "in_diagnosis"
 						| "waiting_parts"
-						| "in_progress"
-						| "completed"
+						| "in_repair"
+						| "quality_testing"
 						| "ready_for_pickup"
-						| "delivered"
-						| "cancelled";
-					priority?: "low" | "normal" | "high" | "urgent";
-					estimated_cost?: number | null;
-					final_cost?: number | null;
-					technician_id?: string | null;
-					notes?: string | null;
-					images?: string[] | null;
+						| "completed"
+						| "cannot_repair"
+						| "cancelled_by_customer"
+						| "repair_failed"
+						| "customer_no_show"
+						| "ready_for_return"
+						| "abandoned";
+					assigned_technician_id?: string | null;
+					parts_used?: Array<{
+						part_id: string;
+						name: string;
+						quantity: number;
+						unit_price: number;
+					}> | null;
 					estimated_completion?: string | null;
+					total_cost?: number | null;
+					deposit_amount?: number | null;
+					is_paid?: boolean;
+					paid_at?: string | null;
+					payment_method?: "cash" | "transfer" | "other" | null;
+					receipt_note?: string | null;
+					warranty_until?: string | null;
+					has_issue_report?: boolean;
+					customer_approved_at?: string | null;
+					customer_approved_by?: string | null;
+					repair_completed_at?: string | null;
+					repair_completed_by?: string | null;
+					paid_by?: string | null;
 				};
 				Update: {
-					ticket_number?: string;
-					device_type?: string;
-					device_model?: string;
+					customer_phone?: string;
+					device_info?: {
+						brand: string;
+						model: string;
+						serial_number?: string;
+						initial_condition: string;
+					};
 					issue_description?: string;
 					status?:
-						| "received"
-						| "diagnosed"
+						| "device_received"
+						| "preliminary_inspection"
+						| "awaiting_repair_plan"
+						| "approved_for_repair"
+						| "in_diagnosis"
 						| "waiting_parts"
-						| "in_progress"
-						| "completed"
+						| "in_repair"
+						| "quality_testing"
 						| "ready_for_pickup"
-						| "delivered"
-						| "cancelled";
-					priority?: "low" | "normal" | "high" | "urgent";
-					estimated_cost?: number | null;
-					final_cost?: number | null;
-					technician_id?: string | null;
-					notes?: string | null;
-					images?: string[] | null;
+						| "completed"
+						| "cannot_repair"
+						| "cancelled_by_customer"
+						| "repair_failed"
+						| "customer_no_show"
+						| "ready_for_return"
+						| "abandoned";
+					assigned_technician_id?: string | null;
+					parts_used?: Array<{
+						part_id: string;
+						name: string;
+						quantity: number;
+						unit_price: number;
+					}> | null;
 					estimated_completion?: string | null;
-					completed_at?: string | null;
+					total_cost?: number | null;
+					deposit_amount?: number | null;
+					is_paid?: boolean;
+					paid_at?: string | null;
+					payment_method?: "cash" | "transfer" | "other" | null;
+					receipt_note?: string | null;
+					warranty_until?: string | null;
+					has_issue_report?: boolean;
+					customer_approved_at?: string | null;
+					customer_approved_by?: string | null;
+					repair_completed_at?: string | null;
+					repair_completed_by?: string | null;
+					paid_by?: string | null;
 				};
 			};
 			parts: {
@@ -171,97 +232,33 @@ export type Database = {
 					created_at: string;
 					updated_at: string;
 					name: string;
-					description: string | null;
-					sku: string | null;
-					cost_price: number;
-					selling_price: number;
-					stock_quantity: number;
-					min_stock_level: number;
-					supplier: string | null;
-					category: string | null;
+					category: string;
+					brand: string | null;
+					model_compatibility: string[];
+					current_stock: number;
+					unit_cost: number;
+					unit_price: number;
+					supplier_info: string | null;
 				};
 				Insert: {
 					name: string;
-					description?: string | null;
-					sku?: string | null;
-					cost_price: number;
-					selling_price: number;
-					stock_quantity?: number;
-					min_stock_level?: number;
-					supplier?: string | null;
-					category?: string | null;
+					category: string;
+					brand?: string | null;
+					model_compatibility?: string[];
+					current_stock?: number;
+					unit_cost: number;
+					unit_price: number;
+					supplier_info?: string | null;
 				};
 				Update: {
 					name?: string;
-					description?: string | null;
-					sku?: string | null;
-					cost_price?: number;
-					selling_price?: number;
-					stock_quantity?: number;
-					min_stock_level?: number;
-					supplier?: string | null;
-					category?: string | null;
-				};
-			};
-			repair_parts: {
-				Row: {
-					id: string;
-					repair_id: string;
-					part_id: string;
-					quantity: number;
-					unit_price: number;
-					created_at: string;
-				};
-				Insert: {
-					repair_id: string;
-					part_id: string;
-					quantity: number;
-					unit_price: number;
-				};
-				Update: {
-					quantity?: number;
+					category?: string;
+					brand?: string | null;
+					model_compatibility?: string[];
+					current_stock?: number;
+					unit_cost?: number;
 					unit_price?: number;
-				};
-			};
-			repair_status_logs: {
-				Row: {
-					id: string;
-					repair_id: string;
-					old_status: string | null;
-					new_status: string;
-					notes: string | null;
-					changed_by: string;
-					created_at: string;
-				};
-				Insert: {
-					repair_id: string;
-					old_status?: string | null;
-					new_status: string;
-					notes?: string | null;
-					changed_by: string;
-				};
-				Update: {
-					notes?: string | null;
-				};
-				customer_feedback: {
-					Row: {
-						id: string;
-						repair_id: string;
-						rating: number;
-						comments: string;
-						submitted_at: string;
-						created_at: string;
-					};
-					Insert: {
-						repair_id: string;
-						rating: number;
-						comments: string;
-						submitted_at?: string;
-					};
-					Update: {
-						rating?: number;
-						comments?: string;
-					};
+					supplier_info?: string | null;
 				};
 			};
 		};
@@ -273,16 +270,24 @@ export type Database = {
 		};
 		Enums: {
 			repair_status:
-				| "received"
-				| "diagnosed"
+				| "device_received"
+				| "preliminary_inspection"
+				| "awaiting_repair_plan"
+				| "approved_for_repair"
+				| "in_diagnosis"
 				| "waiting_parts"
-				| "in_progress"
-				| "completed"
+				| "in_repair"
+				| "quality_testing"
 				| "ready_for_pickup"
-				| "delivered"
-				| "cancelled";
-			repair_priority: "low" | "normal" | "high" | "urgent";
-			user_role: "shop_owner" | "manager" | "technician" | "staff";
+				| "completed"
+				| "cannot_repair"
+				| "cancelled_by_customer"
+				| "repair_failed"
+				| "customer_no_show"
+				| "ready_for_return"
+				| "abandoned";
+			payment_method: "cash" | "transfer" | "other";
+			user_role: "shop_owner" | "staff";
 		};
 	};
 };

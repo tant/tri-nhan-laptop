@@ -12,7 +12,7 @@ import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
 // Workflow components temporarily disabled for Phase 3 development
 
 // Database types
-type Repair = Database["public"]["Tables"]["repairs"]["Row"];
+type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 

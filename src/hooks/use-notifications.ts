@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 
 // Database types
-type Repair = Database["public"]["Tables"]["repairs"]["Row"];
+type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
 export interface NotificationMessage {
@@ -199,13 +199,15 @@ export function useNotifications(userId?: string) {
         (payload) => {
           const part = payload.new as Part;
 
-          if (part.stock_quantity <= part.min_stock_level) {
+          // Simple low stock check (default minimum is 100)
+          const minStockLevel = 100;
+          if (part.current_stock <= minStockLevel) {
             addNotification({
               type: "low_stock",
               title: "Cảnh báo tồn kho thấp",
-              message: `${part.name} chỉ còn ${part.stock_quantity} cái (tối thiểu: ${part.min_stock_level})`,
+              message: `${part.name} chỉ còn ${part.current_stock} cái (tối thiểu: ${minStockLevel})`,
               data: { partId: part.id },
-              priority: part.stock_quantity === 0 ? "urgent" : "high"
+              priority: part.current_stock === 0 ? "urgent" : "high"
             });
           }
         }

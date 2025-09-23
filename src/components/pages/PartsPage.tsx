@@ -100,15 +100,15 @@ export function PartsPage() {
 	// Filter parts based on search, category, and stock status
 	const filteredParts = parts.filter(part => {
 		const matchesSearch = part.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			part.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			part.description?.toLowerCase().includes(searchTerm.toLowerCase());
+			part.brand?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			part.supplier_info?.toLowerCase().includes(searchTerm.toLowerCase());
 
 		const matchesCategory = categoryFilter === "all" || part.category === categoryFilter;
 
 		const matchesStock = stockFilter === "all" ||
-			(stockFilter === "in_stock" && part.stock_quantity > part.min_stock_level) ||
-			(stockFilter === "low_stock" && part.stock_quantity <= part.min_stock_level && part.stock_quantity > 0) ||
-			(stockFilter === "out_of_stock" && part.stock_quantity === 0);
+			(stockFilter === "in_stock" && part.current_stock > 100) ||
+			(stockFilter === "low_stock" && part.current_stock <= 100 && part.current_stock > 0) ||
+			(stockFilter === "out_of_stock" && part.current_stock === 0);
 
 		return matchesSearch && matchesCategory && matchesStock;
 	});
@@ -123,11 +123,11 @@ export function PartsPage() {
 	};
 
 	// Get urgent restock parts (out of stock)
-	const outOfStockParts = parts.filter(part => part.stock_quantity === 0);
+	const outOfStockParts = parts.filter(part => part.current_stock === 0);
 
 	// Get critical stock parts (very low)
 	const criticalStockParts = parts.filter(part =>
-		part.stock_quantity > 0 && part.stock_quantity <= Math.ceil(part.min_stock_level * 0.5)
+		part.current_stock > 0 && part.current_stock <= 50
 	);
 
 	// Get unique categories for filter dropdown
@@ -149,7 +149,7 @@ export function PartsPage() {
 				<div>
 					<div className="font-medium">{row.getValue("name")}</div>
 					<div className="text-sm text-muted-foreground">
-						{row.original.description || "Không có mô tả"}
+						{row.original.brand || "Không có thương hiệu"}
 					</div>
 				</div>
 			),
@@ -159,22 +159,22 @@ export function PartsPage() {
 			header: "Danh mục",
 		},
 		{
-			accessorKey: "selling_price",
+			accessorKey: "unit_price",
 			header: "Giá",
 			cell: ({ row }) => (
 				<div className="text-right">
-					{formatPrice(row.getValue("selling_price"))}
+					{formatPrice(row.getValue("unit_price"))}
 				</div>
 			),
 		},
 		{
-			accessorKey: "stock_quantity",
+			accessorKey: "current_stock",
 			header: "Tồn kho",
 			cell: ({ row }) => (
 				<div className="text-center">
-					<span className="font-medium">{row.getValue("stock_quantity")}</span>
+					<span className="font-medium">{row.getValue("current_stock")}</span>
 					<div className="text-xs text-muted-foreground">
-						Tối thiểu: {row.original.min_stock_level}
+						Tối thiểu: 100
 					</div>
 				</div>
 			),
@@ -182,7 +182,7 @@ export function PartsPage() {
 		{
 			id: "status",
 			header: "Trạng thái",
-			cell: ({ row }) => getStockBadge(row.original.stock_quantity, row.original.min_stock_level),
+			cell: ({ row }) => getStockBadge(row.original.current_stock, 100),
 		},
 		{
 			id: "actions",
@@ -379,7 +379,7 @@ export function PartsPage() {
 						<div className="flex flex-wrap gap-2">
 							{lowStockParts.map(part => (
 								<Badge key={part.id} variant="outline" className="text-orange-700 border-orange-300">
-									{part.name} ({part.stock_quantity}/{part.min_stock_level})
+									{part.name} ({part.current_stock}/100)
 								</Badge>
 							))}
 						</div>

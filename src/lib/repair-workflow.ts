@@ -2,7 +2,8 @@ import type { Database } from "@/lib/supabase";
 
 // Database types
 type RepairStatus = Database["public"]["Enums"]["repair_status"];
-type RepairPriority = Database["public"]["Enums"]["repair_priority"];
+// Note: Priority system has been simplified - no priority enum in new schema
+type RepairPriority = "low" | "normal" | "high" | "urgent";
 
 // Repair workflow state machine
 export interface RepairWorkflowState {
@@ -16,17 +17,17 @@ export interface RepairWorkflowState {
 
 // Complete repair workflow state machine
 export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
-	received: {
-		status: "received",
-		allowedTransitions: ["diagnosed", "cancelled"],
+	device_received: {
+		status: "device_received",
+		allowedTransitions: ["preliminary_inspection", "cancelled_by_customer"],
 		requiredFields: ["customer_id", "device_type", "device_model", "issue_description"],
 		autoActions: ["generate_ticket_number", "log_status_change"],
 		userMessage: "Phiếu đã được tiếp nhận và đang chờ chẩn đoán",
 		technicalDescription: "Initial state when repair request is received"
 	},
-	diagnosed: {
-		status: "diagnosed",
-		allowedTransitions: ["waiting_parts", "in_progress", "cancelled"],
+	preliminary_inspection: {
+		status: "preliminary_inspection",
+		allowedTransitions: ["awaiting_repair_plan", "cannot_repair"],
 		requiredFields: ["diagnosis", "estimated_cost"],
 		autoActions: ["log_status_change", "notify_customer_estimate"],
 		userMessage: "Đã chẩn đoán xong, chờ xác nhận sửa chữa",
@@ -34,23 +35,23 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 	},
 	waiting_parts: {
 		status: "waiting_parts",
-		allowedTransitions: ["in_progress", "cancelled"],
+		allowedTransitions: ["in_repair", "cancelled_by_customer"],
 		requiredFields: ["required_parts"],
 		autoActions: ["log_status_change", "notify_customer_delay", "check_parts_availability"],
 		userMessage: "Đang chờ linh kiện để tiến hành sửa chữa",
 		technicalDescription: "Waiting for required parts to arrive"
 	},
-	in_progress: {
-		status: "in_progress",
-		allowedTransitions: ["completed", "waiting_parts", "cancelled"],
+	in_repair: {
+		status: "in_repair",
+		allowedTransitions: ["quality_testing", "waiting_parts", "repair_failed"],
 		requiredFields: ["technician_id"],
 		autoActions: ["log_status_change", "notify_customer_progress", "start_timer", "update_parts_cost"],
 		userMessage: "Đang trong quá trình sửa chữa",
 		technicalDescription: "Actively being repaired by technician"
 	},
-	completed: {
-		status: "completed",
-		allowedTransitions: ["ready_for_pickup"],
+	quality_testing: {
+		status: "quality_testing",
+		allowedTransitions: ["ready_for_pickup", "repair_failed"],
 		requiredFields: ["actual_cost", "work_performed", "completed_at"],
 		autoActions: ["log_status_change", "calculate_final_cost", "update_parts_cost", "quality_check"],
 		userMessage: "Sửa chữa hoàn tất, đang chuẩn bị giao hàng",
@@ -58,26 +59,86 @@ export const REPAIR_WORKFLOW: Record<RepairStatus, RepairWorkflowState> = {
 	},
 	ready_for_pickup: {
 		status: "ready_for_pickup",
-		allowedTransitions: ["delivered"],
+		allowedTransitions: ["completed", "customer_no_show"],
 		autoActions: ["log_status_change", "notify_customer_ready", "prepare_invoice"],
 		userMessage: "Thiết bị đã sẵn sàng để khách hàng nhận",
 		technicalDescription: "Ready for customer pickup"
 	},
-	delivered: {
-		status: "delivered",
+	completed: {
+		status: "completed",
 		allowedTransitions: [],
 		requiredFields: ["delivered_at", "delivered_to"],
 		autoActions: ["log_status_change", "close_ticket", "request_feedback"],
 		userMessage: "Đã giao thiết bị cho khách hàng",
 		technicalDescription: "Final state - device delivered to customer"
 	},
-	cancelled: {
-		status: "cancelled",
+	cancelled_by_customer: {
+		status: "cancelled_by_customer",
 		allowedTransitions: [],
 		requiredFields: ["cancellation_reason"],
 		autoActions: ["log_status_change", "refund_deposit", "notify_customer_cancellation"],
 		userMessage: "Phiếu sửa chữa đã bị hủy",
 		technicalDescription: "Repair cancelled at any stage"
+	},
+	awaiting_repair_plan: {
+		status: "awaiting_repair_plan",
+		allowedTransitions: ["approved_for_repair", "cancelled_by_customer"],
+		requiredFields: ["repair_plan", "estimated_cost"],
+		autoActions: ["log_status_change", "notify_customer_plan"],
+		userMessage: "Đang chờ khách hàng xác nhận phương án sửa chữa",
+		technicalDescription: "Waiting for customer approval of repair plan"
+	},
+	approved_for_repair: {
+		status: "approved_for_repair",
+		allowedTransitions: ["in_diagnosis", "waiting_parts", "in_repair"],
+		requiredFields: ["customer_approval"],
+		autoActions: ["log_status_change"],
+		userMessage: "Khách hàng đã xác nhận sửa chữa",
+		technicalDescription: "Customer approved repair plan"
+	},
+	in_diagnosis: {
+		status: "in_diagnosis",
+		allowedTransitions: ["waiting_parts", "in_repair", "cannot_repair"],
+		autoActions: ["log_status_change"],
+		userMessage: "Đang chẩn đoán chi tiết",
+		technicalDescription: "Detailed diagnosis in progress"
+	},
+	cannot_repair: {
+		status: "cannot_repair",
+		allowedTransitions: ["ready_for_return"],
+		requiredFields: ["cannot_repair_reason"],
+		autoActions: ["log_status_change", "notify_customer_cannot_repair"],
+		userMessage: "Không thể sửa chữa thiết bị",
+		technicalDescription: "Device cannot be repaired"
+	},
+	repair_failed: {
+		status: "repair_failed",
+		allowedTransitions: ["in_repair", "cannot_repair"],
+		requiredFields: ["failure_reason"],
+		autoActions: ["log_status_change"],
+		userMessage: "Sửa chữa gặp khó khăn",
+		technicalDescription: "Repair encountered issues"
+	},
+	customer_no_show: {
+		status: "customer_no_show",
+		allowedTransitions: ["ready_for_pickup", "abandoned"],
+		autoActions: ["log_status_change", "notify_customer_reminder"],
+		userMessage: "Chờ khách hàng liên hệ",
+		technicalDescription: "Customer has not picked up device"
+	},
+	ready_for_return: {
+		status: "ready_for_return",
+		allowedTransitions: ["completed", "abandoned"],
+		autoActions: ["log_status_change"],
+		userMessage: "Sẵn sàng trả máy",
+		technicalDescription: "Device ready to be returned"
+	},
+	abandoned: {
+		status: "abandoned",
+		allowedTransitions: [],
+		autoActions: ["log_status_change", "dispose_device"],
+		userMessage: "Liên hệ để nhận máy",
+		technicalDescription: "Device abandoned by customer"
 	}
 };
 
@@ -151,16 +212,12 @@ export class RepairWorkflowValidator {
 		}
 
 		// Business rule validations
-		if (targetStatus === "in_progress" && !repairData.technician_id) {
+		if (targetStatus === "in_repair" && !repairData.technician_id) {
 			errors.push("Phải phân công kỹ thuật viên trước khi bắt đầu sửa chữa");
 		}
 
 		if (targetStatus === "completed" && !repairData.work_performed) {
 			errors.push("Phải mô tả công việc đã thực hiện");
-		}
-
-		if (targetStatus === "delivered" && !repairData.delivered_to) {
-			errors.push("Phải ghi rõ người nhận thiết bị");
 		}
 
 		return {
@@ -186,14 +243,22 @@ export class RepairWorkflowValidator {
 
 	private static getVietnameseStatusLabel(status: RepairStatus): string {
 		const labels: Record<RepairStatus, string> = {
-			received: "Tiếp nhận",
-			diagnosed: "Đã chẩn đoán",
-			waiting_parts: "Chờ linh kiện",
-			in_progress: "Đang sửa chữa",
-			completed: "Hoàn thành",
-			ready_for_pickup: "Sẵn sàng giao",
-			delivered: "Đã giao",
-			cancelled: "Đã hủy"
+			device_received: "Đã tiếp nhận thiết bị",
+			preliminary_inspection: "Đang kiểm tra ban đầu",
+			awaiting_repair_plan: "Chờ xác nhận phương án sửa chữa",
+			approved_for_repair: "Đã xác nhận sửa chữa",
+			in_diagnosis: "Đang chẩn đoán chi tiết",
+			waiting_parts: "Đang đặt hàng linh kiện",
+			in_repair: "Đang thực hiện sửa chữa",
+			quality_testing: "Đang kiểm tra chất lượng",
+			ready_for_pickup: "Sẵn sàng nhận máy",
+			completed: "Đã hoàn thành",
+			cannot_repair: "Không thể sửa chữa",
+			cancelled_by_customer: "Đã hủy sửa chữa",
+			repair_failed: "Sửa chữa gặp khó khăn",
+			customer_no_show: "Chờ khách hàng liên hệ",
+			ready_for_return: "Sẵn sàng trả máy",
+			abandoned: "Liên hệ để nhận máy"
 		};
 		return labels[status];
 	}

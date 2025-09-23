@@ -117,9 +117,9 @@ export function ServiceHistoryDisplay({ customerPhone, onClose }: ServiceHistory
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-lg">#{entry.ticket_number || `TNL-${entry.id.slice(0, 8)}`}</CardTitle>
+                          <CardTitle className="text-lg">#{entry.ticket_code}</CardTitle>
                           <p className="text-sm text-muted-foreground">
-                            {entry.device_type} - {entry.device_model}
+                            {entry.device_info.brand} {entry.device_info.model}
                           </p>
                         </div>
                         <Badge variant={statusInfo.variant} className="shrink-0">
@@ -142,17 +142,17 @@ export function ServiceHistoryDisplay({ customerPhone, onClose }: ServiceHistory
                           <p className="font-medium text-gray-600">Ngày tiếp nhận</p>
                           <p>{date} - {time}</p>
                         </div>
-                        {entry.completed_at && (
+                        {entry.warranty_until && (
                           <div>
-                            <p className="font-medium text-gray-600">Ngày hoàn thành</p>
-                            <p>{formatDate(entry.completed_at).date}</p>
+                            <p className="font-medium text-gray-600">Bảo hành đến</p>
+                            <p>{formatDate(entry.warranty_until).date}</p>
                           </div>
                         )}
-                        {entry.final_cost && (
+                        {entry.total_cost && (
                           <div>
                             <p className="font-medium text-gray-600">Chi phí thực tế</p>
                             <p className="font-bold text-[#299fce]">
-                              {formatCurrency(entry.final_cost)}
+                              {formatCurrency(entry.total_cost)}
                             </p>
                           </div>
                         )}

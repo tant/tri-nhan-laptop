@@ -3,11 +3,11 @@ import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 
 // Database types
-type Repair = Database["public"]["Tables"]["repairs"]["Row"];
+type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type RepairStatus = Database["public"]["Enums"]["repair_status"];
 
-export interface CustomerRepairInfo extends Repair {
+export interface CustomerRepairInfo extends RepairTicket {
 	customer: Customer;
 	status_history?: {
 		old_status: RepairStatus | null;
@@ -15,12 +15,6 @@ export interface CustomerRepairInfo extends Repair {
 		notes: string | null;
 		created_at: string;
 		changed_by_user: { full_name: string };
-	}[];
-	parts_used?: {
-		id: string;
-		part_name: string;
-		quantity_used: number;
-		total_cost: number;
 	}[];
 }
 
@@ -32,14 +26,18 @@ export interface RepairLookupState {
 
 export interface ServiceHistoryEntry {
 	id: string;
-	ticket_number?: string;
-	device_type: string;
-	device_model: string;
+	ticket_code: string;
+	device_info: {
+		brand: string;
+		model: string;
+		serial_number?: string;
+		initial_condition: string;
+	};
 	issue_description: string;
 	status: RepairStatus;
 	created_at: string;
-	completed_at: string | null;
-	final_cost: number | null;
+	warranty_until: string | null;
+	total_cost: number | null;
 }
 
 export function useCustomerPortal() {
@@ -54,14 +52,14 @@ export function useCustomerPortal() {
 		setState(prev => ({ ...prev, loading: true, error: null, repairInfo: null }));
 
 		try {
-			// Find repair by ticket number and verify customer phone
+			// Find repair by ticket code and verify customer phone
 			const { data: repairData, error: repairError } = await supabase
 				.from("repair_tickets")
 				.select(`
 					*,
 					customer:customers!inner(*)
 				`)
-				.eq("ticket_number", ticketNumber)
+				.eq("ticket_code", ticketNumber)
 				.eq("customers.phone", customerPhone)
 				.single();
 
@@ -72,50 +70,13 @@ export function useCustomerPortal() {
 				throw repairError;
 			}
 
-			// Get status history
-			const { data: statusHistory, error: historyError } = await supabase
-				.from("repair_status_logs")
-				.select(`
-					old_status,
-					new_status,
-					notes,
-					created_at,
-					changed_by_user:user_profiles(full_name)
-				`)
-				.eq("repair_id", repairData.id)
-				.order("created_at", { ascending: true });
-
-			if (historyError) {
-				console.warn("Could not load status history:", historyError);
-			}
-
-			// Get parts used
-			const { data: partsUsed, error: partsError } = await supabase
-				.from("repair_parts")
-				.select(`
-					id,
-					quantity,
-					unit_price,
-					part:parts(name)
-				`)
-				.eq("repair_ticket_id", repairData.id);
-
-			if (partsError) {
-				console.warn("Could not load parts used:", partsError);
-			}
-
-			// Transform parts data
-			const transformedParts = (partsUsed || []).map(part => ({
-				id: part.id,
-				part_name: (part.part as any)?.name || "Unknown Part",
-				quantity_used: part.quantity,
-				total_cost: part.quantity * part.unit_price
-			}));
+			// Note: Status history and parts are now stored in the ticket record
+			// Status history can be built from a separate table if needed
+			// Parts used are in the parts_used JSONB field
 
 			const repairInfo: CustomerRepairInfo = {
 				...repairData,
-				status_history: statusHistory as any || [],
-				parts_used: transformedParts
+				status_history: [] // Can be populated from status logs if needed
 			};
 
 			setState(prev => ({
@@ -137,18 +98,17 @@ export function useCustomerPortal() {
 	}, []);
 
 	// Lookup repair by customer email and phone (alternative method)
-	const lookupRepairByEmail = useCallback(async (customerEmail: string, customerPhone: string) => {
+	const lookupRepairByEmail = useCallback(async (_customerEmail: string, customerPhone: string) => {
 		setState(prev => ({ ...prev, loading: true, error: null, repairInfo: null }));
 
 		try {
-			// Find repairs by customer email and phone
+			// Find repairs by customer phone (email not stored in customers table per docs)
 			const { data: repairData, error: repairError } = await supabase
 				.from("repair_tickets")
 				.select(`
 					*,
 					customer:customers!inner(*)
 				`)
-				.eq("customers.email", customerEmail)
 				.eq("customers.phone", customerPhone)
 				.order("created_at", { ascending: false })
 				.limit(1)
@@ -161,42 +121,9 @@ export function useCustomerPortal() {
 				throw repairError;
 			}
 
-			// Get additional data same as lookupRepair
-			const [statusHistoryResult, partsUsedResult] = await Promise.all([
-				supabase
-					.from("repair_status_logs")
-					.select(`
-						old_status,
-						new_status,
-						notes,
-						created_at,
-						changed_by_user:user_profiles(full_name)
-					`)
-					.eq("repair_id", repairData.id)
-					.order("created_at", { ascending: true }),
-
-				supabase
-					.from("repair_parts")
-					.select(`
-						id,
-						quantity,
-						unit_price,
-						part:parts(name)
-					`)
-					.eq("repair_ticket_id", repairData.id)
-			]);
-
-			const transformedParts = (partsUsedResult.data || []).map(part => ({
-				id: part.id,
-				part_name: (part.part as any)?.name || "Unknown Part",
-				quantity_used: part.quantity,
-				total_cost: part.quantity * part.unit_price
-			}));
-
 			const repairInfo: CustomerRepairInfo = {
 				...repairData,
-				status_history: statusHistoryResult.data as any || [],
-				parts_used: transformedParts
+				status_history: [] // Can be populated from status logs if needed
 			};
 
 			setState(prev => ({
@@ -224,14 +151,13 @@ export function useCustomerPortal() {
 				.from("repair_tickets")
 				.select(`
 					id,
-					device_type,
-					brand,
-					model,
+					ticket_code,
+					device_info,
 					issue_description,
 					status,
 					created_at,
-					completed_date,
-					final_cost,
+					warranty_until,
+					total_cost,
 					customer:customers!inner(phone)
 				`)
 				.eq("customers.phone", customerPhone)
@@ -256,7 +182,7 @@ export function useCustomerPortal() {
 		try {
 			// Verify the repair belongs to the customer
 			const { error: verifyError } = await supabase
-				.from("repairs")
+				.from("repair_tickets")
 				.select(`
 					id,
 					customer:customers!inner(phone)
@@ -297,14 +223,14 @@ export function useCustomerPortal() {
 				{
 					event: "*",
 					schema: "public",
-					table: "repairs",
+					table: "repair_tickets",
 					filter: `id=eq.${repairId}`
 				},
 				async () => {
 					// Reload complete repair info when changes occur
 					try {
 						const { data: updatedRepair } = await supabase
-							.from("repairs")
+							.from("repair_tickets")
 							.select(`
 								*,
 								customer:customers(*)
@@ -313,25 +239,14 @@ export function useCustomerPortal() {
 							.single();
 
 						if (updatedRepair) {
-							callback(updatedRepair as CustomerRepairInfo);
+							callback({
+								...updatedRepair,
+								status_history: []
+							} as CustomerRepairInfo);
 						}
 					} catch (error) {
 						console.error("Failed to reload repair data:", error);
 					}
-				}
-			)
-			.on(
-				"postgres_changes",
-				{
-					event: "INSERT",
-					schema: "public",
-					table: "repair_status_logs",
-					filter: `repair_id=eq.${repairId}`
-				},
-				() => {
-					// Reload repair info when status changes - would need ticket_number field
-					// For now, just reload the current repair info
-					console.log("Status changed for repair:", repairId);
 				}
 			)
 			.subscribe();
@@ -344,14 +259,22 @@ export function useCustomerPortal() {
 	// Format Vietnamese status labels
 	const getVietnameseStatus = useCallback((status: RepairStatus) => {
 		const statusMap: Record<RepairStatus, string> = {
-			received: "Đã tiếp nhận",
-			diagnosed: "Đã chẩn đoán",
-			waiting_parts: "Chờ linh kiện",
-			in_progress: "Đang sửa chữa",
-			completed: "Hoàn thành",
-			ready_for_pickup: "Sẵn sàng giao",
-			delivered: "Đã giao",
-			cancelled: "Đã hủy"
+			device_received: "Đã tiếp nhận thiết bị",
+			preliminary_inspection: "Đang kiểm tra ban đầu",
+			awaiting_repair_plan: "Chờ xác nhận phương án sửa chữa",
+			approved_for_repair: "Đã xác nhận sửa chữa",
+			in_diagnosis: "Đang chẩn đoán chi tiết",
+			waiting_parts: "Đang đặt hàng linh kiện",
+			in_repair: "Đang thực hiện sửa chữa",
+			quality_testing: "Đang kiểm tra chất lượng",
+			ready_for_pickup: "Sẵn sàng nhận máy",
+			completed: "Đã hoàn thành",
+			cannot_repair: "Không thể sửa chữa",
+			cancelled_by_customer: "Đã hủy sửa chữa",
+			repair_failed: "Sửa chữa gặp khó khăn",
+			customer_no_show: "Chờ khách hàng liên hệ",
+			ready_for_return: "Sẵn sàng trả máy",
+			abandoned: "Liên hệ để nhận máy"
 		};
 		return statusMap[status] || status;
 	}, []);

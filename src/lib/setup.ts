@@ -141,7 +141,7 @@ export const createAdminUser = async (config: AdminUserConfig) => {
 export const testAdminLogin = async (email: string, password: string) => {
   try {
     const adminClient = getAdminClient();
-    const { data, error } = await adminClient.auth.signInWithPassword({
+    const { error } = await adminClient.auth.signInWithPassword({
       email,
       password
     });

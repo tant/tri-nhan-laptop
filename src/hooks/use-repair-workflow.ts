@@ -96,7 +96,7 @@ const REPAIR_WORKFLOW: Record<RepairStatus, WorkflowStep> = {
         automated: true
       }
     ],
-    nextSteps: ["waiting_parts", "in_progress"],
+    nextSteps: ["waiting_parts", "in_repair"],
     autoTransitionConditions: {
       diagnosticComplete: true,
       partsAvailable: true
@@ -127,13 +127,13 @@ const REPAIR_WORKFLOW: Record<RepairStatus, WorkflowStep> = {
         automated: true
       }
     ],
-    nextSteps: ["in_progress"],
+    nextSteps: ["in_repair"],
     autoTransitionConditions: {
       partsAvailable: true
     }
   },
-  in_progress: {
-    status: "in_progress",
+  in_repair: {
+    status: "in_repair",
     name: "Đang sửa chữa",
     description: "Thực hiện sửa chữa thiết bị",
     estimatedHours: 4,
@@ -220,10 +220,10 @@ const REPAIR_WORKFLOW: Record<RepairStatus, WorkflowStep> = {
         automated: true
       }
     ],
-    nextSteps: ["delivered"]
+    nextSteps: ["completed"]
   },
-  delivered: {
-    status: "delivered",
+  completed: {
+    status: "completed",
     name: "Đã giao",
     description: "Đã giao thiết bị cho khách hàng",
     estimatedHours: 0,
@@ -503,14 +503,22 @@ export function useRepairWorkflow() {
   // Get Vietnamese status name
   const getVietnameseStatus = (status: string) => {
     const statusMap: Record<string, string> = {
-      received: "Đã tiếp nhận",
-      diagnosed: "Đã chẩn đoán",
-      waiting_parts: "Chờ linh kiện",
-      in_progress: "Đang sửa chữa",
-      completed: "Hoàn thành",
-      ready_for_pickup: "Sẵn sàng giao",
-      delivered: "Đã giao",
-      cancelled: "Đã hủy"
+      device_received: "Đã tiếp nhận thiết bị",
+      preliminary_inspection: "Đang kiểm tra ban đầu",
+      awaiting_repair_plan: "Chờ xác nhận phương án sửa chữa",
+      approved_for_repair: "Đã xác nhận sửa chữa",
+      in_diagnosis: "Đang chẩn đoán chi tiết",
+      waiting_parts: "Đang đặt hàng linh kiện",
+      in_repair: "Đang thực hiện sửa chữa",
+      quality_testing: "Đang kiểm tra chất lượng",
+      ready_for_pickup: "Sẵn sàng nhận máy",
+      completed: "Đã hoàn thành",
+      cannot_repair: "Không thể sửa chữa",
+      cancelled_by_customer: "Đã hủy sửa chữa",
+      repair_failed: "Sửa chữa gặp khó khăn",
+      customer_no_show: "Chờ khách hàng liên hệ",
+      ready_for_return: "Sẵn sàng trả máy",
+      abandoned: "Liên hệ để nhận máy"
     };
     return statusMap[status] || status;
   };

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Plus, Edit, Eye, Phone, Mail, MapPin, Loader2, RefreshCw } from "lucide-react";
+import { Search, Plus, Edit, Eye, Phone, MapPin, Loader2, RefreshCw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import { SupabaseErrorAlert } from "@/components/error-boundary";
@@ -21,6 +21,7 @@ type CustomerWithStats = Customer & {
 	totalRepairs: number;
 	lastRepairDate: string | null;
 	activeRepairs: number;
+	id: string; // For optimistic list compatibility
 };
 
 export function CustomersPage() {
@@ -61,14 +62,15 @@ export function CustomersPage() {
 				customersData.map(async (customer) => {
 					// Get repair counts and last repair date
 					const { data: repairStats, error: repairError } = await supabase
-						.from("repairs")
+						.from("repair_tickets")
 						.select("created_at, status")
-						.eq("customer_id", customer.id);
+						.eq("customer_phone", customer.phone);
 
 					if (repairError) {
 						console.error("Error fetching repair stats:", repairError);
 						return {
 							...customer,
+							id: customer.phone, // Use phone as ID for optimistic list compatibility
 							totalRepairs: 0,
 							lastRepairDate: null,
 							activeRepairs: 0,
@@ -77,7 +79,7 @@ export function CustomersPage() {
 
 					const totalRepairs = repairStats.length;
 					const activeRepairs = repairStats.filter(
-						r => !["completed", "delivered", "cancelled"].includes(r.status)
+						r => !["completed", "cancelled_by_customer", "abandoned"].includes(r.status)
 					).length;
 					const lastRepairDate = repairStats.length > 0
 						? repairStats.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0].created_at
@@ -85,6 +87,7 @@ export function CustomersPage() {
 
 					return {
 						...customer,
+						id: customer.phone, // Use phone as ID for optimistic list compatibility
 						totalRepairs,
 						lastRepairDate,
 						activeRepairs,
@@ -132,9 +135,8 @@ export function CustomersPage() {
 
 	// Filter customers based on search term
 	const filteredCustomers = customers.filter(customer =>
-		customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+		customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 		customer.phone.includes(searchTerm) ||
-		customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
 		customer.address?.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
@@ -162,15 +164,14 @@ export function CustomersPage() {
 
 		const formData = new FormData(event.target as HTMLFormElement);
 		const customerData = {
-			name: formData.get("customerName") as string,
+			full_name: formData.get("customerName") as string,
 			phone: formData.get("customerPhone") as string,
-			email: formData.get("customerEmail") as string || null,
 			address: formData.get("customerAddress") as string || null,
 			notes: formData.get("customerNotes") as string || null,
 		};
 
 		// Validate required fields
-		if (!customerData.name || !customerData.phone) {
+		if (!customerData.full_name || !customerData.phone) {
 			setError(new Error("Tên và số điện thoại là bắt buộc"));
 			setIsSubmitting(false);
 			return;
@@ -180,13 +181,12 @@ export function CustomersPage() {
 		const optimisticId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 		const optimisticCustomer: CustomerWithStats = {
 			id: optimisticId,
-			created_at: new Date().toISOString(),
-			updated_at: new Date().toISOString(),
-			name: customerData.name,
 			phone: customerData.phone,
-			email: customerData.email,
+			full_name: customerData.full_name,
 			address: customerData.address,
 			notes: customerData.notes,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
 			totalRepairs: 0,
 			lastRepairDate: null,
 			activeRepairs: 0,
@@ -208,6 +208,7 @@ export function CustomersPage() {
 			// Replace optimistic customer with real data
 			const realCustomerWithStats: CustomerWithStats = {
 				...newCustomer,
+				id: newCustomer.phone, // Use phone as ID for optimistic list compatibility
 				totalRepairs: 0,
 				lastRepairDate: null,
 				activeRepairs: 0,
@@ -288,16 +289,6 @@ export function CustomersPage() {
 										name="customerPhone"
 										placeholder="Nhập số điện thoại"
 										required
-										disabled={isSubmitting}
-									/>
-								</div>
-								<div className="grid gap-2">
-									<Label htmlFor="customerEmail">Email</Label>
-									<Input
-										id="customerEmail"
-										name="customerEmail"
-										type="email"
-										placeholder="Nhập địa chỉ email"
 										disabled={isSubmitting}
 									/>
 								</div>
@@ -397,7 +388,7 @@ export function CustomersPage() {
 					<div className="relative">
 						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
 						<Input
-							placeholder="Tìm kiếm theo tên, số điện thoại, email hoặc địa chỉ..."
+							placeholder="Tìm kiếm theo tên, số điện thoại hoặc địa chỉ..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
 							className="pl-10"
@@ -439,7 +430,7 @@ export function CustomersPage() {
 											<div className="flex items-center gap-2">
 												<div>
 													<div className="font-medium flex items-center gap-2">
-														{customer.name}
+														{customer.full_name}
 														{isOptimisticCustomer && (
 															<Badge variant="outline" className="text-blue-600 border-blue-300">
 																<Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -459,10 +450,10 @@ export function CustomersPage() {
 												<Phone className="mr-1 h-3 w-3" />
 												{customer.phone}
 											</div>
-											{customer.email && (
+											{customer.address && (
 												<div className="flex items-center text-sm text-muted-foreground">
-													<Mail className="mr-1 h-3 w-3" />
-													{customer.email}
+													<MapPin className="mr-1 h-3 w-3" />
+													{customer.address}
 												</div>
 											)}
 										</div>
