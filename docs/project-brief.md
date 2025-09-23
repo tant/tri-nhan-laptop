@@ -409,19 +409,19 @@ paid_by UUID -- optional
 
 ### **Supabase Client Configuration**
 ```javascript
-// App connects to self-hosted Supabase instance on same machine
+// App connects to local Supabase development environment
 const supabaseClient = createClient(
-  process.env.VITE_SUPABASE_URL,      // Self-hosted: 'http://localhost:8000'
+  process.env.VITE_SUPABASE_URL,      // Local dev: 'http://127.0.0.1:54321'
   process.env.VITE_SUPABASE_ANON_KEY
 )
 ```
 
 ### **Key Environment Variables**
 ```env
-# Self-hosted Supabase Connection (Frontend)
-VITE_SUPABASE_URL=http://localhost:8000
-VITE_SUPABASE_ANON_KEY=your-anon-key-from-selfhosted-supabase
-VITE_SERVICE_ROLE_KEY=your-service-role-key-from-selfhosted-supabase
+# Local Supabase Development Environment (Frontend)
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+VITE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
 
 # Application Configuration
 VITE_APP_ENVIRONMENT=development
@@ -434,5 +434,5 @@ VITE_DEFAULT_TIMEZONE=Asia/Ho_Chi_Minh
 VITE_DEFAULT_LOCALE=vi-VN
 ```
 
-**Note:** This application connects to a self-hosted Supabase instance running on the same machine. The Supabase backend infrastructure is managed via Supabase CLI (`supabase start`) but in a separate location from this repository. This repository only contains the frontend application and its configuration.
+**Note:** This application connects to a local Supabase development environment managed via Supabase CLI (`pnpm run db:start`). The Supabase configuration, migrations, and seed data are included in this repository for complete local development setup.
 

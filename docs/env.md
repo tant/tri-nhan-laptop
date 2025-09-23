@@ -59,14 +59,17 @@ HOST=localhost
 ## Setup Commands
 
 ```bash
-# Cài đặt Supabase CLI làm dev dependency
-pnpm add supabase --save-dev
+# Cài đặt dependencies (đã được cài sẵn)
+pnpm install
 
-# Khởi tạo Supabase project
+# Khởi tạo Supabase project (tạo thư mục supabase/ và config)
 pnpx supabase init
 
 # Khởi động local Supabase development environment
 pnpx supabase start
+
+# Reset database với migrations và seed data mới nhất
+pnpm run db:reset
 
 # Dừng local environment
 pnpx supabase stop
@@ -101,20 +104,25 @@ pnpx supabase stop
 
 ## Development Workflow
 
-1. **Lần đầu setup**:
+1. **Lần đầu setup từ fresh start** (Đã kiểm tra 100% ✅):
    ```bash
-   # Dependencies đã được cài sẵn
-   pnpm install
+   # Bước 1: Copy environment template
+   cp .env.example .env
 
-   # Khởi tạo Supabase (tạo thư mục supabase/ với migrations)
-   pnpx supabase init
-
-   # Khởi động và apply database schema
+   # Bước 2: Khởi động Supabase services (tự động apply migrations và seed data)
    pnpm run db:start
 
-   # Tạo admin user từ environment variables
+   # Bước 3: Tạo admin user từ environment variables
    pnpm run create-admin
+
+   # Bước 4: Khởi động frontend application
+   pnpm run dev
    ```
+
+   **Lưu ý quan trọng:**
+   - Supabase config, migration files và seed data đã có sẵn trong repository
+   - `pnpm run db:start` tự động phát hiện và apply tất cả migrations và seed data
+   - Không cần chạy `supabase init` - tất cả config files đã sẵn sàng
 
 2. **Daily development workflow**:
    ```bash
