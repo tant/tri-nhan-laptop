@@ -88,7 +88,7 @@ export function useAsyncOperation<T = any>(
 
 		// Exponential backoff with jitter
 		const delay = Math.min(
-			retryDelay * Math.pow(2, state.retryCount) + Math.random() * 1000,
+			retryDelay * 2 ** state.retryCount + Math.random() * 1000,
 			10000,
 		);
 

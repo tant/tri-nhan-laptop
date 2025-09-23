@@ -59,7 +59,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-1135G7 / AMD Ryzen 5 5500U",
 					ram: "8GB DDR4",
 					storage: "512GB SSD",
-					display: "15.6\" FHD",
+					display: '15.6" FHD',
 				},
 				estimatedPrice: 15000000,
 				commonIssues: ["Màn hình nhấp nháy", "Bàn phím dính", "Quạt ồn"],
@@ -74,7 +74,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i7-1165G7",
 					ram: "16GB LPDDR4X",
 					storage: "512GB SSD",
-					display: "14\" FHD OLED",
+					display: '14" FHD OLED',
 				},
 				estimatedPrice: 25000000,
 				commonIssues: ["Pin chai", "Cổng USB lỏng", "Màn hình OLED burn-in"],
@@ -89,7 +89,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "AMD Ryzen 7 6800H",
 					ram: "16GB DDR5",
 					storage: "1TB SSD",
-					display: "15.6\" FHD 144Hz",
+					display: '15.6" FHD 144Hz',
 					graphics: "RTX 3060",
 				},
 				estimatedPrice: 35000000,
@@ -115,10 +115,14 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-1235U",
 					ram: "8GB DDR4",
 					storage: "256GB SSD",
-					display: "15.6\" FHD",
+					display: '15.6" FHD',
 				},
 				estimatedPrice: 13000000,
-				commonIssues: ["Touchpad không nhạy", "WiFi ngắt kết nối", "Màn hình tối"],
+				commonIssues: [
+					"Touchpad không nhạy",
+					"WiFi ngắt kết nối",
+					"Màn hình tối",
+				],
 				repairDifficulty: "easy",
 			},
 			{
@@ -130,7 +134,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-12500H",
 					ram: "16GB DDR4",
 					storage: "512GB SSD",
-					display: "15.6\" FHD 144Hz",
+					display: '15.6" FHD 144Hz',
 					graphics: "GTX 1650",
 				},
 				estimatedPrice: 20000000,
@@ -156,10 +160,14 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-1235U",
 					ram: "8GB DDR4",
 					storage: "256GB SSD",
-					display: "14\" FHD",
+					display: '14" FHD',
 				},
 				estimatedPrice: 18000000,
-				commonIssues: ["Trackpoint hỏng", "Bàn phím cong", "Màn hình flickering"],
+				commonIssues: [
+					"Trackpoint hỏng",
+					"Bàn phím cong",
+					"Màn hình flickering",
+				],
 				repairDifficulty: "medium",
 			},
 			{
@@ -171,7 +179,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "AMD Ryzen 5 5500U",
 					ram: "8GB DDR4",
 					storage: "512GB SSD",
-					display: "15.6\" FHD",
+					display: '15.6" FHD',
 				},
 				estimatedPrice: 14000000,
 				commonIssues: ["Màn hình mờ", "Touchpad lag", "Cổng sạc lỏng"],
@@ -196,7 +204,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-1235U",
 					ram: "8GB DDR4",
 					storage: "512GB SSD",
-					display: "15.6\" FHD",
+					display: '15.6" FHD',
 				},
 				estimatedPrice: 16000000,
 				commonIssues: ["Pin chai nhanh", "Touchpad nhảy chuột", "Quạt ồn"],
@@ -211,10 +219,14 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "AMD Ryzen 7 5700U",
 					ram: "16GB DDR4",
 					storage: "512GB SSD",
-					display: "13.3\" FHD Touch",
+					display: '13.3" FHD Touch',
 				},
 				estimatedPrice: 22000000,
-				commonIssues: ["Bản lề cảm ứng hỏng", "Màn hình cảm ứng không nhạy", "Bàn phím backlight lỗi"],
+				commonIssues: [
+					"Bản lề cảm ứng hỏng",
+					"Màn hình cảm ứng không nhạy",
+					"Bàn phím backlight lỗi",
+				],
 				repairDifficulty: "hard",
 			},
 		],
@@ -236,10 +248,14 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i3-1215U",
 					ram: "4GB DDR4",
 					storage: "256GB SSD",
-					display: "15.6\" HD",
+					display: '15.6" HD',
 				},
 				estimatedPrice: 11000000,
-				commonIssues: ["RAM không đủ", "Màn hình độ phân giải thấp", "Touchpad cứng"],
+				commonIssues: [
+					"RAM không đủ",
+					"Màn hình độ phân giải thấp",
+					"Touchpad cứng",
+				],
 				repairDifficulty: "easy",
 			},
 			{
@@ -251,7 +267,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-1235U",
 					ram: "8GB DDR4",
 					storage: "512GB SSD",
-					display: "14\" FHD",
+					display: '14" FHD',
 				},
 				estimatedPrice: 17000000,
 				commonIssues: ["Cổng Ethernet lỏng", "WiFi yếu", "Bàn phím số hỏng"],
@@ -276,7 +292,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-11400H",
 					ram: "8GB DDR4",
 					storage: "512GB SSD",
-					display: "15.6\" FHD 144Hz",
+					display: '15.6" FHD 144Hz',
 					graphics: "GTX 1650",
 				},
 				estimatedPrice: 19000000,
@@ -292,7 +308,7 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "AMD Ryzen 5 5500U",
 					ram: "8GB DDR4",
 					storage: "512GB SSD",
-					display: "14\" FHD",
+					display: '14" FHD',
 				},
 				estimatedPrice: 15000000,
 				commonIssues: ["Pin tụt nhanh", "Màn hình nhấp nháy", "Trackpad lag"],
@@ -317,25 +333,33 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Apple M1",
 					ram: "8GB Unified Memory",
 					storage: "256GB SSD",
-					display: "13.3\" Retina",
+					display: '13.3" Retina',
 				},
 				estimatedPrice: 28000000,
-				commonIssues: ["Pin chai", "Màn hình có vệt", "Bàn phím Magic Keyboard sticky"],
+				commonIssues: [
+					"Pin chai",
+					"Màn hình có vệt",
+					"Bàn phím Magic Keyboard sticky",
+				],
 				repairDifficulty: "expert",
 			},
 			{
 				id: "macbook-pro-14",
-				name: "MacBook Pro 14\"",
+				name: 'MacBook Pro 14"',
 				series: "MacBook Pro",
 				year: 2023,
 				specifications: {
 					processor: "Apple M2 Pro",
 					ram: "16GB Unified Memory",
 					storage: "512GB SSD",
-					display: "14.2\" Liquid Retina XDR",
+					display: '14.2" Liquid Retina XDR',
 				},
 				estimatedPrice: 55000000,
-				commonIssues: ["Touch Bar hỏng", "Cổng Thunderbolt lỏng", "Màn hình Mini-LED blooming"],
+				commonIssues: [
+					"Touch Bar hỏng",
+					"Cổng Thunderbolt lỏng",
+					"Màn hình Mini-LED blooming",
+				],
 				repairDifficulty: "expert",
 			},
 		],
@@ -357,10 +381,14 @@ export const VIETNAMESE_DEVICE_BRANDS: DeviceBrand[] = [
 					processor: "Intel i5-1135G7",
 					ram: "8GB LPDDR4X",
 					storage: "256GB SSD",
-					display: "13.5\" PixelSense",
+					display: '13.5" PixelSense',
 				},
 				estimatedPrice: 25000000,
-				commonIssues: ["Màn hình cảm ứng không nhạy", "Bàn phím Alcantara bẩn", "Pin không tháo được"],
+				commonIssues: [
+					"Màn hình cảm ứng không nhạy",
+					"Bàn phím Alcantara bẩn",
+					"Pin không tháo được",
+				],
 				repairDifficulty: "expert",
 			},
 		],
@@ -409,16 +437,16 @@ export const DEVICE_SPECIFICATIONS: DeviceSpecs = {
 		"2TB HDD + 512GB SSD",
 	],
 	display: [
-		"13.3\" HD (1366x768)",
-		"13.3\" FHD (1920x1080)",
-		"14\" FHD (1920x1080)",
-		"15.6\" HD (1366x768)",
-		"15.6\" FHD (1920x1080)",
-		"15.6\" FHD 144Hz",
-		"17.3\" FHD (1920x1080)",
-		"13.3\" Retina (2560x1600)",
-		"14.2\" Liquid Retina XDR",
-		"OLED 14\" FHD",
+		'13.3" HD (1366x768)',
+		'13.3" FHD (1920x1080)',
+		'14" FHD (1920x1080)',
+		'15.6" HD (1366x768)',
+		'15.6" FHD (1920x1080)',
+		'15.6" FHD 144Hz',
+		'17.3" FHD (1920x1080)',
+		'13.3" Retina (2560x1600)',
+		'14.2" Liquid Retina XDR',
+		'OLED 14" FHD',
 	],
 	graphics: [
 		"Intel UHD Graphics",
@@ -527,22 +555,27 @@ export const COMMON_ISSUES = {
  * Get device brand by ID
  */
 export function getDeviceBrand(brandId: string): DeviceBrand | undefined {
-	return VIETNAMESE_DEVICE_BRANDS.find(brand => brand.id === brandId);
+	return VIETNAMESE_DEVICE_BRANDS.find((brand) => brand.id === brandId);
 }
 
 /**
  * Get device model by brand and model ID
  */
-export function getDeviceModel(brandId: string, modelId: string): DeviceModel | undefined {
+export function getDeviceModel(
+	brandId: string,
+	modelId: string,
+): DeviceModel | undefined {
 	const brand = getDeviceBrand(brandId);
-	return brand?.models.find(model => model.id === modelId);
+	return brand?.models.find((model) => model.id === modelId);
 }
 
 /**
  * Get popular brands sorted by popularity
  */
 export function getPopularBrands(limit?: number): DeviceBrand[] {
-	const sorted = [...VIETNAMESE_DEVICE_BRANDS].sort((a, b) => b.popularity - a.popularity);
+	const sorted = [...VIETNAMESE_DEVICE_BRANDS].sort(
+		(a, b) => b.popularity - a.popularity,
+	);
 	return limit ? sorted.slice(0, limit) : sorted;
 }
 
@@ -558,15 +591,19 @@ export function searchDevices(query: string): Array<{
 
 	for (const brand of VIETNAMESE_DEVICE_BRANDS) {
 		// Search brand name
-		if (brand.name.toLowerCase().includes(lowerQuery) ||
-		    brand.vietnameseName?.toLowerCase().includes(lowerQuery)) {
+		if (
+			brand.name.toLowerCase().includes(lowerQuery) ||
+			brand.vietnameseName?.toLowerCase().includes(lowerQuery)
+		) {
 			results.push({ brand });
 		}
 
 		// Search model names
 		for (const model of brand.models) {
-			if (model.name.toLowerCase().includes(lowerQuery) ||
-			    model.series.toLowerCase().includes(lowerQuery)) {
+			if (
+				model.name.toLowerCase().includes(lowerQuery) ||
+				model.series.toLowerCase().includes(lowerQuery)
+			) {
 				results.push({ brand, model });
 			}
 		}
@@ -578,7 +615,9 @@ export function searchDevices(query: string): Array<{
 /**
  * Get common issues for device type
  */
-export function getCommonIssues(deviceType: keyof typeof COMMON_ISSUES): string[] {
+export function getCommonIssues(
+	deviceType: keyof typeof COMMON_ISSUES,
+): string[] {
 	return COMMON_ISSUES[deviceType] || [];
 }
 
@@ -604,15 +643,26 @@ export function estimateRepairDifficulty(
 
 	// Adjust based on issue type
 	const issue = issueDescription.toLowerCase();
-	if (issue.includes("màn hình") && (issue.includes("vỡ") || issue.includes("thay"))) {
+	if (
+		issue.includes("màn hình") &&
+		(issue.includes("vỡ") || issue.includes("thay"))
+	) {
 		return baseDifficulty === "easy" ? "medium" : baseDifficulty;
 	}
 
-	if (issue.includes("mainboard") || issue.includes("cpu") || issue.includes("gpu")) {
+	if (
+		issue.includes("mainboard") ||
+		issue.includes("cpu") ||
+		issue.includes("gpu")
+	) {
 		return "expert";
 	}
 
-	if (issue.includes("virus") || issue.includes("phần mềm") || issue.includes("windows")) {
+	if (
+		issue.includes("virus") ||
+		issue.includes("phần mềm") ||
+		issue.includes("windows")
+	) {
 		return "easy";
 	}
 

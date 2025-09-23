@@ -167,9 +167,8 @@ export function ReservationStatusModal({
 
 		if (hours > 0) {
 			return `${hours} giờ ${minutes} phút`;
-		} else {
-			return `${minutes} phút`;
 		}
+		return `${minutes} phút`;
 	};
 
 	if (loading) {

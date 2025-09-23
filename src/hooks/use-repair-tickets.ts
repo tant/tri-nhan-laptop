@@ -5,7 +5,7 @@
 
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase-types";
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
 // Database types
 type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
@@ -207,7 +207,9 @@ export function useRepairTickets() {
 					device_id: deviceId,
 					issue_description: ticketData.issueDescription,
 					customer_description: ticketData.customerDescription,
-					repair_category: ticketData.repairCategory || inferRepairCategory(ticketData.issueDescription),
+					repair_category:
+						ticketData.repairCategory ||
+						inferRepairCategory(ticketData.issueDescription),
 					priority: ticketData.priority,
 					estimated_repair_time: ticketData.estimatedRepairTime,
 					estimated_cost: ticketData.estimatedCost,
@@ -231,13 +233,20 @@ export function useRepairTickets() {
 				}
 
 				// Add initial service note
-				if (ticketData.preliminaryDiagnosis || ticketData.physicalCondition.notes) {
+				if (
+					ticketData.preliminaryDiagnosis ||
+					ticketData.physicalCondition.notes
+				) {
 					await supabase.from("service_notes").insert({
 						repair_ticket_id: ticket.id,
-						technician_id: ticketData.assignedTechnicianId || (await supabase.auth.getUser()).data.user?.id,
+						technician_id:
+							ticketData.assignedTechnicianId ||
+							(await supabase.auth.getUser()).data.user?.id,
 						note_type: "diagnosis",
 						note_content: `Tình trạng thiết bị: ${getConditionDescription(ticketData.physicalCondition)}${
-							ticketData.preliminaryDiagnosis ? `\n\nChẩn đoán sơ bộ: ${ticketData.preliminaryDiagnosis}` : ""
+							ticketData.preliminaryDiagnosis
+								? `\n\nChẩn đoán sơ bộ: ${ticketData.preliminaryDiagnosis}`
+								: ""
 						}`,
 						is_customer_visible: false,
 					});
@@ -246,16 +255,28 @@ export function useRepairTickets() {
 				// Handle file uploads
 				const warnings: string[] = [];
 				if (ticketData.photos && ticketData.photos.length > 0) {
-					const uploadResult = await uploadTicketFiles(ticket.id, ticketData.photos, "photos");
+					const uploadResult = await uploadTicketFiles(
+						ticket.id,
+						ticketData.photos,
+						"photos",
+					);
 					if (!uploadResult.success) {
-						warnings.push(`Một số ảnh không thể tải lên: ${uploadResult.error}`);
+						warnings.push(
+							`Một số ảnh không thể tải lên: ${uploadResult.error}`,
+						);
 					}
 				}
 
 				if (ticketData.documents && ticketData.documents.length > 0) {
-					const uploadResult = await uploadTicketFiles(ticket.id, ticketData.documents, "documents");
+					const uploadResult = await uploadTicketFiles(
+						ticket.id,
+						ticketData.documents,
+						"documents",
+					);
 					if (!uploadResult.success) {
-						warnings.push(`Một số tài liệu không thể tải lên: ${uploadResult.error}`);
+						warnings.push(
+							`Một số tài liệu không thể tải lên: ${uploadResult.error}`,
+						);
 					}
 				}
 
@@ -266,7 +287,8 @@ export function useRepairTickets() {
 					warnings: warnings.length > 0 ? warnings : undefined,
 				};
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				return {
 					success: false,
@@ -283,7 +305,10 @@ export function useRepairTickets() {
 	 * Save ticket as draft
 	 */
 	const saveDraft = useCallback(
-		async (ticketData: Partial<NewRepairTicket>, draftId?: string): Promise<TicketCreationResult> => {
+		async (
+			ticketData: Partial<NewRepairTicket>,
+			draftId?: string,
+		): Promise<TicketCreationResult> => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -312,12 +337,12 @@ export function useRepairTickets() {
 						success: true,
 						ticketId: draftId,
 					};
-				} else {
-					// Create new draft
-					return await createRepairTicket(draftData as NewRepairTicket);
 				}
+				// Create new draft
+				return await createRepairTicket(draftData as NewRepairTicket);
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				return {
 					success: false,
@@ -334,14 +359,16 @@ export function useRepairTickets() {
 	 * Get repair tickets with filters
 	 */
 	const getRepairTickets = useCallback(
-		async (filters: {
-			status?: string;
-			priority?: RepairPriority;
-			assignedTo?: string;
-			customerPhone?: string;
-			dateRange?: { start: string; end: string };
-			limit?: number;
-		} = {}): Promise<RepairTicketSummary[]> => {
+		async (
+			filters: {
+				status?: string;
+				priority?: RepairPriority;
+				assignedTo?: string;
+				customerPhone?: string;
+				dateRange?: { start: string; end: string };
+				limit?: number;
+			} = {},
+		): Promise<RepairTicketSummary[]> => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -396,7 +423,7 @@ export function useRepairTickets() {
 					throw new Error(`Lỗi tải danh sách phiếu: ${ticketsError.message}`);
 				}
 
-				return (tickets || []).map(ticket => ({
+				return (tickets || []).map((ticket) => ({
 					id: ticket.id,
 					ticketCode: ticket.ticket_code,
 					customerPhone: ticket.customer_phone,
@@ -411,14 +438,15 @@ export function useRepairTickets() {
 						? {
 								id: ticket.assigned_technician_id || "",
 								name: ticket.user_profiles.full_name,
-						  }
+							}
 						: undefined,
 					createdAt: ticket.created_at,
 					estimatedCompletion: ticket.estimated_completion_date,
 					totalCost: ticket.estimated_cost,
 				}));
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				return [];
 			} finally {
@@ -447,7 +475,8 @@ export function useRepairTickets() {
 						deviceType: "laptop",
 						repairCategory: "hardware",
 						issueDescription: "Màn hình laptop bị vỡ/hỏng, cần thay thế",
-						preliminaryDiagnosis: "Màn hình LCD bị hư hỏng, cần thay thế hoàn toàn",
+						preliminaryDiagnosis:
+							"Màn hình LCD bị hư hỏng, cần thay thế hoàn toàn",
 						estimatedRepairTime: 2,
 						estimatedCost: 2000000,
 						priority: "normal" as RepairPriority,
@@ -461,12 +490,17 @@ export function useRepairTickets() {
 						description: "Template cho việc sửa chữa/thay bàn phím laptop",
 						deviceType: "laptop",
 						repairCategory: "hardware",
-						issueDescription: "Bàn phím laptop không hoạt động hoặc một số phím bị hỏng",
+						issueDescription:
+							"Bàn phím laptop không hoạt động hoặc một số phím bị hỏng",
 						preliminaryDiagnosis: "Bàn phím bị hỏng, có thể cần thay thế",
 						estimatedRepairTime: 1,
 						estimatedCost: 800000,
 						priority: "normal" as RepairPriority,
-						symptoms: ["Phím không nhấn được", "Phím dính", "Bàn phím không phản hồi"],
+						symptoms: [
+							"Phím không nhấn được",
+							"Phím dính",
+							"Bàn phím không phản hồi",
+						],
 						createdBy: "system",
 						usageCount: 23,
 					},
@@ -476,12 +510,17 @@ export function useRepairTickets() {
 						description: "Template cho việc thay thế pin laptop hết dung lượng",
 						deviceType: "laptop",
 						repairCategory: "hardware",
-						issueDescription: "Pin laptop không giữ được điện hoặc sạc không vào",
+						issueDescription:
+							"Pin laptop không giữ được điện hoặc sạc không vào",
 						preliminaryDiagnosis: "Pin laptop hết tuổi thọ, cần thay thế",
 						estimatedRepairTime: 0.5,
 						estimatedCost: 1200000,
 						priority: "normal" as RepairPriority,
-						symptoms: ["Pin tụt nhanh", "Không sạc được", "Laptop chỉ chạy khi cắm sạc"],
+						symptoms: [
+							"Pin tụt nhanh",
+							"Không sạc được",
+							"Laptop chỉ chạy khi cắm sạc",
+						],
 						createdBy: "system",
 						usageCount: 31,
 					},
@@ -491,37 +530,51 @@ export function useRepairTickets() {
 						description: "Template cho việc diệt virus và tối ưu hóa hệ thống",
 						deviceType: "laptop",
 						repairCategory: "software",
-						issueDescription: "Máy tính bị nhiễm virus, chạy chậm hoặc có quảng cáo spam",
-						preliminaryDiagnosis: "Hệ thống bị nhiễm malware, cần làm sạch và tối ưu",
+						issueDescription:
+							"Máy tính bị nhiễm virus, chạy chậm hoặc có quảng cáo spam",
+						preliminaryDiagnosis:
+							"Hệ thống bị nhiễm malware, cần làm sạch và tối ưu",
 						estimatedRepairTime: 3,
 						estimatedCost: 300000,
 						priority: "normal" as RepairPriority,
-						symptoms: ["Máy chạy chậm", "Xuất hiện quảng cáo", "Phần mềm lạ tự cài đặt"],
+						symptoms: [
+							"Máy chạy chậm",
+							"Xuất hiện quảng cáo",
+							"Phần mềm lạ tự cài đặt",
+						],
 						createdBy: "system",
 						usageCount: 45,
 					},
 					{
 						id: "os-install",
 						name: "Cài đặt lại hệ điều hành",
-						description: "Template cho việc cài đặt lại Windows và phần mềm cần thiết",
+						description:
+							"Template cho việc cài đặt lại Windows và phần mềm cần thiết",
 						deviceType: "laptop",
 						repairCategory: "software",
-						issueDescription: "Cần cài đặt lại hệ điều hành và các phần mềm cơ bản",
-						preliminaryDiagnosis: "Hệ thống cần cài đặt lại để hoạt động ổn định",
+						issueDescription:
+							"Cần cài đặt lại hệ điều hành và các phần mềm cơ bản",
+						preliminaryDiagnosis:
+							"Hệ thống cần cài đặt lại để hoạt động ổn định",
 						estimatedRepairTime: 4,
 						estimatedCost: 400000,
 						priority: "normal" as RepairPriority,
-						symptoms: ["Hệ thống không khởi động", "Lỗi hệ điều hành", "Blue screen"],
+						symptoms: [
+							"Hệ thống không khởi động",
+							"Lỗi hệ điều hành",
+							"Blue screen",
+						],
 						createdBy: "system",
 						usageCount: 38,
 					},
 				];
 
 				return deviceType
-					? templates.filter(t => t.deviceType === deviceType)
+					? templates.filter((t) => t.deviceType === deviceType)
 					: templates;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				return [];
 			} finally {
@@ -543,7 +596,10 @@ export function useRepairTickets() {
 
 // Helper functions
 
-function validateTicketData(data: NewRepairTicket): { isValid: boolean; errors: string[] } {
+function validateTicketData(data: NewRepairTicket): {
+	isValid: boolean;
+	errors: string[];
+} {
 	const errors: string[] = [];
 
 	if (!data.customerPhone?.trim()) {
@@ -587,8 +643,16 @@ async function generateTicketCode(): Promise<string> {
 	const day = today.getDate().toString().padStart(2, "0");
 
 	// Get count of tickets created today
-	const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-	const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+	const startOfDay = new Date(
+		today.getFullYear(),
+		today.getMonth(),
+		today.getDate(),
+	);
+	const endOfDay = new Date(
+		today.getFullYear(),
+		today.getMonth(),
+		today.getDate() + 1,
+	);
 
 	const { count } = await supabase
 		.from("repair_tickets")
@@ -601,7 +665,9 @@ async function generateTicketCode(): Promise<string> {
 	return `SC${year}${month}${day}${sequence}`;
 }
 
-function getConditionDescription(condition: NewRepairTicket["physicalCondition"]): string {
+function getConditionDescription(
+	condition: NewRepairTicket["physicalCondition"],
+): string {
 	const conditions = [
 		`Tổng thể: ${getConditionLabel(condition.general)}`,
 		`Màn hình: ${getConditionLabel(condition.screen)}`,
@@ -633,13 +699,20 @@ function getConditionLabel(condition: string): string {
 function inferRepairCategory(issueDescription: string): string {
 	const description = issueDescription.toLowerCase();
 
-	if (description.includes("màn hình") || description.includes("screen")) return "hardware";
-	if (description.includes("bàn phím") || description.includes("keyboard")) return "hardware";
-	if (description.includes("pin") || description.includes("battery")) return "hardware";
-	if (description.includes("virus") || description.includes("malware")) return "software";
-	if (description.includes("windows") || description.includes("hệ điều hành")) return "software";
-	if (description.includes("chậm") || description.includes("lag")) return "performance";
-	if (description.includes("nước") || description.includes("đổ")) return "physical_damage";
+	if (description.includes("màn hình") || description.includes("screen"))
+		return "hardware";
+	if (description.includes("bàn phím") || description.includes("keyboard"))
+		return "hardware";
+	if (description.includes("pin") || description.includes("battery"))
+		return "hardware";
+	if (description.includes("virus") || description.includes("malware"))
+		return "software";
+	if (description.includes("windows") || description.includes("hệ điều hành"))
+		return "software";
+	if (description.includes("chậm") || description.includes("lag"))
+		return "performance";
+	if (description.includes("nước") || description.includes("đổ"))
+		return "physical_damage";
 
 	return "hardware";
 }

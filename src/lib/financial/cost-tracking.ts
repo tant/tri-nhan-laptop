@@ -298,8 +298,7 @@ export async function analyzeCustomerProfitability(
 		);
 
 		if (
-			error &&
-			error.message.includes("function") &&
+			error?.message.includes("function") &&
 			error.message.includes("does not exist")
 		) {
 			// Fallback to manual calculation if function doesn't exist

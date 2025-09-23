@@ -61,7 +61,8 @@ export function getStockStatusInfo(part: Part) {
 			icon: AlertTriangle,
 			priority: 3,
 		};
-	} else if (currentStock <= minStock) {
+	}
+	if (currentStock <= minStock) {
 		return {
 			status: "low_stock" as const,
 			label: "Sắp hết",
@@ -69,13 +70,12 @@ export function getStockStatusInfo(part: Part) {
 			icon: TrendingDown,
 			priority: 2,
 		};
-	} else {
-		return {
-			status: "in_stock" as const,
-			label: "Còn hàng",
-			variant: "secondary" as const,
-			icon: Package,
-			priority: 1,
-		};
 	}
+	return {
+		status: "in_stock" as const,
+		label: "Còn hàng",
+		variant: "secondary" as const,
+		icon: Package,
+		priority: 1,
+	};
 }

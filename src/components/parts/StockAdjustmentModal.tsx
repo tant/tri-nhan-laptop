@@ -106,19 +106,19 @@ export function StockAdjustmentModal({
 				variant: "destructive" as const,
 				icon: AlertTriangle,
 			};
-		} else if (stock <= minStock) {
+		}
+		if (stock <= minStock) {
 			return {
 				label: "Sắp hết",
 				variant: "outline" as const,
 				icon: TrendingDown,
 			};
-		} else {
-			return {
-				label: "Còn hàng",
-				variant: "secondary" as const,
-				icon: Package,
-			};
 		}
+		return {
+			label: "Còn hàng",
+			variant: "secondary" as const,
+			icon: Package,
+		};
 	};
 
 	const handleSubmit = async () => {

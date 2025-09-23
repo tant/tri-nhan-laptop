@@ -232,12 +232,13 @@ export class RepairWorkflowValidator {
 		const errors: string[] = [];
 
 		// Check if transition is allowed
-		if (!this.canTransitionTo(currentStatus, targetStatus)) {
+		if (!RepairWorkflowValidator.canTransitionTo(currentStatus, targetStatus)) {
 			errors.push(`Không thể chuyển từ ${currentStatus} sang ${targetStatus}`);
 		}
 
 		// Check required fields for target status
-		const requiredFields = this.getRequiredFields(targetStatus);
+		const requiredFields =
+			RepairWorkflowValidator.getRequiredFields(targetStatus);
 		for (const field of requiredFields) {
 			if (!repairData[field] || repairData[field] === "") {
 				errors.push(
@@ -269,7 +270,7 @@ export class RepairWorkflowValidator {
 		const state = REPAIR_WORKFLOW[status];
 		return {
 			status,
-			label: this.getVietnameseStatusLabel(status),
+			label: RepairWorkflowValidator.getVietnameseStatusLabel(status),
 			message: state.userMessage,
 			technical: state.technicalDescription,
 			nextSteps: state.allowedTransitions,
@@ -311,7 +312,12 @@ export class RepairWorkflowActions {
 
 		for (const action of actions) {
 			try {
-				await this.executeAction(action, repairId, repairData, userId);
+				await RepairWorkflowActions.executeAction(
+					action,
+					repairId,
+					repairData,
+					userId,
+				);
 			} catch (error) {
 				console.error(`Failed to execute auto action ${action}:`, error);
 				// Continue with other actions even if one fails
@@ -330,41 +336,48 @@ export class RepairWorkflowActions {
 				// Implemented separately in ticket number generator
 				break;
 			case "log_status_change":
-				await this.logStatusChange(repairId, repairData, userId);
+				await RepairWorkflowActions.logStatusChange(
+					repairId,
+					repairData,
+					userId,
+				);
 				break;
 			case "notify_customer_estimate":
 			case "notify_customer_delay":
 			case "notify_customer_progress":
 			case "notify_customer_ready":
 			case "notify_customer_cancellation":
-				await this.sendCustomerNotification(action, repairData);
+				await RepairWorkflowActions.sendCustomerNotification(
+					action,
+					repairData,
+				);
 				break;
 			case "check_parts_availability":
-				await this.checkPartsAvailability(repairData);
+				await RepairWorkflowActions.checkPartsAvailability(repairData);
 				break;
 			case "start_timer":
-				await this.startRepairTimer(repairId);
+				await RepairWorkflowActions.startRepairTimer(repairId);
 				break;
 			case "calculate_final_cost":
-				await this.calculateFinalCost(repairId, repairData);
+				await RepairWorkflowActions.calculateFinalCost(repairId, repairData);
 				break;
 			case "update_parts_cost":
-				await this.updatePartsCost(repairId, repairData);
+				await RepairWorkflowActions.updatePartsCost(repairId, repairData);
 				break;
 			case "quality_check":
-				await this.scheduleQualityCheck(repairId);
+				await RepairWorkflowActions.scheduleQualityCheck(repairId);
 				break;
 			case "prepare_invoice":
-				await this.prepareInvoice(repairId, repairData);
+				await RepairWorkflowActions.prepareInvoice(repairId, repairData);
 				break;
 			case "close_ticket":
-				await this.closeTicket(repairId);
+				await RepairWorkflowActions.closeTicket(repairId);
 				break;
 			case "request_feedback":
-				await this.requestCustomerFeedback(repairData);
+				await RepairWorkflowActions.requestCustomerFeedback(repairData);
 				break;
 			case "refund_deposit":
-				await this.processRefund(repairId, repairData);
+				await RepairWorkflowActions.processRefund(repairId, repairData);
 				break;
 		}
 	}
@@ -402,7 +415,7 @@ export class RepairWorkflowActions {
 
 	private static async checkPartsAvailability(repairData: any): Promise<void> {
 		// Implementation will be in parts management system
-		console.log(`Checking parts availability for repair`, repairData);
+		console.log("Checking parts availability for repair", repairData);
 	}
 
 	private static async startRepairTimer(repairId: string): Promise<void> {
@@ -438,7 +451,7 @@ export class RepairWorkflowActions {
 
 	private static async requestCustomerFeedback(repairData: any): Promise<void> {
 		// Implementation will request customer feedback
-		console.log(`Requesting feedback for repair`, repairData);
+		console.log("Requesting feedback for repair", repairData);
 	}
 
 	private static async processRefund(
@@ -523,7 +536,7 @@ export class TicketNumberGenerator {
 			const parts = lastTicket.ticket_number.split("-");
 			if (parts.length === 3) {
 				const lastSequence = Number.parseInt(parts[2], 10);
-				if (!isNaN(lastSequence)) {
+				if (!Number.isNaN(lastSequence)) {
 					sequence = lastSequence + 1;
 				}
 			}

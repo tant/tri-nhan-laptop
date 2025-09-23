@@ -137,7 +137,7 @@ export function useNotifications(userId?: string) {
 					event: "UPDATE",
 					schema: "public",
 					table: "repair_tickets",
-					filter: `status=neq.old_record.status`,
+					filter: "status=neq.old_record.status",
 				},
 				async (payload) => {
 					const repair = payload.new as RepairTicket;

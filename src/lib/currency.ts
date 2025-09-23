@@ -24,7 +24,7 @@ export function formatVND(
 	} = options;
 
 	// Handle null/undefined/NaN
-	if (amount == null || isNaN(amount)) {
+	if (amount == null || Number.isNaN(amount)) {
 		return showCurrency ? "0 ₫" : "0";
 	}
 
@@ -89,7 +89,8 @@ export function formatVNDProfit(amount: number): string {
 
 	if (amount > 0) {
 		return `+${formatted}`;
-	} else if (amount < 0) {
+	}
+	if (amount < 0) {
 		return `-${formatted}`;
 	}
 	return formatted;
@@ -104,7 +105,7 @@ export function formatPercentage(
 ): string {
 	const { decimals = 1, showSign = false } = options;
 
-	if (value == null || isNaN(value)) {
+	if (value == null || Number.isNaN(value)) {
 		return "0%";
 	}
 
@@ -138,7 +139,7 @@ export function parseVND(vndString: string): number {
 		.replace(/,/g, "."); // Convert decimal separator
 
 	const parsed = Number.parseFloat(cleaned);
-	return isNaN(parsed) ? 0 : parsed;
+	return Number.isNaN(parsed) ? 0 : parsed;
 }
 
 /**

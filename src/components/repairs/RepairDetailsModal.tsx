@@ -592,7 +592,7 @@ export function RepairDetailsModal({
 								<CardContent>
 									<div className="space-y-4">
 										<div className="flex items-start gap-3">
-											<div className="w-2 h-2 rounded-full bg-blue-500 mt-2"></div>
+											<div className="w-2 h-2 rounded-full bg-blue-500 mt-2" />
 											<div className="flex-1">
 												<div className="font-medium">Tiếp nhận thiết bị</div>
 												<div className="text-sm text-muted-foreground">
@@ -603,7 +603,7 @@ export function RepairDetailsModal({
 
 										{repair.updated_at !== repair.created_at && (
 											<div className="flex items-start gap-3">
-												<div className="w-2 h-2 rounded-full bg-orange-500 mt-2"></div>
+												<div className="w-2 h-2 rounded-full bg-orange-500 mt-2" />
 												<div className="flex-1">
 													<div className="font-medium">Cập nhật gần nhất</div>
 													<div className="text-sm text-muted-foreground">

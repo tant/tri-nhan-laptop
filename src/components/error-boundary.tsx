@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
 		this.setState({ isRetrying: true });
 
 		// Add exponential backoff delay
-		const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+		const delay = Math.min(1000 * 2 ** retryCount, 5000);
 		await new Promise((resolve) => setTimeout(resolve, delay));
 
 		this.setState({
@@ -258,7 +258,7 @@ export function SupabaseErrorAlert({
 		setRetryCount((prev) => prev + 1);
 
 		// Exponential backoff
-		const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+		const delay = Math.min(1000 * 2 ** retryCount, 5000);
 		await new Promise((resolve) => setTimeout(resolve, delay));
 
 		try {

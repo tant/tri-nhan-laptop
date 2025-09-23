@@ -245,9 +245,8 @@ export function QuoteGenerationModal({
 
 		if (days > 0) {
 			return `${days} ngày ${hours} giờ`;
-		} else {
-			return `${hours} giờ`;
 		}
+		return `${hours} giờ`;
 	};
 
 	if (loading && quotes.length === 0) {
@@ -638,18 +637,16 @@ export function QuoteGenerationModal({
 											{/* Action Buttons */}
 											<div className="flex flex-wrap gap-2">
 												{quote.status === "draft" && (
-													<>
-														<Button
-															size="sm"
-															onClick={() =>
-																handleUpdateQuoteStatus(quote.id, "sent")
-															}
-															disabled={loading}
-														>
-															<Send className="h-4 w-4 mr-1" />
-															Gửi báo giá
-														</Button>
-													</>
+													<Button
+														size="sm"
+														onClick={() =>
+															handleUpdateQuoteStatus(quote.id, "sent")
+														}
+														disabled={loading}
+													>
+														<Send className="h-4 w-4 mr-1" />
+														Gửi báo giá
+													</Button>
 												)}
 
 												{quote.status === "sent" &&

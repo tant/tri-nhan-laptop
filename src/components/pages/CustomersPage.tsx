@@ -186,11 +186,11 @@ export function CustomersPage() {
 					Đang sửa chữa ({customer.activeRepairs})
 				</Badge>
 			);
-		} else if (customer.totalRepairs > 0) {
-			return <Badge variant="secondary">Khách hàng cũ</Badge>;
-		} else {
-			return <Badge variant="outline">Khách hàng mới</Badge>;
 		}
+		if (customer.totalRepairs > 0) {
+			return <Badge variant="secondary">Khách hàng cũ</Badge>;
+		}
+		return <Badge variant="outline">Khách hàng mới</Badge>;
 	};
 
 	// Format date

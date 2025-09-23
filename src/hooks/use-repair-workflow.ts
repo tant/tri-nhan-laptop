@@ -1,599 +1,426 @@
-import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
-import { useCallback, useState } from "react";
+/**
+ * Enhanced Repair Workflow Management Hook
+ * 16-State Repair Workflow System with Vietnamese labels and controlled transitions
+ */
 
-// Database types
-type RepairStatus = Database["public"]["Enums"]["repair_status"];
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
+import {
+  RepairState,
+  REPAIR_STATES,
+  getValidTransitions,
+  isValidTransition,
+  getTransitionInfo,
+  RepairType,
+  getWorkflowPath
+} from '@/lib/workflow/repair-states';
+import {
+  stateValidator,
+  ValidationResult,
+  TransitionContext
+} from '@/lib/workflow/state-validation';
 
-export interface WorkflowAction {
-	id: string;
-	type:
-		| "status_change"
-		| "notification"
-		| "assignment"
-		| "cost_update"
-		| "parts_check";
-	description: string;
-	automated: boolean;
-	conditions?: string[];
-	nextActions?: string[];
+export interface StateChangeLog {
+  id: string;
+  ticket_id: string;
+  from_state: RepairState;
+  to_state: RepairState;
+  changed_by: string;
+  changed_at: string;
+  reason: string;
+  notes?: string;
+  customer_notified: boolean;
+  validation_result?: ValidationResult;
 }
 
-export interface WorkflowStep {
-	status: RepairStatus;
-	name: string;
-	description: string;
-	estimatedHours: number;
-	requiredActions: WorkflowAction[];
-	nextSteps: RepairStatus[];
-	autoTransitionConditions?: {
-		partsAvailable?: boolean;
-		diagnosticComplete?: boolean;
-		repairComplete?: boolean;
-		customerNotified?: boolean;
-	};
+export interface WorkflowTicket {
+  id: string;
+  current_state: RepairState;
+  repair_type: RepairType;
+  customer_phone: string;
+  device_info: string;
+  assigned_technician?: string;
+  created_at: string;
+  updated_at: string;
+  metadata: Record<string, any>;
+}
+
+export interface WorkflowProgress {
+  currentStep: number;
+  totalSteps: number;
+  completedSteps: string[];
+  upcomingSteps: string[];
+  estimatedCompletion?: string;
+}
+
+export interface WorkflowStats {
+  totalTickets: number;
+  byState: Record<RepairState, number>;
+  averageCompletionTime: number;
+  bottlenecks: Array<{
+    state: RepairState;
+    averageDuration: number;
+    ticketCount: number;
+  }>;
 }
 
 export interface WorkflowState {
-	currentStep?: WorkflowStep;
-	availableActions: WorkflowAction[];
-	loading: boolean;
-	error: Error | null;
+  tickets: WorkflowTicket[];
+  stateHistory: StateChangeLog[];
+  workflowStats: WorkflowStats | null;
+  loading: boolean;
+  error: string | null;
 }
 
-// Repair workflow configuration
-const REPAIR_WORKFLOW: Record<RepairStatus, WorkflowStep> = {
-	device_received: {
-		status: "device_received",
-		name: "Tiếp nhận",
-		description: "Tiếp nhận thiết bị và tạo phiếu sửa chữa",
-		estimatedHours: 0.5,
-		requiredActions: [
-			{
-				id: "create_ticket",
-				type: "status_change",
-				description: "Tạo phiếu sửa chữa",
-				automated: true,
-			},
-			{
-				id: "notify_customer_received",
-				type: "notification",
-				description: "Thông báo khách hàng đã tiếp nhận",
-				automated: true,
-			},
-			{
-				id: "assign_technician",
-				type: "assignment",
-				description: "Phân công kỹ thuật viên chẩn đoán",
-				automated: false,
-			},
-		],
-		nextSteps: ["diagnosed"],
-	},
-	diagnosed: {
-		status: "diagnosed",
-		name: "Chẩn đoán",
-		description: "Chẩn đoán lỗi và đưa ra phương án sửa chữa",
-		estimatedHours: 1,
-		requiredActions: [
-			{
-				id: "diagnostic_report",
-				type: "status_change",
-				description: "Tạo báo cáo chẩn đoán",
-				automated: false,
-			},
-			{
-				id: "estimate_cost",
-				type: "cost_update",
-				description: "Ước tính chi phí sửa chữa",
-				automated: false,
-			},
-			{
-				id: "check_parts_needed",
-				type: "parts_check",
-				description: "Kiểm tra linh kiện cần thiết",
-				automated: true,
-			},
-			{
-				id: "notify_customer_diagnosis",
-				type: "notification",
-				description: "Thông báo kết quả chẩn đoán cho khách hàng",
-				automated: true,
-			},
-		],
-		nextSteps: ["waiting_parts", "in_repair"],
-		autoTransitionConditions: {
-			diagnosticComplete: true,
-			partsAvailable: true,
-		},
-	},
-	waiting_parts: {
-		status: "waiting_parts",
-		name: "Chờ linh kiện",
-		description: "Chờ linh kiện để thực hiện sửa chữa",
-		estimatedHours: 0,
-		requiredActions: [
-			{
-				id: "order_parts",
-				type: "parts_check",
-				description: "Đặt hàng linh kiện",
-				automated: false,
-			},
-			{
-				id: "notify_customer_waiting",
-				type: "notification",
-				description: "Thông báo khách hàng đang chờ linh kiện",
-				automated: true,
-			},
-			{
-				id: "check_parts_arrival",
-				type: "parts_check",
-				description: "Kiểm tra linh kiện đã về",
-				automated: true,
-			},
-		],
-		nextSteps: ["in_repair"],
-		autoTransitionConditions: {
-			partsAvailable: true,
-		},
-	},
-	in_repair: {
-		status: "in_repair",
-		name: "Đang sửa chữa",
-		description: "Thực hiện sửa chữa thiết bị",
-		estimatedHours: 4,
-		requiredActions: [
-			{
-				id: "start_repair",
-				type: "status_change",
-				description: "Bắt đầu quá trình sửa chữa",
-				automated: false,
-			},
-			{
-				id: "update_progress",
-				type: "status_change",
-				description: "Cập nhật tiến độ sửa chữa",
-				automated: false,
-			},
-			{
-				id: "use_parts",
-				type: "parts_check",
-				description: "Sử dụng linh kiện",
-				automated: false,
-			},
-			{
-				id: "notify_customer_progress",
-				type: "notification",
-				description: "Thông báo tiến độ cho khách hàng",
-				automated: true,
-			},
-		],
-		nextSteps: ["completed"],
-		autoTransitionConditions: {
-			repairComplete: true,
-		},
-	},
-	completed: {
-		status: "completed",
-		name: "Hoàn thành",
-		description: "Sửa chữa hoàn tất, kiểm tra chất lượng",
-		estimatedHours: 0.5,
-		requiredActions: [
-			{
-				id: "quality_check",
-				type: "status_change",
-				description: "Kiểm tra chất lượng sửa chữa",
-				automated: false,
-			},
-			{
-				id: "calculate_final_cost",
-				type: "cost_update",
-				description: "Tính toán chi phí cuối cùng",
-				automated: true,
-			},
-			{
-				id: "notify_customer_completed",
-				type: "notification",
-				description: "Thông báo hoàn thành cho khách hàng",
-				automated: true,
-			},
-		],
-		nextSteps: ["ready_for_pickup"],
-	},
-	ready_for_pickup: {
-		status: "ready_for_pickup",
-		name: "Sẵn sàng giao",
-		description: "Sẵn sàng giao thiết bị cho khách hàng",
-		estimatedHours: 0,
-		requiredActions: [
-			{
-				id: "prepare_delivery",
-				type: "status_change",
-				description: "Chuẩn bị giao thiết bị",
-				automated: false,
-			},
-			{
-				id: "notify_customer_ready",
-				type: "notification",
-				description: "Thông báo sẵn sàng giao",
-				automated: true,
-			},
-			{
-				id: "generate_invoice",
-				type: "cost_update",
-				description: "Tạo hóa đơn",
-				automated: true,
-			},
-		],
-		nextSteps: ["completed"],
-	},
-	completed: {
-		status: "completed",
-		name: "Đã giao",
-		description: "Đã giao thiết bị cho khách hàng",
-		estimatedHours: 0,
-		requiredActions: [
-			{
-				id: "confirm_delivery",
-				type: "status_change",
-				description: "Xác nhận đã giao",
-				automated: false,
-			},
-			{
-				id: "request_feedback",
-				type: "notification",
-				description: "Yêu cầu phản hồi từ khách hàng",
-				automated: true,
-			},
-		],
-		nextSteps: [],
-	},
-	cancelled: {
-		status: "cancelled",
-		name: "Đã hủy",
-		description: "Hủy phiếu sửa chữa",
-		estimatedHours: 0,
-		requiredActions: [
-			{
-				id: "cancel_reason",
-				type: "status_change",
-				description: "Ghi nhận lý do hủy",
-				automated: false,
-			},
-			{
-				id: "notify_customer_cancelled",
-				type: "notification",
-				description: "Thông báo hủy cho khách hàng",
-				automated: true,
-			},
-			{
-				id: "return_parts",
-				type: "parts_check",
-				description: "Hoàn trả linh kiện về kho",
-				automated: true,
-			},
-		],
-		nextSteps: [],
-	},
-};
+// 16-State Workflow Management System
 
 export function useRepairWorkflow() {
-	const [state, setState] = useState<WorkflowState>({
-		availableActions: [],
-		loading: false,
-		error: null,
-	});
+  const [state, setState] = useState<WorkflowState>({
+    tickets: [],
+    stateHistory: [],
+    workflowStats: null,
+    loading: false,
+    error: null,
+  });
 
-	// Get workflow step for a status
-	const getWorkflowStep = useCallback((status: RepairStatus): WorkflowStep => {
-		return REPAIR_WORKFLOW[status];
-	}, []);
+  // Load tickets with workflow state information
+  const loadTickets = useCallback(async (filters?: {
+    state?: RepairState;
+    technician?: string;
+    customer?: string;
+    dateRange?: { start: string; end: string };
+  }) => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
 
-	// Get available actions for current status
-	const getAvailableActions = useCallback(
-		(currentStatus: RepairStatus): WorkflowAction[] => {
-			const step = REPAIR_WORKFLOW[currentStatus];
-			return step.requiredActions;
-		},
-		[],
-	);
+      let query = supabase
+        .from('repair_tickets')
+        .select(`
+          id,
+          current_state,
+          repair_type,
+          customer_phone,
+          device_info,
+          assigned_technician,
+          created_at,
+          updated_at,
+          metadata,
+          customers (
+            full_name,
+            phone
+          )
+        `);
 
-	// Advance repair to next status
-	const advanceRepair = useCallback(
-		async (
-			repairId: string,
-			newStatus: RepairStatus,
-			notes?: string,
-			userId?: string,
-		) => {
-			setState((prev) => ({ ...prev, loading: true, error: null }));
+      // Apply filters
+      if (filters?.state) {
+        query = query.eq('current_state', filters.state);
+      }
+      if (filters?.technician) {
+        query = query.eq('assigned_technician', filters.technician);
+      }
+      if (filters?.customer) {
+        query = query.eq('customer_phone', filters.customer);
+      }
+      if (filters?.dateRange) {
+        query = query
+          .gte('created_at', filters.dateRange.start)
+          .lte('created_at', filters.dateRange.end);
+      }
 
-			try {
-				// Get current repair data
-				const { data: currentRepair, error: fetchError } = await supabase
-					.from("repairs")
-					.select("*")
-					.eq("id", repairId)
-					.single();
+      const { data, error } = await query.order('updated_at', { ascending: false });
 
-				if (fetchError) throw fetchError;
+      if (error) throw error;
 
-				const oldStatus = currentRepair.status;
+      setState(prev => ({ ...prev, tickets: data || [], loading: false }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: err instanceof Error ? err.message : 'Lỗi khi tải danh sách phiếu sửa chữa'
+      }));
+    }
+  }, []);
 
-				// Validate transition
-				const currentStep = REPAIR_WORKFLOW[oldStatus as RepairStatus];
-				if (!currentStep.nextSteps.includes(newStatus)) {
-					throw new Error(`Không thể chuyển từ ${oldStatus} sang ${newStatus}`);
-				}
+  // Load state change history for a ticket
+  const loadStateHistory = useCallback(async (ticketId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('repair_state_changes')
+        .select(`
+          id,
+          ticket_id,
+          from_state,
+          to_state,
+          changed_by,
+          changed_at,
+          reason,
+          notes,
+          customer_notified,
+          validation_result,
+          users (
+            full_name
+          )
+        `)
+        .eq('ticket_id', ticketId)
+        .order('changed_at', { ascending: false });
 
-				// Update repair status
-				const { error: updateError } = await supabase
-					.from("repairs")
-					.update({
-						status: newStatus,
-						updated_at: new Date().toISOString(),
-					})
-					.eq("id", repairId);
+      if (error) throw error;
 
-				if (updateError) throw updateError;
+      setState(prev => ({ ...prev, stateHistory: data || [] }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        error: err instanceof Error ? err.message : 'Lỗi khi tải lịch sử thay đổi trạng thái'
+      }));
+    }
+  }, []);
 
-				// Log status change
-				const { error: logError } = await supabase
-					.from("repair_status_logs")
-					.insert({
-						repair_id: repairId,
-						old_status: oldStatus,
-						new_status: newStatus,
-						notes:
-							notes ||
-							`Chuyển trạng thái từ ${getVietnameseStatus(oldStatus)} sang ${getVietnameseStatus(newStatus)}`,
-						changed_by: userId || "system",
-						created_at: new Date().toISOString(),
-					});
+  // Change ticket state with validation
+  const changeTicketState = useCallback(async (
+    ticketId: string,
+    newState: RepairState,
+    context: {
+      reason: string;
+      notes?: string;
+      userId: string;
+      userRole: string;
+      hasCustomerApproval?: boolean;
+      hasPayment?: boolean;
+      partsAvailable?: boolean;
+      qualityCheckPassed?: boolean;
+      metadata?: Record<string, any>;
+    }
+  ): Promise<{ success: boolean; validation?: ValidationResult; error?: string }> => {
+    try {
+      // Get current ticket information
+      const { data: ticket } = await supabase
+        .from('repair_tickets')
+        .select('current_state, metadata')
+        .eq('id', ticketId)
+        .single();
 
-				if (logError) throw logError;
+      if (!ticket) {
+        return { success: false, error: 'Không tìm thấy phiếu sửa chữa' };
+      }
 
-				// Execute automated actions for new status
-				await executeAutomatedActions(repairId, newStatus, userId);
+      // Validate the transition
+      const transitionContext: TransitionContext = {
+        userId: context.userId,
+        userRole: context.userRole,
+        ticketId,
+        currentState: ticket.current_state,
+        targetState: newState,
+        hasCustomerApproval: context.hasCustomerApproval,
+        hasPayment: context.hasPayment,
+        partsAvailable: context.partsAvailable,
+        qualityCheckPassed: context.qualityCheckPassed,
+        metadata: { ...ticket.metadata, ...context.metadata }
+      };
 
-				setState((prev) => ({ ...prev, loading: false }));
-				return true;
-			} catch (error) {
-				setState((prev) => ({
-					...prev,
-					loading: false,
-					error: error as Error,
-				}));
-				throw error;
-			}
-		},
-		[],
-	);
+      const validation = stateValidator.validateTransition(transitionContext);
 
-	// Execute automated actions for a status
-	const executeAutomatedActions = async (
-		repairId: string,
-		status: RepairStatus,
-		userId?: string,
-	) => {
-		const step = REPAIR_WORKFLOW[status];
-		const automatedActions = step.requiredActions.filter(
-			(action) => action.automated,
-		);
+      if (!validation.isValid) {
+        return { success: false, validation, error: validation.errors.join(', ') };
+      }
 
-		for (const action of automatedActions) {
-			try {
-				await executeAction(repairId, action, userId);
-			} catch (error) {
-				console.error(
-					`Failed to execute automated action ${action.id}:`,
-					error,
-				);
-			}
-		}
-	};
+      // Update ticket state
+      const { error: updateError } = await supabase
+        .from('repair_tickets')
+        .update({
+          current_state: newState,
+          updated_at: new Date().toISOString(),
+          metadata: transitionContext.metadata
+        })
+        .eq('id', ticketId);
 
-	// Execute a specific workflow action
-	const executeAction = async (
-		repairId: string,
-		action: WorkflowAction,
-		userId?: string,
-	) => {
-		switch (action.type) {
-			case "notification":
-				await sendCustomerNotification(repairId, action.description);
-				break;
+      if (updateError) throw updateError;
 
-			case "parts_check":
-				await checkPartsAvailability(repairId);
-				break;
+      // Log state change
+      const { error: logError } = await supabase
+        .from('repair_state_changes')
+        .insert({
+          ticket_id: ticketId,
+          from_state: ticket.current_state,
+          to_state: newState,
+          changed_by: context.userId,
+          changed_at: new Date().toISOString(),
+          reason: context.reason,
+          notes: context.notes,
+          customer_notified: REPAIR_STATES[newState].notifyCustomer,
+          validation_result: validation
+        });
 
-			case "cost_update":
-				await updateRepairCost(repairId);
-				break;
+      if (logError) throw logError;
 
-			case "assignment":
-				await assignTechnician(repairId, userId);
-				break;
+      // Send customer notification if required
+      if (REPAIR_STATES[newState].notifyCustomer) {
+        await sendCustomerNotification(ticketId, newState);
+      }
 
-			default:
-				console.log(`Action ${action.type} executed for repair ${repairId}`);
-		}
-	};
+      // Refresh tickets list
+      await loadTickets();
 
-	// Send notification to customer
-	const sendCustomerNotification = async (
-		repairId: string,
-		message: string,
-	) => {
-		// Get repair and customer info
-		const { data: repair } = await supabase
-			.from("repairs")
-			.select(`
-        ticket_number,
-        status,
-        customer:customers(name, phone, email)
-      `)
-			.eq("id", repairId)
-			.single();
+      return { success: true, validation };
+    } catch (err) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : 'Lỗi khi thay đổi trạng thái'
+      };
+    }
+  }, [loadTickets]);
 
-		if (repair) {
-			// In a real implementation, this would send SMS/Email
-			console.log(
-				`Notification sent to ${(repair.customer as any)?.name}: ${message}`,
-			);
+  // Bulk state change for multiple tickets
+  const bulkChangeState = useCallback(async (
+    ticketIds: string[],
+    newState: RepairState,
+    context: {
+      reason: string;
+      userId: string;
+      userRole: string;
+      notes?: string;
+    }
+  ): Promise<{
+    success: string[];
+    failed: Array<{ ticketId: string; error: string }>;
+  }> => {
+    const success: string[] = [];
+    const failed: Array<{ ticketId: string; error: string }> = [];
 
-			// Log notification in repair status logs
-			await supabase.from("repair_status_logs").insert({
-				repair_id: repairId,
-				old_status: null,
-				new_status: repair.status,
-				notes: `Đã gửi thông báo: ${message}`,
-				changed_by: "system",
-				created_at: new Date().toISOString(),
-			});
-		}
-	};
+    for (const ticketId of ticketIds) {
+      const result = await changeTicketState(ticketId, newState, context);
 
-	// Check parts availability for repair
-	const checkPartsAvailability = async (repairId: string) => {
-		const { data: repairParts } = await supabase
-			.from("repair_parts")
-			.select(`
-        quantity_used,
-        part:parts(name, current_stock)
-      `)
-			.eq("repair_id", repairId);
+      if (result.success) {
+        success.push(ticketId);
+      } else {
+        failed.push({ ticketId, error: result.error || 'Lỗi không xác định' });
+      }
+    }
 
-		if (repairParts) {
-			const unavailableParts = repairParts.filter(
-				(rp) => (rp.part as any)?.current_stock < rp.quantity_used,
-			);
+    return { success, failed };
+  }, [changeTicketState]);
 
-			if (unavailableParts.length > 0) {
-				console.log(
-					`Parts not available for repair ${repairId}:`,
-					unavailableParts,
-				);
-				return false;
-			}
-		}
+  // Get workflow progress for a ticket
+  const getWorkflowProgress = useCallback((
+    ticket: WorkflowTicket
+  ): WorkflowProgress => {
+    const workflowPath = getWorkflowPath(ticket.repair_type);
+    const currentIndex = workflowPath.indexOf(ticket.current_state);
 
-		return true;
-	};
+    return {
+      currentStep: currentIndex + 1,
+      totalSteps: workflowPath.length,
+      completedSteps: workflowPath.slice(0, currentIndex + 1).map(state => REPAIR_STATES[state].label),
+      upcomingSteps: workflowPath.slice(currentIndex + 1).map(state => REPAIR_STATES[state].label),
+      estimatedCompletion: calculateEstimatedCompletion(ticket, workflowPath, currentIndex)
+    };
+  }, []);
 
-	// Update repair cost automatically
-	const updateRepairCost = async (repairId: string) => {
-		// Calculate total parts cost
-		const { data: partsCost } = await supabase
-			.from("repair_parts")
-			.select("total_cost")
-			.eq("repair_id", repairId);
+  // Get valid next states for a ticket
+  const getNextStates = useCallback((
+    ticket: WorkflowTicket,
+    userRole: string
+  ): Array<{ state: RepairState; label: string; recommended: boolean }> => {
+    const validTransitions = getValidTransitions(ticket.current_state);
 
-		if (partsCost) {
-			const totalPartsCost = partsCost.reduce(
-				(sum, part) => sum + (part.total_cost || 0),
-				0,
-			);
+    return validTransitions.map(state => {
+      const context: Omit<TransitionContext, 'targetState'> = {
+        userId: 'current_user',
+        userRole,
+        ticketId: ticket.id,
+        currentState: ticket.current_state,
+        metadata: ticket.metadata
+      };
 
-			// Add labor cost (estimated based on hours)
-			const { data: repair } = await supabase
-				.from("repairs")
-				.select("status")
-				.eq("id", repairId)
-				.single();
+      const recommended = stateValidator.getRecommendedNextStates(context).includes(state);
 
-			if (repair) {
-				const step = REPAIR_WORKFLOW[repair.status as RepairStatus];
-				const laborCost = step.estimatedHours * 100000; // 100k VND per hour
-				const totalCost = totalPartsCost + laborCost;
+      return {
+        state,
+        label: REPAIR_STATES[state].label,
+        recommended
+      };
+    });
+  }, []);
 
-				await supabase
-					.from("repairs")
-					.update({ final_cost: totalCost })
-					.eq("id", repairId);
-			}
-		}
-	};
+  // Initialize hook
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
 
-	// Assign technician to repair
-	const assignTechnician = async (repairId: string, userId?: string) => {
-		if (userId) {
-			await supabase
-				.from("repairs")
-				.update({ technician_id: userId })
-				.eq("id", repairId);
-		}
-	};
+  return {
+    // Data
+    ...state,
 
-	// Get Vietnamese status name
-	const getVietnameseStatus = (status: string) => {
-		const statusMap: Record<string, string> = {
-			device_received: "Đã tiếp nhận thiết bị",
-			preliminary_inspection: "Đang kiểm tra ban đầu",
-			awaiting_repair_plan: "Chờ xác nhận phương án sửa chữa",
-			approved_for_repair: "Đã xác nhận sửa chữa",
-			in_diagnosis: "Đang chẩn đoán chi tiết",
-			waiting_parts: "Đang đặt hàng linh kiện",
-			in_repair: "Đang thực hiện sửa chữa",
-			quality_testing: "Đang kiểm tra chất lượng",
-			ready_for_pickup: "Sẵn sàng nhận máy",
-			completed: "Đã hoàn thành",
-			cannot_repair: "Không thể sửa chữa",
-			cancelled_by_customer: "Đã hủy sửa chữa",
-			repair_failed: "Sửa chữa gặp khó khăn",
-			customer_no_show: "Chờ khách hàng liên hệ",
-			ready_for_return: "Sẵn sàng trả máy",
-			abandoned: "Liên hệ để nhận máy",
-		};
-		return statusMap[status] || status;
-	};
+    // Actions
+    loadTickets,
+    loadStateHistory,
+    changeTicketState,
+    bulkChangeState,
 
-	// Check if auto-transition conditions are met
-	const checkAutoTransition = useCallback(
-		async (repairId: string) => {
-			const { data: repair } = await supabase
-				.from("repairs")
-				.select("*")
-				.eq("id", repairId)
-				.single();
+    // Utilities
+    getWorkflowProgress,
+    getNextStates,
+    getValidTransitions: (state: RepairState) => getValidTransitions(state),
+    isValidTransition,
+    validateTransition: (context: TransitionContext) => stateValidator.validateTransition(context),
 
-			if (!repair) return false;
+    // State information
+    REPAIR_STATES,
+    getStateLabel: (state: RepairState) => REPAIR_STATES[state].label,
+    getStateColor: (state: RepairState) => REPAIR_STATES[state].color,
+    getStateCategory: (state: RepairState) => REPAIR_STATES[state].category
+  };
+}
 
-			const step = REPAIR_WORKFLOW[repair.status as RepairStatus];
-			if (!step.autoTransitionConditions) return false;
+// Helper functions
+async function sendCustomerNotification(ticketId: string, newState: RepairState): Promise<void> {
+  try {
+    const { data: ticket } = await supabase
+      .from('repair_tickets')
+      .select('customer_phone, device_info')
+      .eq('id', ticketId)
+      .single();
 
-			// Check conditions (simplified for demo)
-			const conditions = step.autoTransitionConditions;
-			let canTransition = true;
+    if (!ticket) return;
 
-			if (conditions.partsAvailable) {
-				canTransition &&= await checkPartsAvailability(repairId);
-			}
+    const stateDefinition = REPAIR_STATES[newState];
+    const message = `Cập nhật trạng thái: ${ticket.device_info} - ${stateDefinition.label}. ${stateDefinition.description}`;
 
-			if (canTransition && step.nextSteps.length > 0) {
-				// Auto-advance to next status
-				const nextStatus = step.nextSteps[0];
-				await advanceRepair(
-					repairId,
-					nextStatus,
-					"Tự động chuyển trạng thái",
-					"system",
-				);
-			}
+    // Log notification (implement actual SMS/notification service as needed)
+    await supabase
+      .from('customer_notifications')
+      .insert({
+        ticket_id: ticketId,
+        customer_phone: ticket.customer_phone,
+        message,
+        notification_type: 'state_change',
+        sent_at: new Date().toISOString()
+      });
+  } catch (err) {
+    console.error('Error sending customer notification:', err);
+  }
+}
 
-			return canTransition;
-		},
-		[advanceRepair],
-	);
+function calculateEstimatedCompletion(
+  ticket: WorkflowTicket,
+  workflowPath: RepairState[],
+  currentIndex: number
+): string | undefined {
+  // Simple estimation based on repair type and remaining steps
+  const remainingSteps = workflowPath.length - currentIndex - 1;
+  const baseEstimate = {
+    software: 1,
+    screen: 2,
+    hardware: 3,
+    liquid_damage: 4,
+    battery: 1.5,
+    motherboard: 5
+  };
 
-	return {
-		...state,
-		getWorkflowStep,
-		getAvailableActions,
-		advanceRepair,
-		executeAction,
-		checkAutoTransition,
-		getVietnameseStatus,
-	};
+  const daysPerStep = baseEstimate[ticket.repair_type] || 2;
+  const estimatedDays = remainingSteps * daysPerStep;
+
+  const estimatedDate = new Date();
+  estimatedDate.setDate(estimatedDate.getDate() + estimatedDays);
+
+  return estimatedDate.toISOString().split('T')[0];
 }
