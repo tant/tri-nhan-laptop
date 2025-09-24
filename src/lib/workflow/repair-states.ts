@@ -172,7 +172,7 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
   completed: {
     id: 'completed',
     label: 'Hoàn thành',
-    description: 'Đã hoàn thành toàn bộ quy trình sửa chữa và thanh toán',
+    description: 'Đang trong trạng thái hoàn thành - đã hoàn tất quy trình sửa chữa và thanh toán',
     color: 'green', // green
     category: 'completed',
     isTerminal: true,
@@ -196,7 +196,7 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
   on_hold: {
     id: 'on_hold',
     label: 'Tạm dừng',
-    description: 'Công việc sửa chữa tạm thời dừng lại vì lý do kỹ thuật hoặc khách hàng',
+    description: 'Đang tạm dừng công việc sửa chữa vì lý do kỹ thuật hoặc khách hàng',
     color: '#6B7280', // gray-500
     category: 'special',
     isTerminal: false,

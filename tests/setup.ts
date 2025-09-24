@@ -11,7 +11,14 @@ vi.mock('@/lib/supabase', () => {
 
   const mockChainBuilder = (tableName?: string) => {
     const chain = {
-      select: vi.fn(() => chain),
+      select: vi.fn((columns?: string, options?: any) => {
+        // Handle count queries for ticket code generation
+        if (tableName === 'repair_tickets' && options?.count === 'exact') {
+          chain._isCountQuery = true;
+          chain._countValue = ticketCodeCounter - 1; // Return current count
+        }
+        return chain;
+      }),
       eq: vi.fn((field: string, value: string) => {
         // Handle state history queries
         if (tableName === 'repair_state_changes' && field === 'ticket_id') {
@@ -111,6 +118,10 @@ vi.mock('@/lib/supabase', () => {
       }),
       maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
       then: vi.fn((callback) => {
+        // Handle count queries - return { count: number } instead of { data: array }
+        if (chain._isCountQuery) {
+          return Promise.resolve(callback({ count: chain._countValue || 0, error: null }));
+        }
         // Return stored data or empty array
         const data = chain._mockData !== undefined ? chain._mockData : [];
         return Promise.resolve(callback({ data, error: null }));

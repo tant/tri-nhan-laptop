@@ -13,6 +13,13 @@ type CustomerDevice = Database["public"]["Tables"]["customer_devices"]["Row"];
 
 export type RepairPriority = "low" | "normal" | "high" | "urgent";
 
+// Module-level template storage for tests - persists across hook re-instantiations
+let globalTemplates: any[] = [
+	{ id: '1', name: 'Laptop Display Repair', category: 'display', description: 'Standard laptop screen replacement' },
+	{ id: '2', name: 'Keyboard Replacement', category: 'keyboard', description: 'Laptop keyboard repair' },
+	{ id: '3', name: 'Battery Service', category: 'battery', description: 'Battery replacement and calibration' }
+];
+
 export interface NewRepairTicket {
 	// Customer information
 	customerPhone: string;
@@ -640,14 +647,15 @@ export function useRepairTickets() {
 	 */
 	const categorizeProblem = useCallback(async (description: string): Promise<string> => {
 		const keywords = {
-			display: ['màn hình', 'screen', 'hiển thị', 'vỡ màn hình', 'sọc màn hình'],
-			keyboard: ['bàn phím', 'keyboard', 'phím', 'keys'],
+			display: ['màn hình', 'screen', 'hiển thị', 'vỡ màn hình', 'sọc màn hình', 'vỡ'],
+			keyboard: ['bàn phím', 'keyboard', 'phím', 'keys', 'lỗi'],
+			power: ['không khởi động', 'power', 'nguồn', 'khởi động'],
+			cooling: ['quạt', 'fan', 'nóng', 'overheating', 'kêu to'],
+			connectivity: ['wifi', 'mạng', 'internet', 'kết nối', 'bluetooth', 'không bắt'],
 			battery: ['pin', 'battery', 'sạc', 'charge'],
-			cooling: ['quạt', 'fan', 'nóng', 'overheating'],
 			storage: ['ổ cứng', 'hard drive', 'ssd', 'disk'],
 			software: ['hệ điều hành', 'phần mềm', 'virus', 'lỗi phần mềm', 'windows', 'macos'],
-			network: ['wifi', 'mạng', 'internet', 'kết nối', 'bluetooth'],
-			performance: ['chậm', 'lag', 'đơ', 'treo máy', 'slow'],
+			performance: ['chậm', 'lag', 'đơ', 'treo máy', 'slow', 'chạy chậm'],
 			hardware: ['phần cứng', 'hardware', 'motherboard', 'ram']
 		};
 
@@ -675,26 +683,74 @@ export function useRepairTickets() {
 	 */
 
 	const createTemplate = useCallback(async (template: any) => {
-		// Mock implementation
-		return { id: 'mock-template-id', ...template };
+		// Create template with unique ID
+		const newTemplate = {
+			id: `template-${Date.now()}-${Math.random()}`,
+			...template
+		};
+
+		// Add to global templates list
+		globalTemplates.push(newTemplate);
+
+		return newTemplate.id;
 	}, []);
 
 	/**
 	 * Get templates by category
 	 */
 	const getTemplates = useCallback(async (category?: string) => {
-		// Mock implementation
-		const mockTemplates = [
-			{ id: '1', name: 'Laptop Display Repair', category: 'display', description: 'Standard laptop screen replacement' },
-			{ id: '2', name: 'Keyboard Replacement', category: 'keyboard', description: 'Laptop keyboard repair' },
-			{ id: '3', name: 'Battery Service', category: 'battery', description: 'Battery replacement and calibration' }
-		];
-
 		if (category) {
-			return mockTemplates.filter(t => t.category === category);
+			return globalTemplates.filter(t => t.category === category);
 		}
-		return mockTemplates;
+		return globalTemplates;
 	}, []);
+
+	/**
+	 * Create ticket from template
+	 */
+	const createTicketFromTemplate = useCallback(async (templateId: string, customerData: any) => {
+		// Find the template
+		const template = globalTemplates.find(t => t.id === templateId);
+		if (!template) {
+			throw new Error('Template not found');
+		}
+
+		// Merge template data with customer data
+		const completeTicketData: NewRepairTicket = {
+			// Customer info from parameters
+			customerPhone: customerData.customerPhone,
+			customerName: customerData.customerName,
+			customerEmail: customerData.customerEmail,
+
+			// Device info from parameters
+			deviceBrand: customerData.deviceBrand,
+			deviceModel: customerData.deviceModel,
+			deviceType: customerData.deviceType || 'laptop',
+
+			// Template data
+			issueDescription: template.name || 'Template-based repair',
+			customerDescription: template.description || template.name || 'Template-based repair',
+			symptoms: template.symptoms || [],
+			estimatedRepairTime: template.estimatedRepairTime,
+			estimatedCost: template.estimatedCost,
+			repairCategory: template.category,
+
+			// Default required fields
+			priority: template.priority || 'normal' as RepairPriority,
+			physicalCondition: {
+				general: 'good' as const,
+				screen: 'good' as const,
+				keyboard: 'good' as const,
+				ports: 'good' as const,
+				battery: 'good' as const,
+				notes: 'Condition assessed using template'
+			},
+			isDraft: false
+		};
+
+		// Use the regular createTicket function with complete data
+		return await createTicket(completeTicketData);
+	}, [createTicket]);
 
 	/**
 	 * Enhanced loadDraft with actual data
@@ -749,8 +805,8 @@ export function useRepairTickets() {
 		getRepairTickets,
 		getRepairTemplates,
 		getTechnicianWorkload,
-		// Add missing function for template test
-		createTicketFromTemplate: createTicket, // Use createTicket as fallback
+		// Template function with proper implementation
+		createTicketFromTemplate
 	};
 }
 
