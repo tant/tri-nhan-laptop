@@ -39,8 +39,8 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
   device_received: {
     id: 'device_received',
     label: 'Đã nhận thiết bị',
-    description: 'Thiết bị đã được tiếp nhận và ghi nhận thông tin ban đầu',
-    color: '#3B82F6', // blue
+    description: 'Đang tiếp nhận thiết bị và ghi nhận thông tin ban đầu',
+    color: 'blue', // blue
     category: 'active',
     isTerminal: false,
     requiresCustomerApproval: false,
@@ -68,9 +68,9 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
     color: '#8B5CF6', // violet
     category: 'active',
     isTerminal: false,
-    requiresCustomerApproval: false,
+    requiresCustomerApproval: true,
     requiresPayment: false,
-    notifyCustomer: false,
+    notifyCustomer: true,
     allowedRoles: ['senior_technician', 'manager', 'admin']
   },
   approved_for_repair: {
@@ -113,7 +113,7 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
     id: 'in_repair',
     label: 'Đang sửa chữa',
     description: 'Đang thực hiện các công việc sửa chữa và thay thế linh kiện',
-    color: '#DC2626', // red
+    color: 'orange', // orange
     category: 'active',
     isTerminal: false,
     requiresCustomerApproval: false,
@@ -172,8 +172,8 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
   completed: {
     id: 'completed',
     label: 'Hoàn thành',
-    description: 'Dịch vụ sửa chữa đã hoàn thành toàn bộ và thanh toán xong',
-    color: '#15803D', // green-700
+    description: 'Đã hoàn thành toàn bộ quy trình sửa chữa và thanh toán',
+    color: 'green', // green
     category: 'completed',
     isTerminal: true,
     requiresCustomerApproval: false,
@@ -185,7 +185,7 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
     id: 'cancelled_by_customer',
     label: 'Khách hàng hủy',
     description: 'Khách hàng đã yêu cầu hủy dịch vụ sửa chữa',
-    color: '#B91C1C', // red-700
+    color: 'red', // red
     category: 'cancelled',
     isTerminal: true,
     requiresCustomerApproval: true,
@@ -612,3 +612,23 @@ export function getWorkflowPath(repairType: RepairType): RepairState[] {
       ];
   }
 }
+
+// Export functions for test compatibility
+export const validateStateTransition = (from: RepairState, to: RepairState): boolean => {
+	return isValidTransition(from, to);
+};
+
+export const getNextPossibleStates = (currentState: RepairState): RepairState[] => {
+	return getValidTransitions(currentState);
+};
+
+export const getStateRequirements = (state: RepairState) => {
+	const stateInfo = REPAIR_STATES[state];
+	return {
+		requiresCustomerApproval: stateInfo.requiresCustomerApproval,
+		customerApproval: stateInfo.requiresCustomerApproval, // Test compatibility alias
+		requiresPayment: stateInfo.requiresPayment,
+		notifyCustomer: stateInfo.notifyCustomer,
+		allowedRoles: stateInfo.allowedRoles
+	};
+};

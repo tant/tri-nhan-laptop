@@ -14,6 +14,8 @@ type NewCustomer = Database["public"]["Tables"]["customers"]["Insert"];
 type UpdateCustomer = Database["public"]["Tables"]["customers"]["Update"];
 
 export interface CustomerWithStats extends Customer {
+	fullName: string; // Alias for full_name to match test expectations
+	createdAt: string; // Alias for created_at to match test expectations
 	totalRepairs: number;
 	lastRepairDate: string | null;
 	activeRepairs: number;
@@ -298,6 +300,8 @@ export function useCustomers() {
 
 				const customerWithStats: CustomerWithStats = {
 					...newCustomer,
+					fullName: newCustomer.full_name, // Map database field to expected field
+					createdAt: newCustomer.created_at, // Map database field to expected field
 					totalRepairs: 0,
 					lastRepairDate: null,
 					activeRepairs: 0,
@@ -490,6 +494,117 @@ export function useCustomers() {
 		return validateVietnamesePhone(phone);
 	}, []);
 
+	/**
+	 * Change customer phone number with history tracking
+	 */
+	const changeCustomerPhone = useCallback(
+		async (
+			customerId: string,
+			oldPhone: string,
+			newPhone: string,
+			reason: string,
+		): Promise<PhoneChangeRecord | null> => {
+			try {
+				setLoading(true);
+				setError(null);
+
+				// Validate new phone number
+				const validation = validateVietnamesePhone(newPhone);
+				if (!validation.isValid) {
+					throw new Error(validation.error || "Số điện thoại mới không hợp lệ");
+				}
+
+				const normalizedNewPhone = toStorageFormat(newPhone);
+				const normalizedOldPhone = normalizePhoneNumber(oldPhone);
+
+				// Check if new phone already exists
+				const existingCustomer = await findCustomerByPhone(normalizedNewPhone);
+				if (existingCustomer && existingCustomer.phone !== normalizedOldPhone) {
+					throw new Error("Số điện thoại mới đã được sử dụng bởi khách hàng khác");
+				}
+
+				// Update customer phone
+				const { error: updateError } = await supabase
+					.from("customers")
+					.update({ phone: normalizedNewPhone })
+					.eq("phone", normalizedOldPhone);
+
+				if (updateError) {
+					throw new Error(`Không thể cập nhật số điện thoại: ${updateError.message}`);
+				}
+
+				// Create phone change record
+				const changeRecord: PhoneChangeRecord = {
+					oldPhone: normalizedOldPhone,
+					newPhone: normalizedNewPhone,
+					changedAt: new Date().toISOString(),
+					changedBy: customerId,
+					reason,
+				};
+
+				// Log phone change history
+				const { error: historyError } = await supabase
+					.from("customer_phone_changes")
+					.insert({
+						customer_id: customerId,
+						old_phone: normalizedOldPhone,
+						new_phone: normalizedNewPhone,
+						changed_at: changeRecord.changedAt,
+						changed_by: customerId,
+						reason,
+					});
+
+				if (historyError) {
+					console.error("Failed to log phone change history:", historyError);
+				}
+
+				return changeRecord;
+			} catch (err) {
+				const error =
+					err instanceof Error
+						? err
+						: new Error("Lỗi không xác định khi thay đổi số điện thoại");
+				console.error("Error changing customer phone:", error);
+				setError(error);
+				return null;
+			} finally {
+				setLoading(false);
+			}
+		},
+		[findCustomerByPhone],
+	);
+
+	/**
+	 * Get phone change history for a customer
+	 */
+	const getPhoneChangeHistory = useCallback(
+		async (customerId: string): Promise<PhoneChangeRecord[]> => {
+			try {
+				const { data, error } = await supabase
+					.from("customer_phone_changes")
+					.select("*")
+					.eq("customer_id", customerId)
+					.order("changed_at", { ascending: false });
+
+				if (error) {
+					throw new Error(`Không thể tải lịch sử thay đổi: ${error.message}`);
+				}
+
+				return (data || []).map(record => ({
+					oldPhone: record.old_phone,
+					newPhone: record.new_phone,
+					changedAt: record.changed_at,
+					changedBy: record.changed_by,
+					reason: record.reason,
+				}));
+			} catch (err) {
+				console.error("Error fetching phone change history:", err);
+				return [];
+			}
+		},
+		[],
+	);
+
 	return {
 		// State
 		customers,
@@ -507,6 +622,10 @@ export function useCustomers() {
 		searchCustomers,
 		formatPhoneForDisplay,
 		validatePhone,
+
+		// Phone change tracking
+		changeCustomerPhone,
+		getPhoneChangeHistory,
 
 		// Utilities for phone number handling
 		normalizePhone: normalizePhoneNumber,
