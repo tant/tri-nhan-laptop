@@ -311,14 +311,16 @@ export function useCustomerPortal() {
 
 	// Validate ticket number format
 	const isValidTicketNumber = useCallback((ticketNumber: string) => {
-		// Accept multiple formats: TK001, MS001, TNL-YYMMDD-XXX
-		const tkFormat = /^TK\d+$/; // Our sample data format
+		// Accept multiple formats: TK001, MS001, LRP-YYYY-XXXXXX
+		const tkFormat = /^TK\d+$/; // Legacy sample data format
 		const msFormat = /^MS\d+$/; // Legacy format
-		const newFormat = /^[A-Z]{2,4}-\d{6}-\d{3,4}$/; // Full format
+		const lrpFormat = /^LRP-\d{4}-\d{6}$/; // Official LRP-YYYY-XXXXXX format
+		const genericFormat = /^[A-Z]{2,4}-\d{6}-\d{3,4}$/; // Generic format for compatibility
 		return (
 			tkFormat.test(ticketNumber) ||
 			msFormat.test(ticketNumber) ||
-			newFormat.test(ticketNumber)
+			lrpFormat.test(ticketNumber) ||
+			genericFormat.test(ticketNumber)
 		);
 	}, []);
 

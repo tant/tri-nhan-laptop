@@ -177,7 +177,7 @@ export const REPAIR_STATES: Record<RepairState, RepairStateDefinition> = {
     category: 'completed',
     isTerminal: true,
     requiresCustomerApproval: false,
-    requiresPayment: false,
+    requiresPayment: true,
     notifyCustomer: true,
     allowedRoles: ['manager', 'admin', 'receptionist']
   },
@@ -372,6 +372,12 @@ export const STATE_TRANSITIONS: StateTransition[] = [
     to: 'on_hold',
     requiresConfirmation: true,
     businessRules: ['Technical complications', 'Additional authorization needed']
+  },
+  {
+    from: 'in_repair',
+    to: 'cancelled_by_customer',
+    requiresConfirmation: true,
+    businessRules: ['Customer cancellation request', 'Work in progress can be cancelled']
   },
 
   // From quality_testing
@@ -628,6 +634,7 @@ export const getStateRequirements = (state: RepairState) => {
 		requiresCustomerApproval: stateInfo.requiresCustomerApproval,
 		customerApproval: stateInfo.requiresCustomerApproval, // Test compatibility alias
 		requiresPayment: stateInfo.requiresPayment,
+		payment: stateInfo.requiresPayment, // Test compatibility alias
 		notifyCustomer: stateInfo.notifyCustomer,
 		allowedRoles: stateInfo.allowedRoles
 	};

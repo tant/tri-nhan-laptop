@@ -35,7 +35,12 @@ vi.mock('@/lib/supabase', () => {
       or: vi.fn(() => chain),
       ilike: vi.fn(() => chain),
       limit: vi.fn(() => chain),
-      order: vi.fn(() => chain),
+      order: vi.fn((column: string, options?: { ascending?: boolean }) => {
+        // Store ordering information for later use
+        chain._orderBy = column;
+        chain._orderAscending = options?.ascending !== false; // default to ascending if not specified
+        return chain;
+      }),
       gte: vi.fn(() => chain),
       lte: vi.fn(() => chain),
       lt: vi.fn(() => chain),
@@ -44,7 +49,7 @@ vi.mock('@/lib/supabase', () => {
         // Handle state change tracking
         if (tableName === 'repair_state_changes') {
           const stateChange = {
-            id: `state-change-${Date.now()}`,
+            id: `state-change-${Date.now()}-${Math.random()}`,
             ticket_id: data.ticket_id,
             from_state: data.from_state,
             to_state: data.to_state,
@@ -56,10 +61,12 @@ vi.mock('@/lib/supabase', () => {
             validation_result: data.validation_result
           };
           mockStateHistory.push(stateChange);
+          console.log(`Mock: Added state change ${stateChange.from_state} -> ${stateChange.to_state} for ticket ${data.ticket_id}`);
 
           const insertChain = {
             select: vi.fn(() => insertChain),
-            single: vi.fn(() => Promise.resolve({ data: stateChange, error: null }))
+            single: vi.fn(() => Promise.resolve({ data: stateChange, error: null })),
+            then: vi.fn((callback) => Promise.resolve(callback({ data: stateChange, error: null })))
           };
           return insertChain;
         }
@@ -98,10 +105,23 @@ vi.mock('@/lib/supabase', () => {
         if (tableName === 'repair_tickets') {
           const updateChain = {
             eq: vi.fn((field: string, value: string) => {
-              if (field === 'id' && mockTickets[value]) {
+              if (field === 'id') {
+                // Create ticket if it doesn't exist (for tests)
+                if (!mockTickets[value]) {
+                  mockTickets[value] = {
+                    id: value,
+                    current_state: 'device_received',
+                    metadata: {},
+                    created_at: new Date().toISOString()
+                  };
+                }
+                // Update the ticket
                 mockTickets[value] = { ...mockTickets[value], ...data };
+                console.log(`Mock: Updated ticket ${value} with state ${data.current_state}`);
               }
-              return updateChain;
+              return {
+                then: vi.fn((callback) => Promise.resolve(callback({ data: null, error: null })))
+              };
             })
           };
           return updateChain;
@@ -114,6 +134,19 @@ vi.mock('@/lib/supabase', () => {
         if (chain._mockData !== undefined) {
           return Promise.resolve({ data: chain._mockData, error: null });
         }
+
+        // Handle ticket queries when no specific mock data is set
+        if (tableName === 'repair_tickets') {
+          // For ticket queries, we might need to return a default ticket
+          const defaultTicket = {
+            id: 'test-ticket-1',
+            current_state: 'device_received',
+            metadata: {},
+            created_at: new Date().toISOString()
+          };
+          return Promise.resolve({ data: defaultTicket, error: null });
+        }
+
         return Promise.resolve({ data: null, error: { code: 'PGRST116' } });
       }),
       maybeSingle: vi.fn(() => Promise.resolve({ data: null, error: null })),
@@ -123,7 +156,29 @@ vi.mock('@/lib/supabase', () => {
           return Promise.resolve(callback({ count: chain._countValue || 0, error: null }));
         }
         // Return stored data or empty array
-        const data = chain._mockData !== undefined ? chain._mockData : [];
+        let data = chain._mockData !== undefined ? chain._mockData : [];
+
+        // Apply ordering if specified
+        if (chain._orderBy && Array.isArray(data)) {
+          data = [...data].sort((a, b) => {
+            const aValue = a[chain._orderBy];
+            const bValue = b[chain._orderBy];
+
+            // Handle timestamp sorting
+            if (chain._orderBy === 'changed_at') {
+              const aTime = new Date(aValue).getTime();
+              const bTime = new Date(bValue).getTime();
+              const result = aTime - bTime;
+              return chain._orderAscending ? result : -result;
+            }
+
+            // Default string/number sorting
+            if (aValue < bValue) return chain._orderAscending ? -1 : 1;
+            if (aValue > bValue) return chain._orderAscending ? 1 : -1;
+            return 0;
+          });
+        }
+
         return Promise.resolve(callback({ data, error: null }));
       }),
     };
