@@ -97,10 +97,26 @@ src/routes/
 ├── dashboard.tsx               # Main dashboard (protected)
 ├── admin.tsx                   # Administration panel (shop owner only)
 ├── analytics.tsx               # Business analytics (protected)
-├── khach-hang.tsx              # Customer management (Vietnamese route)
-├── phieu-sua-chua.tsx         # Repair tickets (Vietnamese route)
-├── ton-kho.tsx                # Inventory management (Vietnamese route)
-├── cua-hang.tsx               # Shop management (Vietnamese route)
+├── khach-hang/                 # Customer management (Vietnamese routes)
+│   ├── index.tsx              # Main customers list
+│   ├── new.tsx                # Create new customer
+│   ├── $id.tsx                # View specific customer details
+│   └── $id.edit.tsx           # Edit existing customer
+├── phieu-sua-chua/             # Repair tickets routing (Vietnamese routes)
+│   ├── index.tsx              # Main repair tickets list
+│   ├── new.tsx                # Create new repair ticket
+│   ├── $id.tsx                # View specific ticket details
+│   └── $id.edit.tsx           # Edit existing ticket
+├── ton-kho/                    # Inventory management (Vietnamese routes)
+│   ├── index.tsx              # Main inventory dashboard
+│   ├── new.tsx                # Add new inventory item
+│   ├── $id.tsx                # View specific item details
+│   └── $id.edit.tsx           # Edit existing inventory item
+├── cua-hang/                   # Shop management (Vietnamese routes)
+│   ├── index.tsx              # Main shop settings
+│   ├── settings.tsx           # Shop configuration
+│   ├── staff.tsx              # Staff management
+│   └── reports.tsx            # Shop reports and analytics
 ├── setup.tsx                  # Initial setup page
 └── routeTree.gen.ts           # Auto-generated route tree
 ```
@@ -272,10 +288,124 @@ try {
 
 ### Route Names
 Vietnamese route names reflect business terminology:
-- `/khach-hang` - Customer management
-- `/phieu-sua-chua` - Repair tickets
-- `/ton-kho` - Inventory
-- `/cua-hang` - Shop management
+- `/khach-hang` - Customer management with nested routes:
+  - `/khach-hang` - Main customers list and overview
+  - `/khach-hang/new` - Create new customer profile
+  - `/khach-hang/[id]` - View specific customer details
+  - `/khach-hang/[id]/edit` - Edit existing customer information
+- `/phieu-sua-chua` - Repair tickets management with nested routes:
+  - `/phieu-sua-chua` - Main repair tickets list and overview
+  - `/phieu-sua-chua/new` - Create new repair ticket form
+  - `/phieu-sua-chua/[id]` - View specific repair ticket details
+  - `/phieu-sua-chua/[id]/edit` - Edit existing repair ticket
+- `/ton-kho` - Inventory management with nested routes:
+  - `/ton-kho` - Main inventory dashboard and parts list
+  - `/ton-kho/new` - Add new inventory item or parts
+  - `/ton-kho/[id]` - View specific item details and stock history
+  - `/ton-kho/[id]/edit` - Edit existing inventory item information
+- `/cua-hang` - Shop management with nested routes:
+  - `/cua-hang` - Main shop overview and dashboard
+  - `/cua-hang/settings` - Shop configuration and preferences
+  - `/cua-hang/staff` - Staff management and permissions
+  - `/cua-hang/reports` - Shop analytics and business reports
+
+### Customer Management Routing Pattern
+The customer management feature uses a comprehensive nested routing structure:
+
+**List & Overview** (`/khach-hang`):
+- Main customers dashboard with searchable table
+- Customer filtering and sorting capabilities
+- Customer statistics and overview metrics
+
+**Create New Customer** (`/khach-hang/new`):
+- Customer registration form
+- Vietnamese phone number validation
+- Address and contact information capture
+- Service preferences setup
+
+**View Customer Details** (`/khach-hang/[id]`):
+- Complete customer profile display
+- Repair history and service timeline
+- Device ownership and warranty information
+- Communication log and notes
+
+**Edit Customer Information** (`/khach-hang/[id]/edit`):
+- Modify customer contact details
+- Update service preferences
+- Manage customer notes and tags
+- Address and billing information updates
+
+### Repair Tickets Routing Pattern
+The repair tickets feature uses a comprehensive nested routing structure:
+
+**List & Overview** (`/phieu-sua-chua`):
+- Main dashboard with tickets table
+- Search and filtering capabilities
+- Status overview and statistics
+
+**Create New Ticket** (`/phieu-sua-chua/new`):
+- Multi-step ticket creation form
+- Vietnamese device information input
+- Customer integration and validation
+- Draft saving functionality
+
+**View Ticket Details** (`/phieu-sua-chua/[id]`):
+- Complete ticket information display
+- Status history and timeline
+- Parts and costs breakdown
+- Customer communication log
+
+**Edit Existing Ticket** (`/phieu-sua-chua/[id]/edit`):
+- Modify ticket information
+- Update status and priority
+- Add notes and documentation
+- Manage parts and costs
+
+### Inventory Management Routing Pattern
+The inventory management feature uses a comprehensive nested routing structure:
+
+**Dashboard & List** (`/ton-kho`):
+- Main inventory dashboard with parts overview
+- Stock levels and low-stock alerts
+- Parts search and filtering capabilities
+
+**Add New Item** (`/ton-kho/new`):
+- New inventory item registration form
+- Parts compatibility and specifications
+- Initial stock level and pricing setup
+
+**View Item Details** (`/ton-kho/[id]`):
+- Complete item information display
+- Stock history and movement tracking
+- Supplier information and ordering details
+
+**Edit Item Information** (`/ton-kho/[id]/edit`):
+- Modify item specifications and details
+- Update pricing and stock information
+- Manage supplier relationships and notes
+
+### Shop Management Routing Pattern
+The shop management feature uses a comprehensive nested routing structure:
+
+**Main Overview** (`/cua-hang`):
+- Shop dashboard with key metrics
+- Business performance overview
+- Quick access to management functions
+
+**Shop Settings** (`/cua-hang/settings`):
+- Shop configuration and preferences
+- Business information and contact details
+- Operating hours and service settings
+
+**Staff Management** (`/cua-hang/staff`):
+- Employee profiles and permissions
+- Role assignments and access control
+- Staff performance and scheduling
+
+**Business Reports** (`/cua-hang/reports`):
+- Financial analytics and reporting
+- Service performance metrics
+- Customer satisfaction tracking
 
 ### Component Naming
 Components include Vietnamese business context where appropriate while maintaining English technical names for development clarity.

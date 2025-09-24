@@ -19,6 +19,7 @@ import { Route as CuaHangRouteImport } from './routes/cua-hang'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PhieuSuaChuaTaoMoiRouteImport } from './routes/phieu-sua-chua/tao-moi'
 
 const TonKhoRoute = TonKhoRouteImport.update({
   id: '/ton-kho',
@@ -70,6 +71,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PhieuSuaChuaTaoMoiRoute = PhieuSuaChuaTaoMoiRouteImport.update({
+  id: '/tao-moi',
+  path: '/tao-moi',
+  getParentRoute: () => PhieuSuaChuaRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,9 +85,10 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/khach-hang': typeof KhachHangRoute
   '/login': typeof LoginRoute
-  '/phieu-sua-chua': typeof PhieuSuaChuaRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaRouteWithChildren
   '/setup': typeof SetupRoute
   '/ton-kho': typeof TonKhoRoute
+  '/phieu-sua-chua/tao-moi': typeof PhieuSuaChuaTaoMoiRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,9 +98,10 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/khach-hang': typeof KhachHangRoute
   '/login': typeof LoginRoute
-  '/phieu-sua-chua': typeof PhieuSuaChuaRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaRouteWithChildren
   '/setup': typeof SetupRoute
   '/ton-kho': typeof TonKhoRoute
+  '/phieu-sua-chua/tao-moi': typeof PhieuSuaChuaTaoMoiRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,9 +112,10 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/khach-hang': typeof KhachHangRoute
   '/login': typeof LoginRoute
-  '/phieu-sua-chua': typeof PhieuSuaChuaRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaRouteWithChildren
   '/setup': typeof SetupRoute
   '/ton-kho': typeof TonKhoRoute
+  '/phieu-sua-chua/tao-moi': typeof PhieuSuaChuaTaoMoiRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/phieu-sua-chua'
     | '/setup'
     | '/ton-kho'
+    | '/phieu-sua-chua/tao-moi'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/phieu-sua-chua'
     | '/setup'
     | '/ton-kho'
+    | '/phieu-sua-chua/tao-moi'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/phieu-sua-chua'
     | '/setup'
     | '/ton-kho'
+    | '/phieu-sua-chua/tao-moi'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,7 +167,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   KhachHangRoute: typeof KhachHangRoute
   LoginRoute: typeof LoginRoute
-  PhieuSuaChuaRoute: typeof PhieuSuaChuaRoute
+  PhieuSuaChuaRoute: typeof PhieuSuaChuaRouteWithChildren
   SetupRoute: typeof SetupRoute
   TonKhoRoute: typeof TonKhoRoute
 }
@@ -232,8 +244,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/phieu-sua-chua/tao-moi': {
+      id: '/phieu-sua-chua/tao-moi'
+      path: '/tao-moi'
+      fullPath: '/phieu-sua-chua/tao-moi'
+      preLoaderRoute: typeof PhieuSuaChuaTaoMoiRouteImport
+      parentRoute: typeof PhieuSuaChuaRoute
+    }
   }
 }
+
+interface PhieuSuaChuaRouteChildren {
+  PhieuSuaChuaTaoMoiRoute: typeof PhieuSuaChuaTaoMoiRoute
+}
+
+const PhieuSuaChuaRouteChildren: PhieuSuaChuaRouteChildren = {
+  PhieuSuaChuaTaoMoiRoute: PhieuSuaChuaTaoMoiRoute,
+}
+
+const PhieuSuaChuaRouteWithChildren = PhieuSuaChuaRoute._addFileChildren(
+  PhieuSuaChuaRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -243,7 +274,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   KhachHangRoute: KhachHangRoute,
   LoginRoute: LoginRoute,
-  PhieuSuaChuaRoute: PhieuSuaChuaRoute,
+  PhieuSuaChuaRoute: PhieuSuaChuaRouteWithChildren,
   SetupRoute: SetupRoute,
   TonKhoRoute: TonKhoRoute,
 }

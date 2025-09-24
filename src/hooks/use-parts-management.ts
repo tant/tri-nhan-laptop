@@ -194,18 +194,22 @@ export function usePartsManagement() {
 			const { data, error } = await supabase
 				.from("parts")
 				.select("*")
-				.or("current_stock.lte.min_stock_level,current_stock.eq.0")
 				.order("current_stock", { ascending: true });
 
 			if (error) throw error;
 
+			// Filter for low stock parts on client side
+			const lowStockParts = (data || []).filter(part =>
+				part.current_stock <= part.min_stock_level || part.current_stock === 0
+			);
+
 			setState((prev) => ({
 				...prev,
 				loading: false,
-				lowStockParts: data || [],
+				lowStockParts: lowStockParts,
 			}));
 
-			return data || [];
+			return lowStockParts;
 		} catch (error) {
 			setState((prev) => ({
 				...prev,
@@ -481,7 +485,7 @@ export function usePartsManagement() {
 			.from("parts_reservations")
 			.select(`
 				*,
-				part:parts(name, part_number)
+				part:parts(name)
 			`)
 			.eq("repair_id", repairId)
 			.eq("status", "active")
@@ -500,7 +504,7 @@ export function usePartsManagement() {
 				.from("parts_reservations")
 				.select(`
 					*,
-					part:parts(name, part_number),
+					part:parts(name),
 					reserved_by_user:user_profiles(full_name)
 				`)
 				.eq("status", "active")
@@ -532,7 +536,7 @@ export function usePartsManagement() {
 				.from("inventory_transactions")
 				.select(`
 				*,
-				part:parts(name, part_number),
+				part:parts(name),
 				performer:user_profiles(full_name)
 			`)
 				.order("created_at", { ascending: false })

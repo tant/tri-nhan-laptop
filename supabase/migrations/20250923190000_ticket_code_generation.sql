@@ -147,9 +147,8 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_repair_tickets_ticket_code_search
 ON repair_tickets USING btree (ticket_code text_pattern_ops);
 
--- Create index for year-based queries
-CREATE INDEX IF NOT EXISTS idx_repair_tickets_year_extract
-ON repair_tickets (EXTRACT(YEAR FROM created_at));
+-- Note: Year-based index removed due to immutability constraints
+-- Queries by year can use the ticket_code index instead
 
 -- Function to search tickets by code pattern
 CREATE OR REPLACE FUNCTION search_tickets_by_code(search_pattern TEXT)

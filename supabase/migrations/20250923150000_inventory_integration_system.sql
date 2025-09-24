@@ -331,11 +331,9 @@ create policy "Users can view inventory transactions" on inventory_transactions
 create policy "Users can insert inventory transactions" on inventory_transactions
   for insert with check (auth.role() = 'authenticated');
 
--- Add missing fields to parts table if they don't exist
+-- Note: selling_price and min_stock_level columns are added in earlier migrations
+-- Only add cost_price if not exists (avoiding redundancy with other migrations)
 alter table parts add column if not exists cost_price numeric(10,2);
-alter table parts add column if not exists selling_price numeric(10,2);
-alter table parts add column if not exists min_stock_level integer default 5;
 
--- Update existing parts records to have selling_price same as unit_price for backward compatibility
-update parts set selling_price = unit_price where selling_price is null;
+-- Update existing parts records for backward compatibility
 update parts set cost_price = unit_cost where cost_price is null;

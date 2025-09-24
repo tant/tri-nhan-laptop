@@ -51,7 +51,7 @@ import {
 	TrendingUp,
 	Upload,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // Database types
 type Part = Database["public"]["Tables"]["parts"]["Row"];
@@ -84,7 +84,7 @@ export function PartsPage() {
 	} = usePartsManagement();
 
 	// Fetch parts from database with enhanced stock status
-	const fetchParts = async () => {
+	const fetchParts = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -101,12 +101,12 @@ export function PartsPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [getPartsWithStockStatus, getLowStockParts, calculateInventoryValue]);
 
 	// Load parts on component mount
 	useEffect(() => {
 		fetchParts();
-	}, []);
+	}, [fetchParts]);
 
 	// Real-time subscription to parts changes
 	useEffect(() => {
@@ -130,7 +130,7 @@ export function PartsPage() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, []);
+	}, [fetchParts]);
 
 	// Handle stock adjustment
 	const openStockAdjustment = (part: Part) => {

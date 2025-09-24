@@ -27,6 +27,11 @@ pnpm run db:status   # Check Supabase services status
 pnpm run create-admin # Create admin user from environment variables
 ```
 
+**Important Notes:**
+- If `db:reset` fails due to migration errors, seed data can be inserted manually
+- Row Level Security (RLS) policies are required for public API access
+- Test data includes repair tickets: LRP-2025-000001 (0901234567) and LRP-2025-000002 (0912345678)
+
 ### Code Quality
 ```bash
 pnpm run lint        # Run Biome linting
@@ -59,8 +64,9 @@ pnpm run test:ui     # Run tests with UI
 #### Database Integration
 - **Supabase Client**: `src/lib/supabase.ts` - Centralized client with Vietnamese repair shop schema types
 - **Type Safety**: Complete TypeScript types for all database tables (customers, repair_tickets, parts, user_profiles)
-- **Row Level Security**: Authentication-based access control for all data
+- **Row Level Security**: Public policies enabled for repair ticket lookup API access
 - **Real-time**: Live updates for repair ticket status changes
+- **Foreign Key Relationships**: Use explicit foreign key names when multiple relationships exist between tables
 
 #### Authentication & Authorization
 - **Context**: `src/contexts/auth-context.tsx` - Supabase Auth with role-based access
@@ -166,6 +172,26 @@ VITE_DEFAULT_LOCALE=vi-VN
 - Reset database: `pnpm run db:reset` (applies all migrations + seed data)
 - TypeScript types are manually maintained in `src/lib/supabase.ts`
 
+### Troubleshooting Database Issues
+If database reset fails or public lookup returns empty results:
+1. **Manual seed data insertion**: Insert test data directly via Docker container
+2. **RLS Policy Setup**: Ensure public policies exist for `repair_tickets` and `customers` tables
+3. **Connection Issues**: Restart Supabase completely with `db:stop` then `db:start`
+4. **Available Test Data**:
+   - Phone: 0901234567, Ticket: LRP-2025-000001 (Nguyễn Văn An - Dell)
+   - Phone: 0912345678, Ticket: LRP-2025-000002 (Trần Thị Bình - HP)
+
+### Common Frontend Issues Fixed
+**Database Schema Relationship Issues:**
+- Fixed relationship ambiguity between `repair_tickets` and `user_profiles` tables
+- Use specific foreign key relationships: `user_profiles!repair_tickets_assigned_technician_id_fkey(*)`
+- Added missing `part_number` column to parts table
+- Fixed invalid Supabase queries using column-to-column comparisons (use client-side filtering instead)
+
+**Query Pattern Fixes:**
+- ❌ Invalid: `.or("current_stock.lte.min_stock_level,current_stock.eq.0")`
+- ✅ Correct: Fetch all data, then filter client-side with `part.current_stock <= part.min_stock_level`
+
 ## Vietnamese Business Context
 
 ### Domain-Specific Features
@@ -180,3 +206,4 @@ VITE_DEFAULT_LOCALE=vi-VN
 - **Date/Time**: Vietnamese format with Asia/Ho_Chi_Minh timezone
 
 This application is specifically designed for Vietnamese laptop repair shops and includes domain-specific business logic that should be preserved when making changes.
+- to memorize every time you change code and script, make sure to check and update documents and testscript to reflex final changes. I just need to current best version, the changes is not quite needed

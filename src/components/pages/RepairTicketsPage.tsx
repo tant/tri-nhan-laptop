@@ -8,6 +8,7 @@ import { DataTable } from "@/components/ui/data-table";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import type { ColumnDef } from "@tanstack/react-table";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowUpDown, Edit, Eye, Package, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 // Workflow components temporarily disabled for Phase 3 development
@@ -25,6 +26,7 @@ type RepairWithDetails = RepairTicket & {
 };
 
 export function RepairTicketsPage() {
+	const navigate = useNavigate();
 	const [repairs, setRepairs] = useState<RepairWithDetails[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
@@ -46,7 +48,7 @@ export function RepairTicketsPage() {
 				.select(`
 					*,
 					customer:customers(*),
-					technician:user_profiles(*)
+					technician:user_profiles!repair_tickets_assigned_technician_id_fkey(*)
 				`)
 				.order("created_at", { ascending: false });
 
@@ -77,6 +79,10 @@ export function RepairTicketsPage() {
 	const closeRepairDetails = () => {
 		setSelectedRepair(null);
 		setIsRepairDetailsOpen(false);
+	};
+
+	const navigateToCreateTicket = () => {
+		navigate({ to: "/phieu-sua-chua/tao-moi" });
 	};
 
 	const handleRepairUpdate = () => {
@@ -362,7 +368,7 @@ export function RepairTicketsPage() {
 						/>
 						Làm mới
 					</Button>
-					<Button>
+					<Button onClick={navigateToCreateTicket}>
 						<Plus className="h-4 w-4 mr-2" />
 						Tạo phiếu mới
 					</Button>
@@ -474,6 +480,8 @@ export function RepairTicketsPage() {
 					</DialogContent>
 				</Dialog>
 			)} - Temporarily disabled */}
+
+			{/* Create Ticket functionality moved to separate page at /phieu-sua-chua/tao-moi */}
 
 			{/* Repair Details Modal with Parts Management */}
 			<RepairDetailsModal

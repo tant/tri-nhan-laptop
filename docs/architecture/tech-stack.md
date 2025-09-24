@@ -45,6 +45,8 @@ The Vietnamese Laptop Repair Management System is built using modern web technol
 - **Database Functions**: PostgreSQL functions for business logic (ticket generation, user management)
 - **Triggers**: Automated data consistency and audit trails
 - **Migrations**: Version-controlled database schema changes
+- **Multiple Foreign Keys**: Complex table relationships with explicit foreign key naming for Supabase queries
+- **Client-side Filtering**: Complex database queries handled via JavaScript filtering for Supabase REST API compatibility
 
 ## Development Tools
 

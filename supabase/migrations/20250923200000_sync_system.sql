@@ -342,9 +342,7 @@ BEGIN
       json_build_object(
         'user_name', user_name,
         'event_count', event_count
-      )
-      ORDER BY event_count DESC
-      LIMIT 5
+      ) ORDER BY event_count DESC
     ) as top_users
     FROM (
       SELECT user_name, COUNT(*) as event_count
