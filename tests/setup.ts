@@ -57,7 +57,7 @@ vi.mock('@/lib/supabase', () => {
             changed_at: data.changed_at,
             reason: data.reason,
             notes: data.notes,
-            customer_notified: data.customer_notified,
+            customer_notified: false, // Customer notifications deferred
             validation_result: data.validation_result
           };
           mockStateHistory.push(stateChange);

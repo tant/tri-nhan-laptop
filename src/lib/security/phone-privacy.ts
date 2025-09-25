@@ -80,20 +80,17 @@ export async function logPhoneAccess(
 			);
 		}
 
-		// TODO: Implement audit log table
-		// const { error } = await supabase
-		//   .from('audit_logs')
-		//   .insert({
-		//     resource_type: 'phone_number',
-		//     resource_id: maskPhoneNumber(phoneNumber),
-		//     action: accessType,
-		//     performed_by: accessedBy,
-		//     metadata: additionalData,
-		//   });
-
-		// if (error) {
-		//   console.error('Failed to log phone access:', error);
-		// }
+		// Log to audit system
+		const { logAuditEntry } = await import("@/lib/audit/audit-logger");
+		await logAuditEntry(
+			"phone_number",
+			maskPhoneNumber(phoneNumber),
+			accessType,
+			{
+				performedBy: accessedBy,
+				metadata: additionalData,
+			},
+		);
 	} catch (error) {
 		console.error("Error logging phone access:", error);
 	}

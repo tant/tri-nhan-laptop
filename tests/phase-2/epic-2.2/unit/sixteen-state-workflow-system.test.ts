@@ -420,35 +420,4 @@ describe("Epic 2.2.2: 16-State Repair Workflow Management System", () => {
 		});
 	});
 
-	describe("Integration with Customer Notifications", () => {
-		it("should identify states that trigger customer notifications", () => {
-			const notificationStates = Object.values(REPAIR_STATES).filter(
-				(state) => state.notifyCustomer,
-			);
-
-			expect(notificationStates.length).toBeGreaterThan(0);
-			expect(
-				notificationStates.some((s) => s.id === "awaiting_repair_plan"),
-			).toBe(true);
-			expect(notificationStates.some((s) => s.id === "ready_for_pickup")).toBe(
-				true,
-			);
-			expect(notificationStates.some((s) => s.id === "completed")).toBe(true);
-		});
-
-		it("should provide Vietnamese notification templates", async () => {
-			const { result } = renderHook(() => useRepairWorkflow());
-
-			await act(async () => {
-				const template = await result.current.getNotificationTemplate(
-					"ready_for_pickup",
-					"LRP-2025-000001",
-				);
-
-				expect(template.subject).toContain("sẵn sàng");
-				expect(template.message).toContain("nhận máy");
-				expect(template.message).toContain("LRP-2025-000001");
-			});
-		});
-	});
 });

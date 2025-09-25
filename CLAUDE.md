@@ -42,9 +42,14 @@ pnpm run build       # Build production bundle with TypeScript check
 
 ### Testing
 ```bash
-pnpm run test        # Run Vitest tests
-pnpm run test:watch  # Run tests in watch mode
-pnpm run test:ui     # Run tests with UI
+# Unit Tests (Vitest)
+pnpm run test:unit         # Run unit tests
+pnpm run test:unit:watch   # Run unit tests in watch mode
+pnpm run test:ui           # Run tests with UI
+
+# All Tests
+pnpm run test:all          # Run unit tests
+pnpm run test              # Default: run unit tests only
 ```
 
 ## Architecture Overview

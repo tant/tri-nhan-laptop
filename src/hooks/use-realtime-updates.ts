@@ -15,6 +15,8 @@ export interface RealtimeEvent {
   message: string;
 }
 
+export type { RealtimeEvent };
+
 export interface RealtimeSubscription {
   id: string;
   table: string;

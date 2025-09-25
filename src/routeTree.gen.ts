@@ -9,31 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TonKhoRouteImport } from './routes/ton-kho'
 import { Route as SetupRouteImport } from './routes/setup'
-import { Route as PhieuSuaChuaRouteImport } from './routes/phieu-sua-chua'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as KhachHangRouteImport } from './routes/khach-hang'
 import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CuaHangRouteImport } from './routes/cua-hang'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PhieuSuaChuaTaoMoiRouteImport } from './routes/phieu-sua-chua/tao-moi'
+import { Route as TonKhoIndexRouteImport } from './routes/ton-kho/index'
+import { Route as PhieuSuaChuaIndexRouteImport } from './routes/phieu-sua-chua/index'
+import { Route as KhachHangIndexRouteImport } from './routes/khach-hang/index'
+import { Route as CuaHangIndexRouteImport } from './routes/cua-hang/index'
+import { Route as TonKhoNewRouteImport } from './routes/ton-kho/new'
+import { Route as TonKhoIdRouteImport } from './routes/ton-kho/$id'
+import { Route as PhieuSuaChuaNewRouteImport } from './routes/phieu-sua-chua/new'
+import { Route as PhieuSuaChuaIdRouteImport } from './routes/phieu-sua-chua/$id'
+import { Route as KhachHangNewRouteImport } from './routes/khach-hang/new'
+import { Route as KhachHangIdRouteImport } from './routes/khach-hang/$id'
+import { Route as CuaHangStaffRouteImport } from './routes/cua-hang/staff'
+import { Route as CuaHangSettingsRouteImport } from './routes/cua-hang/settings'
+import { Route as CuaHangReportsRouteImport } from './routes/cua-hang/reports'
+import { Route as TonKhoIdEditRouteImport } from './routes/ton-kho/$id.edit'
+import { Route as PhieuSuaChuaIdEditRouteImport } from './routes/phieu-sua-chua/$id.edit'
+import { Route as KhachHangIdEditRouteImport } from './routes/khach-hang/$id.edit'
 
-const TonKhoRoute = TonKhoRouteImport.update({
-  id: '/ton-kho',
-  path: '/ton-kho',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PhieuSuaChuaRoute = PhieuSuaChuaRouteImport.update({
-  id: '/phieu-sua-chua',
-  path: '/phieu-sua-chua',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -41,19 +42,9 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const KhachHangRoute = KhachHangRouteImport.update({
-  id: '/khach-hang',
-  path: '/khach-hang',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CuaHangRoute = CuaHangRouteImport.update({
-  id: '/cua-hang',
-  path: '/cua-hang',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -71,51 +62,159 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PhieuSuaChuaTaoMoiRoute = PhieuSuaChuaTaoMoiRouteImport.update({
-  id: '/tao-moi',
-  path: '/tao-moi',
-  getParentRoute: () => PhieuSuaChuaRoute,
+const TonKhoIndexRoute = TonKhoIndexRouteImport.update({
+  id: '/ton-kho/',
+  path: '/ton-kho/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhieuSuaChuaIndexRoute = PhieuSuaChuaIndexRouteImport.update({
+  id: '/phieu-sua-chua/',
+  path: '/phieu-sua-chua/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KhachHangIndexRoute = KhachHangIndexRouteImport.update({
+  id: '/khach-hang/',
+  path: '/khach-hang/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuaHangIndexRoute = CuaHangIndexRouteImport.update({
+  id: '/cua-hang/',
+  path: '/cua-hang/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TonKhoNewRoute = TonKhoNewRouteImport.update({
+  id: '/ton-kho/new',
+  path: '/ton-kho/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TonKhoIdRoute = TonKhoIdRouteImport.update({
+  id: '/ton-kho/$id',
+  path: '/ton-kho/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhieuSuaChuaNewRoute = PhieuSuaChuaNewRouteImport.update({
+  id: '/phieu-sua-chua/new',
+  path: '/phieu-sua-chua/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PhieuSuaChuaIdRoute = PhieuSuaChuaIdRouteImport.update({
+  id: '/phieu-sua-chua/$id',
+  path: '/phieu-sua-chua/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KhachHangNewRoute = KhachHangNewRouteImport.update({
+  id: '/khach-hang/new',
+  path: '/khach-hang/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KhachHangIdRoute = KhachHangIdRouteImport.update({
+  id: '/khach-hang/$id',
+  path: '/khach-hang/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuaHangStaffRoute = CuaHangStaffRouteImport.update({
+  id: '/cua-hang/staff',
+  path: '/cua-hang/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuaHangSettingsRoute = CuaHangSettingsRouteImport.update({
+  id: '/cua-hang/settings',
+  path: '/cua-hang/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuaHangReportsRoute = CuaHangReportsRouteImport.update({
+  id: '/cua-hang/reports',
+  path: '/cua-hang/reports',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TonKhoIdEditRoute = TonKhoIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => TonKhoIdRoute,
+} as any)
+const PhieuSuaChuaIdEditRoute = PhieuSuaChuaIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => PhieuSuaChuaIdRoute,
+} as any)
+const KhachHangIdEditRoute = KhachHangIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => KhachHangIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
-  '/cua-hang': typeof CuaHangRoute
   '/dashboard': typeof DashboardRoute
-  '/khach-hang': typeof KhachHangRoute
   '/login': typeof LoginRoute
-  '/phieu-sua-chua': typeof PhieuSuaChuaRouteWithChildren
   '/setup': typeof SetupRoute
-  '/ton-kho': typeof TonKhoRoute
-  '/phieu-sua-chua/tao-moi': typeof PhieuSuaChuaTaoMoiRoute
+  '/cua-hang/reports': typeof CuaHangReportsRoute
+  '/cua-hang/settings': typeof CuaHangSettingsRoute
+  '/cua-hang/staff': typeof CuaHangStaffRoute
+  '/khach-hang/$id': typeof KhachHangIdRouteWithChildren
+  '/khach-hang/new': typeof KhachHangNewRoute
+  '/phieu-sua-chua/$id': typeof PhieuSuaChuaIdRouteWithChildren
+  '/phieu-sua-chua/new': typeof PhieuSuaChuaNewRoute
+  '/ton-kho/$id': typeof TonKhoIdRouteWithChildren
+  '/ton-kho/new': typeof TonKhoNewRoute
+  '/cua-hang': typeof CuaHangIndexRoute
+  '/khach-hang': typeof KhachHangIndexRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaIndexRoute
+  '/ton-kho': typeof TonKhoIndexRoute
+  '/khach-hang/$id/edit': typeof KhachHangIdEditRoute
+  '/phieu-sua-chua/$id/edit': typeof PhieuSuaChuaIdEditRoute
+  '/ton-kho/$id/edit': typeof TonKhoIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
-  '/cua-hang': typeof CuaHangRoute
   '/dashboard': typeof DashboardRoute
-  '/khach-hang': typeof KhachHangRoute
   '/login': typeof LoginRoute
-  '/phieu-sua-chua': typeof PhieuSuaChuaRouteWithChildren
   '/setup': typeof SetupRoute
-  '/ton-kho': typeof TonKhoRoute
-  '/phieu-sua-chua/tao-moi': typeof PhieuSuaChuaTaoMoiRoute
+  '/cua-hang/reports': typeof CuaHangReportsRoute
+  '/cua-hang/settings': typeof CuaHangSettingsRoute
+  '/cua-hang/staff': typeof CuaHangStaffRoute
+  '/khach-hang/$id': typeof KhachHangIdRouteWithChildren
+  '/khach-hang/new': typeof KhachHangNewRoute
+  '/phieu-sua-chua/$id': typeof PhieuSuaChuaIdRouteWithChildren
+  '/phieu-sua-chua/new': typeof PhieuSuaChuaNewRoute
+  '/ton-kho/$id': typeof TonKhoIdRouteWithChildren
+  '/ton-kho/new': typeof TonKhoNewRoute
+  '/cua-hang': typeof CuaHangIndexRoute
+  '/khach-hang': typeof KhachHangIndexRoute
+  '/phieu-sua-chua': typeof PhieuSuaChuaIndexRoute
+  '/ton-kho': typeof TonKhoIndexRoute
+  '/khach-hang/$id/edit': typeof KhachHangIdEditRoute
+  '/phieu-sua-chua/$id/edit': typeof PhieuSuaChuaIdEditRoute
+  '/ton-kho/$id/edit': typeof TonKhoIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
-  '/cua-hang': typeof CuaHangRoute
   '/dashboard': typeof DashboardRoute
-  '/khach-hang': typeof KhachHangRoute
   '/login': typeof LoginRoute
-  '/phieu-sua-chua': typeof PhieuSuaChuaRouteWithChildren
   '/setup': typeof SetupRoute
-  '/ton-kho': typeof TonKhoRoute
-  '/phieu-sua-chua/tao-moi': typeof PhieuSuaChuaTaoMoiRoute
+  '/cua-hang/reports': typeof CuaHangReportsRoute
+  '/cua-hang/settings': typeof CuaHangSettingsRoute
+  '/cua-hang/staff': typeof CuaHangStaffRoute
+  '/khach-hang/$id': typeof KhachHangIdRouteWithChildren
+  '/khach-hang/new': typeof KhachHangNewRoute
+  '/phieu-sua-chua/$id': typeof PhieuSuaChuaIdRouteWithChildren
+  '/phieu-sua-chua/new': typeof PhieuSuaChuaNewRoute
+  '/ton-kho/$id': typeof TonKhoIdRouteWithChildren
+  '/ton-kho/new': typeof TonKhoNewRoute
+  '/cua-hang/': typeof CuaHangIndexRoute
+  '/khach-hang/': typeof KhachHangIndexRoute
+  '/phieu-sua-chua/': typeof PhieuSuaChuaIndexRoute
+  '/ton-kho/': typeof TonKhoIndexRoute
+  '/khach-hang/$id/edit': typeof KhachHangIdEditRoute
+  '/phieu-sua-chua/$id/edit': typeof PhieuSuaChuaIdEditRoute
+  '/ton-kho/$id/edit': typeof TonKhoIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -123,76 +222,104 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/analytics'
-    | '/cua-hang'
     | '/dashboard'
-    | '/khach-hang'
     | '/login'
-    | '/phieu-sua-chua'
     | '/setup'
+    | '/cua-hang/reports'
+    | '/cua-hang/settings'
+    | '/cua-hang/staff'
+    | '/khach-hang/$id'
+    | '/khach-hang/new'
+    | '/phieu-sua-chua/$id'
+    | '/phieu-sua-chua/new'
+    | '/ton-kho/$id'
+    | '/ton-kho/new'
+    | '/cua-hang'
+    | '/khach-hang'
+    | '/phieu-sua-chua'
     | '/ton-kho'
-    | '/phieu-sua-chua/tao-moi'
+    | '/khach-hang/$id/edit'
+    | '/phieu-sua-chua/$id/edit'
+    | '/ton-kho/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/analytics'
-    | '/cua-hang'
     | '/dashboard'
-    | '/khach-hang'
     | '/login'
-    | '/phieu-sua-chua'
     | '/setup'
+    | '/cua-hang/reports'
+    | '/cua-hang/settings'
+    | '/cua-hang/staff'
+    | '/khach-hang/$id'
+    | '/khach-hang/new'
+    | '/phieu-sua-chua/$id'
+    | '/phieu-sua-chua/new'
+    | '/ton-kho/$id'
+    | '/ton-kho/new'
+    | '/cua-hang'
+    | '/khach-hang'
+    | '/phieu-sua-chua'
     | '/ton-kho'
-    | '/phieu-sua-chua/tao-moi'
+    | '/khach-hang/$id/edit'
+    | '/phieu-sua-chua/$id/edit'
+    | '/ton-kho/$id/edit'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/analytics'
-    | '/cua-hang'
     | '/dashboard'
-    | '/khach-hang'
     | '/login'
-    | '/phieu-sua-chua'
     | '/setup'
-    | '/ton-kho'
-    | '/phieu-sua-chua/tao-moi'
+    | '/cua-hang/reports'
+    | '/cua-hang/settings'
+    | '/cua-hang/staff'
+    | '/khach-hang/$id'
+    | '/khach-hang/new'
+    | '/phieu-sua-chua/$id'
+    | '/phieu-sua-chua/new'
+    | '/ton-kho/$id'
+    | '/ton-kho/new'
+    | '/cua-hang/'
+    | '/khach-hang/'
+    | '/phieu-sua-chua/'
+    | '/ton-kho/'
+    | '/khach-hang/$id/edit'
+    | '/phieu-sua-chua/$id/edit'
+    | '/ton-kho/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AnalyticsRoute: typeof AnalyticsRoute
-  CuaHangRoute: typeof CuaHangRoute
   DashboardRoute: typeof DashboardRoute
-  KhachHangRoute: typeof KhachHangRoute
   LoginRoute: typeof LoginRoute
-  PhieuSuaChuaRoute: typeof PhieuSuaChuaRouteWithChildren
   SetupRoute: typeof SetupRoute
-  TonKhoRoute: typeof TonKhoRoute
+  CuaHangReportsRoute: typeof CuaHangReportsRoute
+  CuaHangSettingsRoute: typeof CuaHangSettingsRoute
+  CuaHangStaffRoute: typeof CuaHangStaffRoute
+  KhachHangIdRoute: typeof KhachHangIdRouteWithChildren
+  KhachHangNewRoute: typeof KhachHangNewRoute
+  PhieuSuaChuaIdRoute: typeof PhieuSuaChuaIdRouteWithChildren
+  PhieuSuaChuaNewRoute: typeof PhieuSuaChuaNewRoute
+  TonKhoIdRoute: typeof TonKhoIdRouteWithChildren
+  TonKhoNewRoute: typeof TonKhoNewRoute
+  CuaHangIndexRoute: typeof CuaHangIndexRoute
+  KhachHangIndexRoute: typeof KhachHangIndexRoute
+  PhieuSuaChuaIndexRoute: typeof PhieuSuaChuaIndexRoute
+  TonKhoIndexRoute: typeof TonKhoIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/ton-kho': {
-      id: '/ton-kho'
-      path: '/ton-kho'
-      fullPath: '/ton-kho'
-      preLoaderRoute: typeof TonKhoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/setup': {
       id: '/setup'
       path: '/setup'
       fullPath: '/setup'
       preLoaderRoute: typeof SetupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/phieu-sua-chua': {
-      id: '/phieu-sua-chua'
-      path: '/phieu-sua-chua'
-      fullPath: '/phieu-sua-chua'
-      preLoaderRoute: typeof PhieuSuaChuaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -202,25 +329,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/khach-hang': {
-      id: '/khach-hang'
-      path: '/khach-hang'
-      fullPath: '/khach-hang'
-      preLoaderRoute: typeof KhachHangRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cua-hang': {
-      id: '/cua-hang'
-      path: '/cua-hang'
-      fullPath: '/cua-hang'
-      preLoaderRoute: typeof CuaHangRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -244,39 +357,177 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/phieu-sua-chua/tao-moi': {
-      id: '/phieu-sua-chua/tao-moi'
-      path: '/tao-moi'
-      fullPath: '/phieu-sua-chua/tao-moi'
-      preLoaderRoute: typeof PhieuSuaChuaTaoMoiRouteImport
-      parentRoute: typeof PhieuSuaChuaRoute
+    '/ton-kho/': {
+      id: '/ton-kho/'
+      path: '/ton-kho'
+      fullPath: '/ton-kho'
+      preLoaderRoute: typeof TonKhoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phieu-sua-chua/': {
+      id: '/phieu-sua-chua/'
+      path: '/phieu-sua-chua'
+      fullPath: '/phieu-sua-chua'
+      preLoaderRoute: typeof PhieuSuaChuaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/khach-hang/': {
+      id: '/khach-hang/'
+      path: '/khach-hang'
+      fullPath: '/khach-hang'
+      preLoaderRoute: typeof KhachHangIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cua-hang/': {
+      id: '/cua-hang/'
+      path: '/cua-hang'
+      fullPath: '/cua-hang'
+      preLoaderRoute: typeof CuaHangIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ton-kho/new': {
+      id: '/ton-kho/new'
+      path: '/ton-kho/new'
+      fullPath: '/ton-kho/new'
+      preLoaderRoute: typeof TonKhoNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ton-kho/$id': {
+      id: '/ton-kho/$id'
+      path: '/ton-kho/$id'
+      fullPath: '/ton-kho/$id'
+      preLoaderRoute: typeof TonKhoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phieu-sua-chua/new': {
+      id: '/phieu-sua-chua/new'
+      path: '/phieu-sua-chua/new'
+      fullPath: '/phieu-sua-chua/new'
+      preLoaderRoute: typeof PhieuSuaChuaNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/phieu-sua-chua/$id': {
+      id: '/phieu-sua-chua/$id'
+      path: '/phieu-sua-chua/$id'
+      fullPath: '/phieu-sua-chua/$id'
+      preLoaderRoute: typeof PhieuSuaChuaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/khach-hang/new': {
+      id: '/khach-hang/new'
+      path: '/khach-hang/new'
+      fullPath: '/khach-hang/new'
+      preLoaderRoute: typeof KhachHangNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/khach-hang/$id': {
+      id: '/khach-hang/$id'
+      path: '/khach-hang/$id'
+      fullPath: '/khach-hang/$id'
+      preLoaderRoute: typeof KhachHangIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cua-hang/staff': {
+      id: '/cua-hang/staff'
+      path: '/cua-hang/staff'
+      fullPath: '/cua-hang/staff'
+      preLoaderRoute: typeof CuaHangStaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cua-hang/settings': {
+      id: '/cua-hang/settings'
+      path: '/cua-hang/settings'
+      fullPath: '/cua-hang/settings'
+      preLoaderRoute: typeof CuaHangSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cua-hang/reports': {
+      id: '/cua-hang/reports'
+      path: '/cua-hang/reports'
+      fullPath: '/cua-hang/reports'
+      preLoaderRoute: typeof CuaHangReportsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ton-kho/$id/edit': {
+      id: '/ton-kho/$id/edit'
+      path: '/edit'
+      fullPath: '/ton-kho/$id/edit'
+      preLoaderRoute: typeof TonKhoIdEditRouteImport
+      parentRoute: typeof TonKhoIdRoute
+    }
+    '/phieu-sua-chua/$id/edit': {
+      id: '/phieu-sua-chua/$id/edit'
+      path: '/edit'
+      fullPath: '/phieu-sua-chua/$id/edit'
+      preLoaderRoute: typeof PhieuSuaChuaIdEditRouteImport
+      parentRoute: typeof PhieuSuaChuaIdRoute
+    }
+    '/khach-hang/$id/edit': {
+      id: '/khach-hang/$id/edit'
+      path: '/edit'
+      fullPath: '/khach-hang/$id/edit'
+      preLoaderRoute: typeof KhachHangIdEditRouteImport
+      parentRoute: typeof KhachHangIdRoute
     }
   }
 }
 
-interface PhieuSuaChuaRouteChildren {
-  PhieuSuaChuaTaoMoiRoute: typeof PhieuSuaChuaTaoMoiRoute
+interface KhachHangIdRouteChildren {
+  KhachHangIdEditRoute: typeof KhachHangIdEditRoute
 }
 
-const PhieuSuaChuaRouteChildren: PhieuSuaChuaRouteChildren = {
-  PhieuSuaChuaTaoMoiRoute: PhieuSuaChuaTaoMoiRoute,
+const KhachHangIdRouteChildren: KhachHangIdRouteChildren = {
+  KhachHangIdEditRoute: KhachHangIdEditRoute,
 }
 
-const PhieuSuaChuaRouteWithChildren = PhieuSuaChuaRoute._addFileChildren(
-  PhieuSuaChuaRouteChildren,
+const KhachHangIdRouteWithChildren = KhachHangIdRoute._addFileChildren(
+  KhachHangIdRouteChildren,
+)
+
+interface PhieuSuaChuaIdRouteChildren {
+  PhieuSuaChuaIdEditRoute: typeof PhieuSuaChuaIdEditRoute
+}
+
+const PhieuSuaChuaIdRouteChildren: PhieuSuaChuaIdRouteChildren = {
+  PhieuSuaChuaIdEditRoute: PhieuSuaChuaIdEditRoute,
+}
+
+const PhieuSuaChuaIdRouteWithChildren = PhieuSuaChuaIdRoute._addFileChildren(
+  PhieuSuaChuaIdRouteChildren,
+)
+
+interface TonKhoIdRouteChildren {
+  TonKhoIdEditRoute: typeof TonKhoIdEditRoute
+}
+
+const TonKhoIdRouteChildren: TonKhoIdRouteChildren = {
+  TonKhoIdEditRoute: TonKhoIdEditRoute,
+}
+
+const TonKhoIdRouteWithChildren = TonKhoIdRoute._addFileChildren(
+  TonKhoIdRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AnalyticsRoute: AnalyticsRoute,
-  CuaHangRoute: CuaHangRoute,
   DashboardRoute: DashboardRoute,
-  KhachHangRoute: KhachHangRoute,
   LoginRoute: LoginRoute,
-  PhieuSuaChuaRoute: PhieuSuaChuaRouteWithChildren,
   SetupRoute: SetupRoute,
-  TonKhoRoute: TonKhoRoute,
+  CuaHangReportsRoute: CuaHangReportsRoute,
+  CuaHangSettingsRoute: CuaHangSettingsRoute,
+  CuaHangStaffRoute: CuaHangStaffRoute,
+  KhachHangIdRoute: KhachHangIdRouteWithChildren,
+  KhachHangNewRoute: KhachHangNewRoute,
+  PhieuSuaChuaIdRoute: PhieuSuaChuaIdRouteWithChildren,
+  PhieuSuaChuaNewRoute: PhieuSuaChuaNewRoute,
+  TonKhoIdRoute: TonKhoIdRouteWithChildren,
+  TonKhoNewRoute: TonKhoNewRoute,
+  CuaHangIndexRoute: CuaHangIndexRoute,
+  KhachHangIndexRoute: KhachHangIndexRoute,
+  PhieuSuaChuaIndexRoute: PhieuSuaChuaIndexRoute,
+  TonKhoIndexRoute: TonKhoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

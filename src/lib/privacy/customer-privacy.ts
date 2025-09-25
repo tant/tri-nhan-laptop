@@ -1,9 +1,10 @@
 /**
  * Customer Privacy and Data Management Utilities
- * Handles customer data privacy controls, consent management, and data export
+ * Handles customer data privacy controls and consent management
  */
 
 import { supabase } from "@/lib/supabase";
+import { maskPhoneNumber } from "@/lib/security/phone-privacy";
 
 export interface CustomerPrivacySettings {
 	customerId: string;
@@ -277,7 +278,7 @@ export async function generateCustomerDataSummary(
 			dataUsage: {
 				createdAt: customer.created_at,
 				lastUpdated: customer.updated_at,
-				accessCount: 0, // TODO: Implement access tracking
+				accessCount: await getCustomerAccessCount(customerPhone),
 				lastAccessed: undefined,
 			},
 		};
@@ -374,16 +375,16 @@ export async function exportCustomerData(
 					data: exportData,
 				};
 			case "csv":
-				// TODO: Implement CSV conversion
-				return {
-					success: true,
-					data: convertToCSV(exportData) as unknown as Record<string, unknown>,
-				};
-			case "pdf":
-				// TODO: Implement PDF generation
+				// Data export functionality removed from Phase 2 requirements
 				return {
 					success: false,
-					error: "PDF export not yet implemented",
+					error: "CSV export functionality not implemented - removed from Phase 2",
+				};
+			case "pdf":
+				// Data export functionality removed from Phase 2 requirements
+				return {
+					success: false,
+					error: "PDF export functionality not implemented - removed from Phase 2",
 				};
 			default:
 				return {
@@ -518,5 +519,28 @@ export async function checkDataRetention(customerPhone: string): Promise<{
 	} catch (error) {
 		console.error("Error checking data retention:", error);
 		return { shouldRetain: true, canDelete: false };
+	}
+}
+
+/**
+ * Get customer access count from audit logs
+ */
+async function getCustomerAccessCount(customerPhone: string): Promise<number> {
+	try {
+		const maskedPhone = maskPhoneNumber(customerPhone);
+		const { count, error } = await supabase
+			.from("customer_access_logs")
+			.select("*", { count: "exact", head: true })
+			.eq("customer_phone_masked", maskedPhone);
+
+		if (error) {
+			console.error("Error getting customer access count:", error);
+			return 0;
+		}
+
+		return count || 0;
+	} catch (error) {
+		console.error("Error getting customer access count:", error);
+		return 0;
 	}
 }

@@ -55,7 +55,7 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 			items: [
 				{
 					title: "Danh sách phiếu",
-					url: "/phieu",
+					url: "/phieu-sua-chua",
 				},
 			],
 		},
@@ -85,7 +85,22 @@ function getNavigationData(profile: any, hasPermission: any, isRole: any) {
 			items: [
 				{
 					title: "Kho linh kiện",
-					url: "/linh-kien",
+					url: "/ton-kho",
+				},
+			],
+		});
+	}
+
+	// Add shop management for shop owners
+	if (isRole("shop_owner") || isRole("manager")) {
+		navMain.push({
+			title: "Cửa hàng",
+			url: "#",
+			icon: Monitor,
+			items: [
+				{
+					title: "Quản lý cửa hàng",
+					url: "/cua-hang",
 				},
 			],
 		});

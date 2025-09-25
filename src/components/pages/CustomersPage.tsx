@@ -9,6 +9,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
 import {
 	Dialog,
 	DialogContent,
@@ -19,18 +20,12 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { useOptimisticList } from "@/hooks/use-optimistic-mutation";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
+import type { ColumnDef } from "@tanstack/react-table";
 import {
+	ArrowUpDown,
 	Edit,
 	Eye,
 	Loader2,
@@ -38,7 +33,6 @@ import {
 	Phone,
 	Plus,
 	RefreshCw,
-	Search,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -56,7 +50,6 @@ type CustomerWithStats = Customer & {
 export function CustomersPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
-	const [searchTerm, setSearchTerm] = useState("");
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -170,13 +163,136 @@ export function CustomersPage() {
 		};
 	}, []);
 
-	// Filter customers based on search term
-	const filteredCustomers = customers.filter(
-		(customer) =>
-			customer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			customer.phone.includes(searchTerm) ||
-			customer.address?.toLowerCase().includes(searchTerm.toLowerCase()),
-	);
+	// Table columns definition
+	const columns: ColumnDef<CustomerWithStats>[] = [
+		{
+			accessorKey: "full_name",
+			header: ({ column }) => (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					className="ml-4"
+				>
+					Khách hàng
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			),
+			cell: ({ row }) => {
+				const customer = row.original;
+				const isOptimisticCustomer = isOptimistic(customer.id);
+				return (
+					<div className="flex items-center gap-2 ml-4">
+						<div>
+							<div className="font-medium flex items-center gap-2">
+								{customer.full_name}
+								{isOptimisticCustomer && (
+									<Badge
+										variant="outline"
+										className="text-blue-600 border-blue-300"
+									>
+										<Loader2 className="h-3 w-3 mr-1 animate-spin" />
+										Đang lưu
+									</Badge>
+								)}
+							</div>
+							<div className="text-sm text-muted-foreground truncate max-w-xs">
+								{customer.notes || "Không có ghi chú"}
+							</div>
+						</div>
+					</div>
+				);
+			},
+		},
+		{
+			accessorKey: "phone",
+			header: "Liên hệ",
+			cell: ({ row }) => {
+				const customer = row.original;
+				return (
+					<div className="space-y-1">
+						<div className="flex items-center text-sm">
+							<Phone className="mr-1 h-3 w-3" />
+							{customer.phone}
+						</div>
+					</div>
+				);
+			},
+		},
+		{
+			accessorKey: "address",
+			header: "Địa chỉ",
+			cell: ({ row }) => {
+				const customer = row.original;
+				return (
+					<div>
+						{customer.address ? (
+							<div className="flex items-center text-sm max-w-xs">
+								<MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
+								<span className="truncate">{customer.address}</span>
+							</div>
+						) : (
+							<span className="text-muted-foreground text-sm">
+								Chưa có địa chỉ
+							</span>
+						)}
+					</div>
+				);
+			},
+		},
+		{
+			accessorKey: "status",
+			header: "Tình trạng",
+			cell: ({ row }) => getStatusBadge(row.original),
+		},
+		{
+			accessorKey: "totalRepairs",
+			header: ({ column }) => (
+				<Button
+					variant="ghost"
+					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+				>
+					Lượt sửa chữa
+					<ArrowUpDown className="ml-2 h-4 w-4" />
+				</Button>
+			),
+			cell: ({ row }) => (
+				<div className="text-center">{row.getValue("totalRepairs")}</div>
+			),
+		},
+		{
+			accessorKey: "lastRepairDate",
+			header: "Lần cuối",
+			cell: ({ row }) => formatDate(row.getValue("lastRepairDate")),
+		},
+		{
+			id: "actions",
+			header: "Thao tác",
+			cell: ({ row }) => {
+				const customer = row.original;
+				const isOptimisticCustomer = isOptimistic(customer.id);
+				return (
+					<div className="flex gap-2">
+						<Button
+							variant="ghost"
+							size="sm"
+							disabled={isOptimisticCustomer}
+							title="Xem chi tiết khách hàng"
+						>
+							<Eye className="h-4 w-4" />
+						</Button>
+						<Button
+							variant="ghost"
+							size="sm"
+							disabled={isOptimisticCustomer}
+							title="Chỉnh sửa khách hàng"
+						>
+							<Edit className="h-4 w-4" />
+						</Button>
+					</div>
+				);
+			},
+		},
+	];
 
 	// Get customer status badge
 	const getStatusBadge = (customer: CustomerWithStats) => {
@@ -429,139 +545,30 @@ export function CustomersPage() {
 				</Card>
 			</div>
 
-			{/* Search */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Tìm kiếm khách hàng</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="relative">
-						<Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-						<Input
-							placeholder="Tìm kiếm theo tên, số điện thoại hoặc địa chỉ..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="pl-10"
-						/>
-					</div>
-				</CardContent>
-			</Card>
-
 			{/* Customer List */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Danh sách khách hàng</CardTitle>
-					<CardDescription>
-						Tổng số {filteredCustomers.length} khách hàng
-					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Khách hàng</TableHead>
-								<TableHead>Liên hệ</TableHead>
-								<TableHead>Địa chỉ</TableHead>
-								<TableHead>Tình trạng</TableHead>
-								<TableHead>Lượt sửa chữa</TableHead>
-								<TableHead>Lần cuối</TableHead>
-								<TableHead>Thao tác</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{filteredCustomers.map((customer) => {
-								const isOptimisticCustomer = isOptimistic(customer.id);
-								return (
-									<TableRow
-										key={customer.id}
-										className={
-											isOptimisticCustomer ? "bg-blue-50 opacity-75" : ""
-										}
-									>
-										<TableCell>
-											<div className="flex items-center gap-2">
-												<div>
-													<div className="font-medium flex items-center gap-2">
-														{customer.full_name}
-														{isOptimisticCustomer && (
-															<Badge
-																variant="outline"
-																className="text-blue-600 border-blue-300"
-															>
-																<Loader2 className="h-3 w-3 mr-1 animate-spin" />
-																Đang lưu
-															</Badge>
-														)}
-													</div>
-													<div className="text-sm text-muted-foreground truncate max-w-xs">
-														{customer.notes || "Không có ghi chú"}
-													</div>
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>
-											<div className="space-y-1">
-												<div className="flex items-center text-sm">
-													<Phone className="mr-1 h-3 w-3" />
-													{customer.phone}
-												</div>
-												{customer.address && (
-													<div className="flex items-center text-sm text-muted-foreground">
-														<MapPin className="mr-1 h-3 w-3" />
-														{customer.address}
-													</div>
-												)}
-											</div>
-										</TableCell>
-										<TableCell>
-											{customer.address ? (
-												<div className="flex items-center text-sm max-w-xs">
-													<MapPin className="mr-1 h-3 w-3 flex-shrink-0" />
-													<span className="truncate">{customer.address}</span>
-												</div>
-											) : (
-												<span className="text-muted-foreground text-sm">
-													Chưa có địa chỉ
-												</span>
-											)}
-										</TableCell>
-										<TableCell>{getStatusBadge(customer)}</TableCell>
-										<TableCell className="text-center">
-											{customer.totalRepairs}
-										</TableCell>
-										<TableCell>{formatDate(customer.lastRepairDate)}</TableCell>
-										<TableCell>
-											<div className="flex gap-2">
-												<Button
-													variant="outline"
-													size="sm"
-													disabled={isOptimisticCustomer}
-												>
-													<Eye className="h-4 w-4" />
-												</Button>
-												<Button
-													variant="outline"
-													size="sm"
-													disabled={isOptimisticCustomer}
-												>
-													<Edit className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								);
-							})}
-						</TableBody>
-					</Table>
-					{filteredCustomers.length === 0 && (
-						<div className="text-center py-8">
-							<p className="text-muted-foreground">
-								{searchTerm
-									? "Không tìm thấy khách hàng phù hợp"
-									: "Chưa có khách hàng nào"}
-							</p>
-						</div>
-					)}
+					<DataTable
+						columns={columns}
+						data={customers}
+						globalFilterFn={(row, columnId, filterValue) => {
+							if (!filterValue) return true;
+
+							const searchValue = filterValue.toLowerCase();
+							const customer = row.original;
+
+							// Search across customer name, phone, and address
+							return (
+								customer.full_name?.toLowerCase().includes(searchValue) ||
+								customer.phone?.toLowerCase().includes(searchValue) ||
+								customer.address?.toLowerCase().includes(searchValue)
+							);
+						}}
+						searchPlaceholder="Tìm kiếm theo tên, SĐT hoặc địa chỉ..."
+					/>
 				</CardContent>
 			</Card>
 		</div>

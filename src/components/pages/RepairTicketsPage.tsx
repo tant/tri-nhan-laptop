@@ -1,5 +1,4 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { RepairDetailsModal } from "@/components/repairs/RepairDetailsModal";
 import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,9 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowUpDown, Edit, Eye, Package, Plus, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AssignTechnicianDropdown } from "@/components/tickets/AssignTechnicianDropdown";
+import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown";
+import { RealtimeNotifications } from "@/components/notifications/RealtimeNotifications";
 // Workflow components temporarily disabled for Phase 3 development
 
 // Database types
@@ -30,9 +32,6 @@ export function RepairTicketsPage() {
 	const [repairs, setRepairs] = useState<RepairWithDetails[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
-	const [selectedRepair, setSelectedRepair] =
-		useState<RepairWithDetails | null>(null);
-	const [isRepairDetailsOpen, setIsRepairDetailsOpen] = useState(false);
 	// const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 	// const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
 	// const currentUser = { id: "mock-user-id", role: "manager" };
@@ -70,25 +69,11 @@ export function RepairTicketsPage() {
 		fetchRepairs();
 	}, []);
 
-	// Handle repair details modal
-	const openRepairDetails = (repair: RepairWithDetails) => {
-		setSelectedRepair(repair);
-		setIsRepairDetailsOpen(true);
-	};
-
-	const closeRepairDetails = () => {
-		setSelectedRepair(null);
-		setIsRepairDetailsOpen(false);
-	};
 
 	const navigateToCreateTicket = () => {
-		navigate({ to: "/phieu-sua-chua/tao-moi" });
+		navigate({ to: "/phieu-sua-chua/new" });
 	};
 
-	const handleRepairUpdate = () => {
-		// Refresh repairs list after update
-		fetchRepairs();
-	};
 
 	// Real-time subscription to repair changes
 	useEffect(() => {
@@ -209,19 +194,20 @@ export function RepairTicketsPage() {
 	// Table columns definition
 	const columns: ColumnDef<RepairWithDetails>[] = [
 		{
-			accessorKey: "ticket_number",
+			accessorKey: "ticket_code",
 			header: ({ column }) => (
 				<Button
 					variant="ghost"
 					onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+					className="ml-4"
 				>
 					Số phiếu
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			),
 			cell: ({ row }) => (
-				<div className="font-medium">
-					{row.getValue("ticket_number") || `#${row.original.id.slice(0, 8)}`}
+				<div className="font-medium ml-4">
+					{row.getValue("ticket_code") || `#${row.original.id.slice(0, 8)}`}
 				</div>
 			),
 		},
@@ -317,22 +303,30 @@ export function RepairTicketsPage() {
 			cell: ({ row }) => {
 				const repair = row.original;
 				return (
-					<div className="flex space-x-2">
-						<Button
-							variant="ghost"
-							size="sm"
-							onClick={() => openRepairDetails(repair)}
-							title="Xem chi tiết và quản lý linh kiện"
-						>
-							<Package className="h-4 w-4" />
-						</Button>
+					<div className="flex space-x-1">
+						{/* Quick Actions - Primary */}
+						<AssignTechnicianDropdown
+							ticketId={repair.id}
+							currentTechnicianId={repair.assigned_technician_id || undefined}
+							onAssign={() => fetchRepairs()} // Refresh data after assignment
+						/>
+						<StatusChangeDropdown
+							ticketId={repair.id}
+							currentStatus={repair.status}
+							onStatusChange={() => fetchRepairs()} // Refresh data after status change
+						/>
+
+						{/* Divider */}
+						<div className="w-px h-6 bg-border mx-1" />
+
+						{/* Secondary Actions */}
 						<Button
 							variant="ghost"
 							size="sm"
 							onClick={() => {
-								console.log("View repair timeline:", repair.id);
+								navigate({ to: "/phieu-sua-chua/$id", params: { id: repair.id } });
 							}}
-							title="Xem lịch sử sửa chữa"
+							title="Xem chi tiết phiếu sửa chữa"
 						>
 							<Eye className="h-4 w-4" />
 						</Button>
@@ -340,7 +334,7 @@ export function RepairTicketsPage() {
 							variant="ghost"
 							size="sm"
 							onClick={() => {
-								console.log("Edit repair:", repair.id);
+								navigate({ to: "/phieu-sua-chua/$id/edit", params: { id: repair.id } });
 							}}
 							title="Chỉnh sửa phiếu sửa chữa"
 						>
@@ -435,11 +429,11 @@ export function RepairTicketsPage() {
 				</Card>
 			</div>
 
-			{/* Technician Workload Dashboard */}
-			{/* <TechnicianWorkloadDashboard /> - Temporarily disabled */}
-
-			{/* Repair Tickets Table */}
-			<Card>
+			{/* Real-time Notifications and Data Table */}
+			<div className="grid gap-6 md:grid-cols-4">
+				<div className="md:col-span-3">
+					{/* Repair Tickets Table */}
+					<Card>
 				<CardHeader>
 					<CardTitle>Danh sách phiếu sửa chữa</CardTitle>
 				</CardHeader>
@@ -447,11 +441,35 @@ export function RepairTicketsPage() {
 					<DataTable
 						columns={columns}
 						data={repairs}
-						searchKey="customer"
-						searchPlaceholder="Tìm kiếm theo tên khách hàng..."
+						globalFilterFn={(row, columnId, filterValue) => {
+							if (!filterValue) return true;
+
+							const searchValue = filterValue.toLowerCase();
+							const customer = row.original.customer;
+							const ticketCode = row.original.ticket_code;
+
+							// Search across customer name, phone, and ticket code
+							return (
+								customer.full_name?.toLowerCase().includes(searchValue) ||
+								customer.phone?.toLowerCase().includes(searchValue) ||
+								ticketCode?.toLowerCase().includes(searchValue)
+							);
+						}}
+						searchPlaceholder="Tìm kiếm theo tên, SĐT hoặc số phiếu..."
 					/>
 				</CardContent>
 			</Card>
+				</div>
+
+				{/* Real-time Notifications Sidebar */}
+				<div>
+					<RealtimeNotifications
+						maxItems={8}
+						showConnectionStatus={true}
+						className="sticky top-4"
+					/>
+				</div>
+			</div>
 
 			{/* Status Transition Dialog */}
 			{/* {selectedRepair && (
@@ -481,15 +499,7 @@ export function RepairTicketsPage() {
 				</Dialog>
 			)} - Temporarily disabled */}
 
-			{/* Create Ticket functionality moved to separate page at /phieu-sua-chua/tao-moi */}
-
-			{/* Repair Details Modal with Parts Management */}
-			<RepairDetailsModal
-				repair={selectedRepair}
-				isOpen={isRepairDetailsOpen}
-				onClose={closeRepairDetails}
-				onUpdate={handleRepairUpdate}
-			/>
+			{/* Create Ticket functionality moved to separate page at /phieu-sua-chua/new */}
 		</div>
 	);
 }

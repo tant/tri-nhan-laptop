@@ -34,19 +34,38 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	searchKey?: string;
 	searchPlaceholder?: string;
+	globalFilterFn?: (row: any, columnId: string, filterValue: string) => boolean;
 }
+
+// Column ID to Vietnamese label mapping
+const getColumnLabel = (columnId: string): string => {
+	const labelMap: Record<string, string> = {
+		ticket_code: "Số phiếu",
+		customer: "Khách hàng",
+		device_info: "Thiết bị",
+		issue_description: "Sự cố",
+		status: "Trạng thái",
+		priority: "Ưu tiên",
+		estimated_cost: "Giá dự kiến",
+		technician: "Kỹ thuật viên",
+		actions: "Thao tác"
+	};
+	return labelMap[columnId] || columnId;
+};
 
 export function DataTable<TData, TValue>({
 	columns,
 	data,
 	searchKey,
 	searchPlaceholder = "Tìm kiếm...",
+	globalFilterFn,
 }: DataTableProps<TData, TValue>) {
 	const [sorting, setSorting] = React.useState<SortingState>([]);
 	const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
 		[],
 	);
 	const [columnVisibility, setColumnVisibility] = React.useState({});
+	const [globalFilter, setGlobalFilter] = React.useState("");
 
 	const table = useReactTable({
 		data,
@@ -58,25 +77,24 @@ export function DataTable<TData, TValue>({
 		onColumnFiltersChange: setColumnFilters,
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
+		onGlobalFilterChange: setGlobalFilter,
+		globalFilterFn: globalFilterFn || 'includesString',
 		state: {
 			sorting,
 			columnFilters,
 			columnVisibility,
+			globalFilter,
 		},
 	});
 
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center justify-between">
-				{searchKey && (
+				{(searchKey || globalFilterFn) && (
 					<Input
 						placeholder={searchPlaceholder}
-						value={
-							(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""
-						}
-						onChange={(event) =>
-							table.getColumn(searchKey)?.setFilterValue(event.target.value)
-						}
+						value={globalFilter ?? ""}
+						onChange={(event) => setGlobalFilter(event.target.value)}
 						className="max-w-sm"
 					/>
 				)}
@@ -100,7 +118,7 @@ export function DataTable<TData, TValue>({
 											column.toggleVisibility(!!value)
 										}
 									>
-										{column.id}
+										{getColumnLabel(column.id)}
 									</DropdownMenuCheckboxItem>
 								);
 							})}
