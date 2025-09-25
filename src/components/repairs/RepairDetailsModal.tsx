@@ -61,10 +61,20 @@ interface RepairDetailsModalProps {
 	onUpdate?: () => void;
 }
 
+type Part = Database["public"]["Tables"]["parts"]["Row"];
+
 interface SelectedPart {
-	part: any;
+	part: Part;
 	quantity: number;
 	notes?: string;
+}
+
+interface RepairPartData {
+	part_id: string;
+	quantity_used: number;
+	cost_per_unit: number;
+	total_cost: number;
+	part: Part;
 }
 
 export function RepairDetailsModal({
@@ -100,7 +110,12 @@ export function RepairDetailsModal({
 			setEstimatedHours(repair.estimated_hours || 0);
 			setNotes(repair.repair_notes || "");
 		}
-	}, [repair?.id]);
+	}, [
+		repair?.id,
+		repair?.labor_cost,
+		repair?.estimated_hours,
+		repair?.repair_notes,
+	]);
 
 	const loadRepairParts = async () => {
 		if (!repair?.id) return;
@@ -108,13 +123,15 @@ export function RepairDetailsModal({
 		try {
 			const partsData = await getRepairParts(repair.id);
 			// Transform the data to match our interface
-			const formattedParts: PartsUsed[] = partsData.map((item: any) => ({
-				part_id: item.part_id,
-				part_name: item.part.name,
-				quantity: item.quantity_used,
-				unit_price: item.cost_per_unit,
-				total_cost: item.total_cost,
-			}));
+			const formattedParts: PartsUsed[] = partsData.map(
+				(item: RepairPartData) => ({
+					part_id: item.part_id,
+					part_name: item.part.name,
+					quantity: item.quantity_used,
+					unit_price: item.cost_per_unit,
+					total_cost: item.total_cost,
+				}),
+			);
 			setCurrentParts(formattedParts);
 		} catch (error) {
 			console.error("Error loading repair parts:", error);
@@ -438,7 +455,7 @@ export function RepairDetailsModal({
 										<div className="space-y-3">
 											{currentParts.map((part, index) => (
 												<div
-													key={index}
+													key={`${part.part_id}-${part.quantity_used}-${index}`}
 													className="flex items-center justify-between p-3 border rounded-lg"
 												>
 													<div className="flex-1">

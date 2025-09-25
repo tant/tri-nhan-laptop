@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { getValidationMessage, getSuccessMessage } from "@/lib/auth-errors";
+import { getSuccessMessage, getValidationMessage } from "@/lib/auth-errors";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
 import { Laptop, LogIn } from "lucide-react";
@@ -28,14 +28,14 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 
 		// Email validation
 		if (!email.trim()) {
-			errors.email = getValidationMessage('emailRequired');
+			errors.email = getValidationMessage("emailRequired");
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			errors.email = getValidationMessage('emailInvalid');
+			errors.email = getValidationMessage("emailInvalid");
 		}
 
 		// Password validation
 		if (!password) {
-			errors.password = getValidationMessage('passwordRequired');
+			errors.password = getValidationMessage("passwordRequired");
 		}
 
 		setValidationErrors(errors);
@@ -64,7 +64,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 				toast({
 					variant: "success",
 					title: "Đăng nhập thành công!",
-					description: getSuccessMessage('loginSuccess'),
+					description: getSuccessMessage("loginSuccess"),
 				});
 
 				// Wait a bit for auth state to update, then navigate
@@ -120,17 +120,20 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 							setEmail(e.target.value);
 							// Clear validation error when user starts typing
 							if (validationErrors.email) {
-								setValidationErrors(prev => ({ ...prev, email: undefined }));
+								setValidationErrors((prev) => ({ ...prev, email: undefined }));
 							}
 						}}
 						className={cn(
 							"border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
-							validationErrors.email && "border-red-500 focus:border-red-500 focus:ring-red-500"
+							validationErrors.email &&
+								"border-red-500 focus:border-red-500 focus:ring-red-500",
 						)}
 						required
 					/>
 					{validationErrors.email && (
-						<p className="text-sm text-red-600 mt-1">{validationErrors.email}</p>
+						<p className="text-sm text-red-600 mt-1">
+							{validationErrors.email}
+						</p>
 					)}
 				</div>
 				<div className="grid gap-3">
@@ -153,17 +156,23 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 							setPassword(e.target.value);
 							// Clear validation error when user starts typing
 							if (validationErrors.password) {
-								setValidationErrors(prev => ({ ...prev, password: undefined }));
+								setValidationErrors((prev) => ({
+									...prev,
+									password: undefined,
+								}));
 							}
 						}}
 						className={cn(
 							"border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
-							validationErrors.password && "border-red-500 focus:border-red-500 focus:ring-red-500"
+							validationErrors.password &&
+								"border-red-500 focus:border-red-500 focus:ring-red-500",
 						)}
 						required
 					/>
 					{validationErrors.password && (
-						<p className="text-sm text-red-600 mt-1">{validationErrors.password}</p>
+						<p className="text-sm text-red-600 mt-1">
+							{validationErrors.password}
+						</p>
 					)}
 				</div>
 				<Button

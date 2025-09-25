@@ -34,7 +34,7 @@ import {
 	Plus,
 	RefreshCw,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 // Database types
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
@@ -64,7 +64,7 @@ export function CustomersPage() {
 	} = useOptimisticList<CustomerWithStats>([]);
 
 	// Fetch customers with repair statistics
-	const fetchCustomers = async () => {
+	const fetchCustomers = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -132,12 +132,12 @@ export function CustomersPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [setCustomers]);
 
 	// Load customers on component mount
 	useEffect(() => {
 		fetchCustomers();
-	}, []);
+	}, [fetchCustomers]);
 
 	// Real-time subscription to customer changes
 	useEffect(() => {
@@ -161,7 +161,7 @@ export function CustomersPage() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, []);
+	}, [fetchCustomers]);
 
 	// Table columns definition
 	const columns: ColumnDef<CustomerWithStats>[] = [

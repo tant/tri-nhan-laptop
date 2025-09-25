@@ -54,6 +54,7 @@ export function ProtectedRoute({
 						</p>
 					</div>
 					<button
+						type="button"
 						onClick={() => window.history.back()}
 						className="text-[#299fce] hover:underline text-sm"
 					>

@@ -40,6 +40,8 @@ pnpm run check       # Run Biome check (lint + format)
 pnpm run build       # Build production bundle with TypeScript check
 ```
 
+**Note**: Biome is configured to ignore test files (`tests/**/*`, `**/*.test.*`, `**/*.spec.*`) to focus code quality checks on production code only. Test files are handled separately by the testing framework.
+
 ### Testing
 ```bash
 # Unit Tests (Vitest)

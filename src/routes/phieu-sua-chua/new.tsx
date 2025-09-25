@@ -1,5 +1,5 @@
-import { CreateTicketForm } from "@/components/tickets/CreateTicketForm";
 import { ProtectedRoute } from "@/components/protected-route";
+import { CreateTicketForm } from "@/components/tickets/CreateTicketForm";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 function ProtectedCreateTicket() {

@@ -520,7 +520,9 @@ export function useCustomers() {
 				// Check if new phone already exists
 				const existingCustomer = await findCustomerByPhone(normalizedNewPhone);
 				if (existingCustomer && existingCustomer.phone !== normalizedOldPhone) {
-					throw new Error("Số điện thoại mới đã được sử dụng bởi khách hàng khác");
+					throw new Error(
+						"Số điện thoại mới đã được sử dụng bởi khách hàng khác",
+					);
 				}
 
 				// Update customer phone
@@ -530,7 +532,9 @@ export function useCustomers() {
 					.eq("phone", normalizedOldPhone);
 
 				if (updateError) {
-					throw new Error(`Không thể cập nhật số điện thoại: ${updateError.message}`);
+					throw new Error(
+						`Không thể cập nhật số điện thoại: ${updateError.message}`,
+					);
 				}
 
 				// Create phone change record
@@ -590,7 +594,7 @@ export function useCustomers() {
 					throw new Error(`Không thể tải lịch sử thay đổi: ${error.message}`);
 				}
 
-				return (data || []).map(record => ({
+				return (data || []).map((record) => ({
 					oldPhone: record.old_phone,
 					newPhone: record.new_phone,
 					changedAt: record.changed_at,

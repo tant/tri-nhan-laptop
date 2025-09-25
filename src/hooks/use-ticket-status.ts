@@ -3,468 +3,498 @@
  * Handles ticket code generation, status updates, and real-time synchronization
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import { RepairState, REPAIR_STATES } from '@/lib/workflow/repair-states';
+import { supabase } from "@/lib/supabase";
+import { REPAIR_STATES, type RepairState } from "@/lib/workflow/repair-states";
+import { useCallback, useEffect, useState } from "react";
 
 export interface TicketInfo {
-  id: string;
-  ticket_code: string;
-  customer_phone: string;
-  device_info: string;
-  current_state: RepairState;
-  created_at: string;
-  updated_at: string;
-  metadata?: Record<string, any>;
+	id: string;
+	ticket_code: string;
+	customer_phone: string;
+	device_info: string;
+	current_state: RepairState;
+	created_at: string;
+	updated_at: string;
+	metadata?: Record<string, any>;
 }
 
 export interface StatusUpdate {
-  id: string;
-  ticket_id: string;
-  from_state: RepairState;
-  to_state: RepairState;
-  changed_by: string;
-  changed_at: string;
-  reason: string;
-  notes?: string;
-  customer_notified: boolean;
-  staff_name?: string;
+	id: string;
+	ticket_id: string;
+	from_state: RepairState;
+	to_state: RepairState;
+	changed_by: string;
+	changed_at: string;
+	reason: string;
+	notes?: string;
+	customer_notified: boolean;
+	staff_name?: string;
 }
 
 export interface TicketCodeStats {
-  year: number;
-  total_generated: number;
-  tickets_created: number;
-  sequence_gaps: number;
-  first_ticket_date?: string;
-  last_ticket_date?: string;
-  sequence_last_updated: string;
+	year: number;
+	total_generated: number;
+	tickets_created: number;
+	sequence_gaps: number;
+	first_ticket_date?: string;
+	last_ticket_date?: string;
+	sequence_last_updated: string;
 }
 
 export interface StatusMessage {
-  type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message: string;
-  timestamp: string;
-  ticket_code?: string;
+	type: "success" | "error" | "warning" | "info";
+	title: string;
+	message: string;
+	timestamp: string;
+	ticket_code?: string;
 }
 
 export function useTicketStatus() {
-  const [tickets, setTickets] = useState<TicketInfo[]>([]);
-  const [statusUpdates, setStatusUpdates] = useState<StatusUpdate[]>([]);
-  const [codeStats, setCodeStats] = useState<TicketCodeStats[]>([]);
-  const [statusMessages, setStatusMessages] = useState<StatusMessage[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+	const [tickets, setTickets] = useState<TicketInfo[]>([]);
+	const [statusUpdates, setStatusUpdates] = useState<StatusUpdate[]>([]);
+	const [codeStats, setCodeStats] = useState<TicketCodeStats[]>([]);
+	const [statusMessages, setStatusMessages] = useState<StatusMessage[]>([]);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
-  // Vietnamese status message templates
-  const statusMessageTemplates = {
-    ticket_created: 'Đã tạo phiếu sửa chữa mới',
-    status_updated: 'Đã cập nhật trạng thái',
-    customer_notified: 'Đã thông báo khách hàng',
-    error_occurred: 'Có lỗi xảy ra',
-    invalid_transition: 'Chuyển trạng thái không hợp lệ',
-    permission_denied: 'Không có quyền thực hiện',
-    validation_failed: 'Dữ liệu không hợp lệ'
-  };
+	// Vietnamese status message templates
+	const statusMessageTemplates = {
+		ticket_created: "Đã tạo phiếu sửa chữa mới",
+		status_updated: "Đã cập nhật trạng thái",
+		customer_notified: "Đã thông báo khách hàng",
+		error_occurred: "Có lỗi xảy ra",
+		invalid_transition: "Chuyển trạng thái không hợp lệ",
+		permission_denied: "Không có quyền thực hiện",
+		validation_failed: "Dữ liệu không hợp lệ",
+	};
 
-  // Vietnamese time formatting
-  const formatVietnameseTime = (timestamp: string): string => {
-    const date = new Date(timestamp);
-    return date.toLocaleString('vi-VN', {
-      timeZone: 'Asia/Ho_Chi_Minh',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
-    });
-  };
+	// Vietnamese time formatting
+	const formatVietnameseTime = (timestamp: string): string => {
+		const date = new Date(timestamp);
+		return date.toLocaleString("vi-VN", {
+			timeZone: "Asia/Ho_Chi_Minh",
+			year: "numeric",
+			month: "2-digit",
+			day: "2-digit",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+		});
+	};
 
-  // Generate preview of next ticket code
-  const previewNextTicketCode = useCallback(async (): Promise<string | null> => {
-    try {
-      const { data, error } = await supabase.rpc('preview_next_ticket_code');
-      if (error) throw error;
-      return data;
-    } catch (err) {
-      console.error('Error previewing next ticket code:', err);
-      return null;
-    }
-  }, []);
+	// Generate preview of next ticket code
+	const previewNextTicketCode = useCallback(async (): Promise<
+		string | null
+	> => {
+		try {
+			const { data, error } = await supabase.rpc("preview_next_ticket_code");
+			if (error) throw error;
+			return data;
+		} catch (err) {
+			console.error("Error previewing next ticket code:", err);
+			return null;
+		}
+	}, []);
 
-  // Create ticket with automatic code generation
-  const createTicketWithCode = useCallback(async (ticketData: {
-    customer_phone: string;
-    device_info: string;
-    problem_description: string;
-    repair_type?: string;
-    priority?: string;
-    assigned_technician?: string;
-    metadata?: Record<string, any>;
-  }): Promise<{ success: boolean; ticket?: TicketInfo; error?: string }> => {
-    try {
-      setLoading(true);
-      setError(null);
+	// Create ticket with automatic code generation
+	const createTicketWithCode = useCallback(
+		async (ticketData: {
+			customer_phone: string;
+			device_info: string;
+			problem_description: string;
+			repair_type?: string;
+			priority?: string;
+			assigned_technician?: string;
+			metadata?: Record<string, any>;
+		}): Promise<{ success: boolean; ticket?: TicketInfo; error?: string }> => {
+			try {
+				setLoading(true);
+				setError(null);
 
-      // Insert ticket - code will be auto-generated by trigger
-      const { data: ticket, error: insertError } = await supabase
-        .from('repair_tickets')
-        .insert({
-          customer_phone: ticketData.customer_phone,
-          device_info: ticketData.device_info,
-          problem_description: ticketData.problem_description,
-          repair_type: ticketData.repair_type || 'hardware',
-          priority: ticketData.priority || 'normal',
-          assigned_technician: ticketData.assigned_technician,
-          current_state: 'device_received',
-          metadata: ticketData.metadata || {}
-        })
-        .select('*')
-        .single();
+				// Insert ticket - code will be auto-generated by trigger
+				const { data: ticket, error: insertError } = await supabase
+					.from("repair_tickets")
+					.insert({
+						customer_phone: ticketData.customer_phone,
+						device_info: ticketData.device_info,
+						problem_description: ticketData.problem_description,
+						repair_type: ticketData.repair_type || "hardware",
+						priority: ticketData.priority || "normal",
+						assigned_technician: ticketData.assigned_technician,
+						current_state: "device_received",
+						metadata: ticketData.metadata || {},
+					})
+					.select("*")
+					.single();
 
-      if (insertError) throw insertError;
+				if (insertError) throw insertError;
 
-      // Add success message
-      addStatusMessage({
-        type: 'success',
-        title: statusMessageTemplates.ticket_created,
-        message: `Mã phiếu: ${ticket.ticket_code}`,
-        ticket_code: ticket.ticket_code
-      });
+				// Add success message
+				addStatusMessage({
+					type: "success",
+					title: statusMessageTemplates.ticket_created,
+					message: `Mã phiếu: ${ticket.ticket_code}`,
+					ticket_code: ticket.ticket_code,
+				});
 
-      return { success: true, ticket };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Lỗi không xác định';
-      setError(errorMessage);
+				return { success: true, ticket };
+			} catch (err) {
+				const errorMessage =
+					err instanceof Error ? err.message : "Lỗi không xác định";
+				setError(errorMessage);
 
-      addStatusMessage({
-        type: 'error',
-        title: statusMessageTemplates.error_occurred,
-        message: errorMessage
-      });
+				addStatusMessage({
+					type: "error",
+					title: statusMessageTemplates.error_occurred,
+					message: errorMessage,
+				});
 
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+				return { success: false, error: errorMessage };
+			} finally {
+				setLoading(false);
+			}
+		},
+		[],
+	);
 
-  // Search tickets by code
-  const searchTicketsByCode = useCallback(async (searchPattern: string): Promise<TicketInfo[]> => {
-    try {
-      const { data, error } = await supabase.rpc('search_tickets_by_code', {
-        search_pattern: searchPattern
-      });
+	// Search tickets by code
+	const searchTicketsByCode = useCallback(
+		async (searchPattern: string): Promise<TicketInfo[]> => {
+			try {
+				const { data, error } = await supabase.rpc("search_tickets_by_code", {
+					search_pattern: searchPattern,
+				});
 
-      if (error) throw error;
-      return data || [];
-    } catch (err) {
-      console.error('Error searching tickets:', err);
-      return [];
-    }
-  }, []);
+				if (error) throw error;
+				return data || [];
+			} catch (err) {
+				console.error("Error searching tickets:", err);
+				return [];
+			}
+		},
+		[],
+	);
 
-  // Get ticket by exact code
-  const getTicketByCode = useCallback(async (ticketCode: string): Promise<TicketInfo | null> => {
-    try {
-      const { data, error } = await supabase
-        .from('repair_tickets')
-        .select('*')
-        .eq('ticket_code', ticketCode)
-        .single();
+	// Get ticket by exact code
+	const getTicketByCode = useCallback(
+		async (ticketCode: string): Promise<TicketInfo | null> => {
+			try {
+				const { data, error } = await supabase
+					.from("repair_tickets")
+					.select("*")
+					.eq("ticket_code", ticketCode)
+					.single();
 
-      if (error) throw error;
-      return data;
-    } catch (err) {
-      console.error('Error getting ticket by code:', err);
-      return null;
-    }
-  }, []);
+				if (error) throw error;
+				return data;
+			} catch (err) {
+				console.error("Error getting ticket by code:", err);
+				return null;
+			}
+		},
+		[],
+	);
 
-  // Update ticket status
-  const updateTicketStatus = useCallback(async (
-    ticketId: string,
-    newState: RepairState,
-    context: {
-      reason: string;
-      notes?: string;
-      userId: string;
-      notify_customer?: boolean;
-    }
-  ): Promise<{ success: boolean; error?: string }> => {
-    try {
-      setLoading(true);
+	// Update ticket status
+	const updateTicketStatus = useCallback(
+		async (
+			ticketId: string,
+			newState: RepairState,
+			context: {
+				reason: string;
+				notes?: string;
+				userId: string;
+				notify_customer?: boolean;
+			},
+		): Promise<{ success: boolean; error?: string }> => {
+			try {
+				setLoading(true);
 
-      // Get current ticket info
-      const { data: currentTicket, error: fetchError } = await supabase
-        .from('repair_tickets')
-        .select('current_state, ticket_code')
-        .eq('id', ticketId)
-        .single();
+				// Get current ticket info
+				const { data: currentTicket, error: fetchError } = await supabase
+					.from("repair_tickets")
+					.select("current_state, ticket_code")
+					.eq("id", ticketId)
+					.single();
 
-      if (fetchError) throw fetchError;
+				if (fetchError) throw fetchError;
 
-      // Update ticket state
-      const { error: updateError } = await supabase
-        .from('repair_tickets')
-        .update({
-          current_state: newState,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', ticketId);
+				// Update ticket state
+				const { error: updateError } = await supabase
+					.from("repair_tickets")
+					.update({
+						current_state: newState,
+						updated_at: new Date().toISOString(),
+					})
+					.eq("id", ticketId);
 
-      if (updateError) throw updateError;
+				if (updateError) throw updateError;
 
-      // Log status change
-      const { error: logError } = await supabase
-        .from('repair_state_changes')
-        .insert({
-          ticket_id: ticketId,
-          from_state: currentTicket.current_state,
-          to_state: newState,
-          changed_by: context.userId,
-          changed_at: new Date().toISOString(),
-          reason: context.reason,
-          notes: context.notes,
-          customer_notified: context.notify_customer || false
-        });
+				// Log status change
+				const { error: logError } = await supabase
+					.from("repair_state_changes")
+					.insert({
+						ticket_id: ticketId,
+						from_state: currentTicket.current_state,
+						to_state: newState,
+						changed_by: context.userId,
+						changed_at: new Date().toISOString(),
+						reason: context.reason,
+						notes: context.notes,
+						customer_notified: context.notify_customer || false,
+					});
 
-      if (logError) throw logError;
+				if (logError) throw logError;
 
-      // Add success message
-      addStatusMessage({
-        type: 'success',
-        title: statusMessageTemplates.status_updated,
-        message: `${currentTicket.ticket_code}: ${REPAIR_STATES[currentTicket.current_state].label} → ${REPAIR_STATES[newState].label}`,
-        ticket_code: currentTicket.ticket_code
-      });
+				// Add success message
+				addStatusMessage({
+					type: "success",
+					title: statusMessageTemplates.status_updated,
+					message: `${currentTicket.ticket_code}: ${REPAIR_STATES[currentTicket.current_state].label} → ${REPAIR_STATES[newState].label}`,
+					ticket_code: currentTicket.ticket_code,
+				});
 
-      return { success: true };
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Lỗi cập nhật trạng thái';
-      setError(errorMessage);
+				return { success: true };
+			} catch (err) {
+				const errorMessage =
+					err instanceof Error ? err.message : "Lỗi cập nhật trạng thái";
+				setError(errorMessage);
 
-      addStatusMessage({
-        type: 'error',
-        title: statusMessageTemplates.error_occurred,
-        message: errorMessage
-      });
+				addStatusMessage({
+					type: "error",
+					title: statusMessageTemplates.error_occurred,
+					message: errorMessage,
+				});
 
-      return { success: false, error: errorMessage };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+				return { success: false, error: errorMessage };
+			} finally {
+				setLoading(false);
+			}
+		},
+		[],
+	);
 
-  // Load tickets with filters
-  const loadTickets = useCallback(async (filters?: {
-    state?: RepairState;
-    year?: number;
-    search?: string;
-    limit?: number;
-  }) => {
-    try {
-      setLoading(true);
-      setError(null);
+	// Load tickets with filters
+	const loadTickets = useCallback(
+		async (filters?: {
+			state?: RepairState;
+			year?: number;
+			search?: string;
+			limit?: number;
+		}) => {
+			try {
+				setLoading(true);
+				setError(null);
 
-      let query = supabase
-        .from('repair_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
+				let query = supabase
+					.from("repair_tickets")
+					.select("*")
+					.order("created_at", { ascending: false });
 
-      // Apply filters
-      if (filters?.state) {
-        query = query.eq('current_state', filters.state);
-      }
+				// Apply filters
+				if (filters?.state) {
+					query = query.eq("current_state", filters.state);
+				}
 
-      if (filters?.year) {
-        const yearStart = `${filters.year}-01-01T00:00:00Z`;
-        const yearEnd = `${filters.year}-12-31T23:59:59Z`;
-        query = query.gte('created_at', yearStart).lte('created_at', yearEnd);
-      }
+				if (filters?.year) {
+					const yearStart = `${filters.year}-01-01T00:00:00Z`;
+					const yearEnd = `${filters.year}-12-31T23:59:59Z`;
+					query = query.gte("created_at", yearStart).lte("created_at", yearEnd);
+				}
 
-      if (filters?.search) {
-        query = query.or(`ticket_code.ilike.%${filters.search}%,device_info.ilike.%${filters.search}%,customer_phone.ilike.%${filters.search}%`);
-      }
+				if (filters?.search) {
+					query = query.or(
+						`ticket_code.ilike.%${filters.search}%,device_info.ilike.%${filters.search}%,customer_phone.ilike.%${filters.search}%`,
+					);
+				}
 
-      if (filters?.limit) {
-        query = query.limit(filters.limit);
-      }
+				if (filters?.limit) {
+					query = query.limit(filters.limit);
+				}
 
-      const { data, error } = await query;
+				const { data, error } = await query;
 
-      if (error) throw error;
-      setTickets(data || []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Lỗi tải danh sách phiếu';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+				if (error) throw error;
+				setTickets(data || []);
+			} catch (err) {
+				const errorMessage =
+					err instanceof Error ? err.message : "Lỗi tải danh sách phiếu";
+				setError(errorMessage);
+			} finally {
+				setLoading(false);
+			}
+		},
+		[],
+	);
 
-  // Load status updates history
-  const loadStatusUpdates = useCallback(async (ticketId?: string) => {
-    try {
-      let query = supabase
-        .from('repair_state_changes')
-        .select(`
+	// Load status updates history
+	const loadStatusUpdates = useCallback(async (ticketId?: string) => {
+		try {
+			let query = supabase
+				.from("repair_state_changes")
+				.select(`
           *,
           users (
             full_name
           )
         `)
-        .order('changed_at', { ascending: false });
+				.order("changed_at", { ascending: false });
 
-      if (ticketId) {
-        query = query.eq('ticket_id', ticketId);
-      }
+			if (ticketId) {
+				query = query.eq("ticket_id", ticketId);
+			}
 
-      const { data, error } = await query;
+			const { data, error } = await query;
 
-      if (error) throw error;
+			if (error) throw error;
 
-      const updates = (data || []).map(update => ({
-        ...update,
-        staff_name: (update as any).users?.full_name || update.changed_by
-      }));
+			const updates = (data || []).map((update) => ({
+				...update,
+				staff_name: (update as any).users?.full_name || update.changed_by,
+			}));
 
-      setStatusUpdates(updates);
-    } catch (err) {
-      console.error('Error loading status updates:', err);
-    }
-  }, []);
+			setStatusUpdates(updates);
+		} catch (err) {
+			console.error("Error loading status updates:", err);
+		}
+	}, []);
 
-  // Load ticket code statistics
-  const loadCodeStats = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('v_ticket_code_analytics')
-        .select('*')
-        .order('year', { ascending: false });
+	// Load ticket code statistics
+	const loadCodeStats = useCallback(async () => {
+		try {
+			const { data, error } = await supabase
+				.from("v_ticket_code_analytics")
+				.select("*")
+				.order("year", { ascending: false });
 
-      if (error) throw error;
-      setCodeStats(data || []);
-    } catch (err) {
-      console.error('Error loading code stats:', err);
-    }
-  }, []);
+			if (error) throw error;
+			setCodeStats(data || []);
+		} catch (err) {
+			console.error("Error loading code stats:", err);
+		}
+	}, []);
 
-  // Get ticket statistics by year
-  const getTicketStatsByYear = useCallback(async (year?: number) => {
-    try {
-      const { data, error } = await supabase.rpc('get_ticket_stats_by_year', {
-        target_year: year
-      });
+	// Get ticket statistics by year
+	const getTicketStatsByYear = useCallback(async (year?: number) => {
+		try {
+			const { data, error } = await supabase.rpc("get_ticket_stats_by_year", {
+				target_year: year,
+			});
 
-      if (error) throw error;
-      return data?.[0] || null;
-    } catch (err) {
-      console.error('Error getting ticket stats:', err);
-      return null;
-    }
-  }, []);
+			if (error) throw error;
+			return data?.[0] || null;
+		} catch (err) {
+			console.error("Error getting ticket stats:", err);
+			return null;
+		}
+	}, []);
 
-  // Add status message
-  const addStatusMessage = useCallback((message: Omit<StatusMessage, 'timestamp'>) => {
-    const newMessage: StatusMessage = {
-      ...message,
-      timestamp: new Date().toISOString()
-    };
+	// Add status message
+	const addStatusMessage = useCallback(
+		(message: Omit<StatusMessage, "timestamp">) => {
+			const newMessage: StatusMessage = {
+				...message,
+				timestamp: new Date().toISOString(),
+			};
 
-    setStatusMessages(prev => [newMessage, ...prev.slice(0, 49)]); // Keep last 50 messages
-  }, []);
+			setStatusMessages((prev) => [newMessage, ...prev.slice(0, 49)]); // Keep last 50 messages
+		},
+		[],
+	);
 
-  // Clear status messages
-  const clearStatusMessages = useCallback(() => {
-    setStatusMessages([]);
-  }, []);
+	// Clear status messages
+	const clearStatusMessages = useCallback(() => {
+		setStatusMessages([]);
+	}, []);
 
-  // Set up real-time subscriptions
-  useEffect(() => {
-    const ticketSubscription = supabase
-      .channel('ticket-updates')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'repair_tickets' },
-        (payload) => {
-          const newTicket = payload.new as TicketInfo;
-          setTickets(prev => [newTicket, ...prev]);
+	// Set up real-time subscriptions
+	useEffect(() => {
+		const ticketSubscription = supabase
+			.channel("ticket-updates")
+			.on(
+				"postgres_changes",
+				{ event: "INSERT", schema: "public", table: "repair_tickets" },
+				(payload) => {
+					const newTicket = payload.new as TicketInfo;
+					setTickets((prev) => [newTicket, ...prev]);
 
-          addStatusMessage({
-            type: 'info',
-            title: 'Phiếu mới',
-            message: `Đã tạo phiếu ${newTicket.ticket_code}`,
-            ticket_code: newTicket.ticket_code
-          });
-        }
-      )
-      .on('postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'repair_tickets' },
-        (payload) => {
-          const updatedTicket = payload.new as TicketInfo;
-          setTickets(prev => prev.map(ticket =>
-            ticket.id === updatedTicket.id ? updatedTicket : ticket
-          ));
-        }
-      )
-      .subscribe();
+					addStatusMessage({
+						type: "info",
+						title: "Phiếu mới",
+						message: `Đã tạo phiếu ${newTicket.ticket_code}`,
+						ticket_code: newTicket.ticket_code,
+					});
+				},
+			)
+			.on(
+				"postgres_changes",
+				{ event: "UPDATE", schema: "public", table: "repair_tickets" },
+				(payload) => {
+					const updatedTicket = payload.new as TicketInfo;
+					setTickets((prev) =>
+						prev.map((ticket) =>
+							ticket.id === updatedTicket.id ? updatedTicket : ticket,
+						),
+					);
+				},
+			)
+			.subscribe();
 
-    const statusSubscription = supabase
-      .channel('status-updates')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'repair_state_changes' },
-        (payload) => {
-          const newUpdate = payload.new as StatusUpdate;
-          setStatusUpdates(prev => [newUpdate, ...prev]);
+		const statusSubscription = supabase
+			.channel("status-updates")
+			.on(
+				"postgres_changes",
+				{ event: "INSERT", schema: "public", table: "repair_state_changes" },
+				(payload) => {
+					const newUpdate = payload.new as StatusUpdate;
+					setStatusUpdates((prev) => [newUpdate, ...prev]);
 
-          addStatusMessage({
-            type: 'info',
-            title: statusMessageTemplates.status_updated,
-            message: `Cập nhật trạng thái: ${newUpdate.reason}`,
-            ticket_code: newUpdate.ticket_id
-          });
-        }
-      )
-      .subscribe();
+					addStatusMessage({
+						type: "info",
+						title: statusMessageTemplates.status_updated,
+						message: `Cập nhật trạng thái: ${newUpdate.reason}`,
+						ticket_code: newUpdate.ticket_id,
+					});
+				},
+			)
+			.subscribe();
 
-    return () => {
-      ticketSubscription.unsubscribe();
-      statusSubscription.unsubscribe();
-    };
-  }, [addStatusMessage]);
+		return () => {
+			ticketSubscription.unsubscribe();
+			statusSubscription.unsubscribe();
+		};
+	}, [addStatusMessage]);
 
-  return {
-    // Data
-    tickets,
-    statusUpdates,
-    codeStats,
-    statusMessages,
-    loading,
-    error,
+	return {
+		// Data
+		tickets,
+		statusUpdates,
+		codeStats,
+		statusMessages,
+		loading,
+		error,
 
-    // Ticket operations
-    createTicketWithCode,
-    getTicketByCode,
-    searchTicketsByCode,
-    updateTicketStatus,
-    loadTickets,
+		// Ticket operations
+		createTicketWithCode,
+		getTicketByCode,
+		searchTicketsByCode,
+		updateTicketStatus,
+		loadTickets,
 
-    // Status operations
-    loadStatusUpdates,
-    loadCodeStats,
-    getTicketStatsByYear,
+		// Status operations
+		loadStatusUpdates,
+		loadCodeStats,
+		getTicketStatsByYear,
 
-    // Code operations
-    previewNextTicketCode,
+		// Code operations
+		previewNextTicketCode,
 
-    // Message operations
-    addStatusMessage,
-    clearStatusMessages,
+		// Message operations
+		addStatusMessage,
+		clearStatusMessages,
 
-    // Utilities
-    formatVietnameseTime,
-    statusMessageTemplates
-  };
+		// Utilities
+		formatVietnameseTime,
+		statusMessageTemplates,
+	};
 }

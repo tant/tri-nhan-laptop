@@ -14,10 +14,7 @@ function ProtectedTicketEdit() {
 
 	return (
 		<ProtectedRoute>
-			<EditTicketForm
-				ticketId={id}
-				onTicketUpdated={handleTicketUpdated}
-			/>
+			<EditTicketForm ticketId={id} onTicketUpdated={handleTicketUpdated} />
 		</ProtectedRoute>
 	);
 }

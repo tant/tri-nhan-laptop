@@ -81,7 +81,15 @@ export function CustomerHistoryDashboard({
 	const [servicePatterns, setServicePatterns] = useState<
 		ServicePatternAnalysis[]
 	>([]);
-	const [patternAnalysis, setPatternAnalysis] = useState<any>(null);
+	const [patternAnalysis, setPatternAnalysis] = useState<{
+		patterns: Array<{
+			type: string;
+			frequency: number;
+			[key: string]: unknown;
+		}>;
+		trends: Array<{ period: string; count: number; [key: string]: unknown }>;
+		[key: string]: unknown;
+	} | null>(null);
 
 	// Dialog states
 	const [exportDialogOpen, setExportDialogOpen] = useState(false);
@@ -437,7 +445,7 @@ export function CustomerHistoryDashboard({
 								<CardContent>
 									{servicePatterns.slice(0, 5).map((pattern, index) => (
 										<div
-											key={index}
+											key={`pattern-${pattern.id || index}`}
 											className="flex items-start justify-between py-2 border-b last:border-b-0"
 										>
 											<div className="flex-1">
@@ -474,36 +482,48 @@ export function CustomerHistoryDashboard({
 								</CardHeader>
 								<CardContent>
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-										{patternAnalysis.map((analysis: any, index: number) => (
-											<div key={index} className="p-4 border rounded-lg">
-												<div className="flex items-start justify-between mb-2">
-													<span className="font-medium">
-														{analysis.description}
-													</span>
-													<Badge
-														variant={
-															analysis.severity === "high"
-																? "destructive"
+										{patternAnalysis.map(
+											(
+												analysis: {
+													type: string;
+													frequency: number;
+													[key: string]: unknown;
+												},
+												index: number,
+											) => (
+												<div
+													key={`analysis-${analysis.type}-${index}`}
+													className="p-4 border rounded-lg"
+												>
+													<div className="flex items-start justify-between mb-2">
+														<span className="font-medium">
+															{analysis.description}
+														</span>
+														<Badge
+															variant={
+																analysis.severity === "high"
+																	? "destructive"
+																	: analysis.severity === "medium"
+																		? "secondary"
+																		: "default"
+															}
+														>
+															{analysis.severity === "high"
+																? "Cao"
 																: analysis.severity === "medium"
-																	? "secondary"
-																	: "default"
-														}
-													>
-														{analysis.severity === "high"
-															? "Cao"
-															: analysis.severity === "medium"
-																? "Trung bình"
-																: "Thấp"}
-													</Badge>
+																	? "Trung bình"
+																	: "Thấp"}
+														</Badge>
+													</div>
+													<div className="text-sm text-gray-600 mb-2">
+														{analysis.recommendation}
+													</div>
+													<div className="text-xs text-gray-500">
+														Độ tin cậy: {Math.round(analysis.confidence * 100)}%
+													</div>
 												</div>
-												<div className="text-sm text-gray-600 mb-2">
-													{analysis.recommendation}
-												</div>
-												<div className="text-xs text-gray-500">
-													Độ tin cậy: {Math.round(analysis.confidence * 100)}%
-												</div>
-											</div>
-										))}
+											),
+										)}
 									</div>
 								</CardContent>
 							</Card>
@@ -596,7 +616,7 @@ export function CustomerHistoryDashboard({
 																.slice(0, 2)
 																.map((note, index) => (
 																	<div
-																		key={index}
+																		key={`note-${note.id || index}`}
 																		className="text-sm p-2 bg-gray-50 rounded"
 																	>
 																		<div className="font-medium">
@@ -683,7 +703,7 @@ export function CustomerHistoryDashboard({
 														.slice(0, 3)
 														.map((issue, index) => (
 															<div
-																key={index}
+																key={`issue-${issue.id || issue.type || index}`}
 																className="text-sm flex justify-between"
 															>
 																<span>{issue.category}</span>
@@ -730,7 +750,10 @@ export function CustomerHistoryDashboard({
 							<CardContent>
 								<div className="space-y-4">
 									{servicePatterns.map((pattern, index) => (
-										<div key={index} className="border rounded-lg p-4">
+										<div
+											key={`service-pattern-${pattern.id || pattern.type || index}`}
+											className="border rounded-lg p-4"
+										>
 											<div className="flex items-start justify-between mb-3">
 												<div className="flex-1">
 													<div className="flex items-center gap-3 mb-2">
@@ -857,7 +880,10 @@ export function CustomerHistoryDashboard({
 										<Label>Ghi chú kỹ thuật</Label>
 										<div className="space-y-3">
 											{selectedRepair.service_notes.map((note, index) => (
-												<div key={index} className="p-3 border rounded-lg">
+												<div
+													key={`service-note-${note.id || note.note_timestamp || index}`}
+													className="p-3 border rounded-lg"
+												>
 													<div className="flex items-center gap-2 mb-2">
 														<Badge variant="outline">{note.note_type}</Badge>
 														<span className="text-sm text-gray-500">

@@ -1,6 +1,6 @@
 import { ProtectedRoute } from "@/components/protected-route";
-import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createFileRoute } from "@tanstack/react-router";
 
 function ShopReports() {
 	return (

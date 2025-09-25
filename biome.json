@@ -7,8 +7,16 @@
 	},
 	"files": {
 		"ignoreUnknown": false,
-		"ignore": ["src/routeTree.gen.ts"],
-		"include": ["src/*", "tests/*", ".vscode/*", "index.html", "vite.config.js"]
+		"ignore": [
+			"src/routeTree.gen.ts",
+			"tests/**/*",
+			"**/*.test.*",
+			"**/*.spec.*",
+			"**/setupTests.*",
+			"**/vitest.config.*",
+			"**/test-setup.*"
+		],
+		"include": ["src/*", ".vscode/*", "index.html", "vite.config.js"]
 	},
 	"formatter": {
 		"enabled": true,

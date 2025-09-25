@@ -20,7 +20,8 @@ const STATUS_TRANSLATIONS: Record<string, CustomerStatusTranslation> = {
 	pending_customer_confirmation: {
 		internalStatus: "pending_customer_confirmation",
 		vietnameseLabel: "Chờ xác nhận",
-		customerDescription: "Chúng tôi đang chờ quý khách xác nhận thông tin sửa chữa",
+		customerDescription:
+			"Chúng tôi đang chờ quý khách xác nhận thông tin sửa chữa",
 		estimatedTimeframe: "1-2 ngày",
 		nextSteps: "Vui lòng liên hệ với cửa hàng để xác nhận",
 		isPositive: true,
@@ -47,7 +48,8 @@ const STATUS_TRANSLATIONS: Record<string, CustomerStatusTranslation> = {
 	initial_diagnosis: {
 		internalStatus: "initial_diagnosis",
 		vietnameseLabel: "Đang kiểm tra",
-		customerDescription: "Kỹ thuật viên đang tiến hành kiểm tra và chẩn đoán sự cố",
+		customerDescription:
+			"Kỹ thuật viên đang tiến hành kiểm tra và chẩn đoán sự cố",
 		estimatedTimeframe: "1-3 ngày",
 		nextSteps: "Sẽ có kết quả chẩn đoán chi tiết",
 		isPositive: true,
@@ -65,7 +67,8 @@ const STATUS_TRANSLATIONS: Record<string, CustomerStatusTranslation> = {
 	quote_provided: {
 		internalStatus: "quote_provided",
 		vietnameseLabel: "Đã báo giá",
-		customerDescription: "Báo giá sửa chữa đã sẵn sàng, chờ quý khách phê duyệt",
+		customerDescription:
+			"Báo giá sửa chữa đã sẵn sàng, chờ quý khách phê duyệt",
 		estimatedTimeframe: "Chờ phản hồi",
 		nextSteps: "Vui lòng xem xét và phê duyệt báo giá",
 		isPositive: true,
@@ -74,7 +77,8 @@ const STATUS_TRANSLATIONS: Record<string, CustomerStatusTranslation> = {
 	quote_approved: {
 		internalStatus: "quote_approved",
 		vietnameseLabel: "Đã duyệt báo giá",
-		customerDescription: "Báo giá đã được phê duyệt, bắt đầu tiến hành sửa chữa",
+		customerDescription:
+			"Báo giá đã được phê duyệt, bắt đầu tiến hành sửa chữa",
 		estimatedTimeframe: "1-2 ngày",
 		nextSteps: "Chuẩn bị linh kiện và bắt đầu sửa chữa",
 		isPositive: true,
@@ -101,7 +105,8 @@ const STATUS_TRANSLATIONS: Record<string, CustomerStatusTranslation> = {
 	repair_in_progress: {
 		internalStatus: "repair_in_progress",
 		vietnameseLabel: "Đang sửa chữa",
-		customerDescription: "Kỹ thuật viên đang tiến hành sửa chữa thiết bị của quý khách",
+		customerDescription:
+			"Kỹ thuật viên đang tiến hành sửa chữa thiết bị của quý khách",
 		estimatedTimeframe: "1-3 ngày",
 		nextSteps: "Sửa chữa và kiểm tra chất lượng",
 		isPositive: true,
@@ -110,7 +115,8 @@ const STATUS_TRANSLATIONS: Record<string, CustomerStatusTranslation> = {
 	repair_complete: {
 		internalStatus: "repair_complete",
 		vietnameseLabel: "Sửa chữa xong",
-		customerDescription: "Đã hoàn thành sửa chữa, đang tiến hành kiểm tra chất lượng",
+		customerDescription:
+			"Đã hoàn thành sửa chữa, đang tiến hành kiểm tra chất lượng",
 		estimatedTimeframe: "1 ngày",
 		nextSteps: "Kiểm tra chất lượng và chuẩn bị bàn giao",
 		isPositive: true,

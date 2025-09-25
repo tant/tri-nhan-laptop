@@ -1,13 +1,20 @@
 import { ProtectedRoute } from "@/components/protected-route";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { usePartsManagement } from "@/hooks/use-parts-management";
 import { formatVND } from "@/lib/currency";
-import { ArrowLeft, Edit, Package, MapPin, TrendingDown, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Database } from "@/lib/supabase";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+	ArrowLeft,
+	Edit,
+	MapPin,
+	Package,
+	TrendingDown,
+	TrendingUp,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
@@ -26,7 +33,11 @@ function ProtectedPartDetail() {
 				const data = await getPartById(id);
 				setPart(data);
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Không thể tải thông tin linh kiện");
+				setError(
+					err instanceof Error
+						? err.message
+						: "Không thể tải thông tin linh kiện",
+				);
 			} finally {
 				setLoading(false);
 			}
@@ -39,8 +50,8 @@ function ProtectedPartDetail() {
 		return (
 			<div className="container mx-auto py-6">
 				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded mb-4"></div>
-					<div className="h-64 bg-gray-200 rounded"></div>
+					<div className="h-8 bg-gray-200 rounded mb-4" />
+					<div className="h-64 bg-gray-200 rounded" />
 				</div>
 			</div>
 		);
@@ -51,8 +62,13 @@ function ProtectedPartDetail() {
 			<div className="container mx-auto py-6">
 				<Card>
 					<CardContent className="p-6">
-						<p className="text-red-500">{error || "Không tìm thấy linh kiện"}</p>
-						<Button onClick={() => navigate({ to: "/ton-kho" })} className="mt-4">
+						<p className="text-red-500">
+							{error || "Không tìm thấy linh kiện"}
+						</p>
+						<Button
+							onClick={() => navigate({ to: "/ton-kho" })}
+							className="mt-4"
+						>
 							<ArrowLeft className="h-4 w-4 mr-2" />
 							Quay lại danh sách
 						</Button>
@@ -81,11 +97,16 @@ function ProtectedPartDetail() {
 						<div>
 							<h1 className="text-2xl font-bold">{part.name}</h1>
 							<p className="text-muted-foreground">
-								{part.brand} {part.model} {part.part_number && `• ${part.part_number}`}
+								{part.brand} {part.model}{" "}
+								{part.part_number && `• ${part.part_number}`}
 							</p>
 						</div>
 					</div>
-					<Button onClick={() => navigate({ to: "/ton-kho/$id/edit", params: { id } })}>
+					<Button
+						onClick={() =>
+							navigate({ to: "/ton-kho/$id/edit", params: { id } })
+						}
+					>
 						<Edit className="h-4 w-4 mr-2" />
 						Chỉnh sửa
 					</Button>
@@ -104,20 +125,32 @@ function ProtectedPartDetail() {
 							<CardContent className="space-y-4">
 								<div className="grid grid-cols-2 gap-4">
 									<div>
-										<p className="text-sm text-muted-foreground">Tên linh kiện:</p>
+										<p className="text-sm text-muted-foreground">
+											Tên linh kiện:
+										</p>
 										<p className="font-medium">{part.name}</p>
 									</div>
 									<div>
-										<p className="text-sm text-muted-foreground">Mã linh kiện:</p>
-										<p className="font-medium">{part.part_number || "Không có"}</p>
+										<p className="text-sm text-muted-foreground">
+											Mã linh kiện:
+										</p>
+										<p className="font-medium">
+											{part.part_number || "Không có"}
+										</p>
 									</div>
 									<div>
-										<p className="text-sm text-muted-foreground">Thương hiệu:</p>
-										<p className="font-medium">{part.brand || "Không xác định"}</p>
+										<p className="text-sm text-muted-foreground">
+											Thương hiệu:
+										</p>
+										<p className="font-medium">
+											{part.brand || "Không xác định"}
+										</p>
 									</div>
 									<div>
 										<p className="text-sm text-muted-foreground">Model:</p>
-										<p className="font-medium">{part.model || "Không xác định"}</p>
+										<p className="font-medium">
+											{part.model || "Không xác định"}
+										</p>
 									</div>
 								</div>
 
@@ -145,7 +178,9 @@ function ProtectedPartDetail() {
 									<div>
 										<p className="text-sm text-muted-foreground">Giá bán:</p>
 										<p className="font-medium text-green-600">
-											{part.selling_price ? formatVND(part.selling_price) : "Chưa có"}
+											{part.selling_price
+												? formatVND(part.selling_price)
+												: "Chưa có"}
 										</p>
 									</div>
 								</div>
@@ -175,16 +210,22 @@ function ProtectedPartDetail() {
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div>
-									<p className="text-sm text-muted-foreground">Tồn kho hiện tại:</p>
+									<p className="text-sm text-muted-foreground">
+										Tồn kho hiện tại:
+									</p>
 									<div className="flex items-center space-x-2">
-										<p className="text-2xl font-bold">{part.quantity_in_stock}</p>
+										<p className="text-2xl font-bold">
+											{part.quantity_in_stock}
+										</p>
 										{isLowStock && (
 											<Badge variant="destructive">Tồn kho thấp</Badge>
 										)}
 									</div>
 								</div>
 								<div>
-									<p className="text-sm text-muted-foreground">Tồn kho tối thiểu:</p>
+									<p className="text-sm text-muted-foreground">
+										Tồn kho tối thiểu:
+									</p>
 									<p className="font-medium">{part.minimum_stock_level}</p>
 								</div>
 								{part.storage_location && (
@@ -211,7 +252,9 @@ function ProtectedPartDetail() {
 									</p>
 								</div>
 								<div>
-									<p className="text-sm text-muted-foreground">Cập nhật lần cuối:</p>
+									<p className="text-sm text-muted-foreground">
+										Cập nhật lần cuối:
+									</p>
 									<p className="font-medium">
 										{new Date(part.updated_at).toLocaleDateString("vi-VN")}
 									</p>

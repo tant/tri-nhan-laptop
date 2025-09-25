@@ -56,7 +56,7 @@ import {
 	TrendingUp,
 	Users,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface FinancialTrackerProps {
 	repairTicketId?: string;
@@ -101,16 +101,12 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 		endDate: new Date().toISOString().split("T")[0],
 	});
 
-	useEffect(() => {
-		loadFinancialData();
-	}, [repairTicketId, dateFilter]);
-
-	const loadFinancialData = async () => {
+	const loadFinancialData = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
 
-			const promises: Promise<any>[] = [
+			const promises: Promise<unknown>[] = [
 				getFinancialSummary(dateFilter.startDate, dateFilter.endDate),
 				analyzeCustomerProfitability(20),
 			];
@@ -159,7 +155,11 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [repairTicketId, dateFilter]);
+
+	useEffect(() => {
+		loadFinancialData();
+	}, [loadFinancialData]);
 
 	const handleAddCost = async () => {
 		if (!repairTicketId) {
@@ -362,7 +362,7 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 									<div className="space-y-4">
 										{financialSummary.topCategories.map((category, index) => (
 											<div
-												key={index}
+												key={`category-${category.category}-${index}`}
 												className="flex items-center justify-between p-3 border rounded-lg"
 											>
 												<div className="flex items-center gap-3">
@@ -399,7 +399,7 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 									<div className="space-y-2">
 										{financialSummary.monthlyTrends.map((trend, index) => (
 											<div
-												key={index}
+												key={`trend-${trend.month}-${index}`}
 												className="flex items-center justify-between p-2 border-b"
 											>
 												<span className="font-medium">{trend.month}</span>
@@ -448,7 +448,7 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 											<Label htmlFor="category">Loại chi phí</Label>
 											<Select
 												value={newCostData.category}
-												onValueChange={(value: any) =>
+												onValueChange={(value: string) =>
 													setNewCostData((prev) => ({
 														...prev,
 														category: value,
@@ -655,7 +655,10 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 							) : (
 								<div className="space-y-4">
 									{customerProfitability.map((customer, index) => (
-										<div key={index} className="border rounded-lg p-4">
+										<div
+											key={`customer-${customer.customer_id || customer.customer_name}-${index}`}
+											className="border rounded-lg p-4"
+										>
 											<div className="flex items-start justify-between">
 												<div className="flex-1">
 													<div className="flex items-center gap-3 mb-2">
@@ -756,7 +759,10 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 							) : (
 								<div className="space-y-4">
 									{costTrends.map((trend, index) => (
-										<div key={index} className="border rounded-lg p-4">
+										<div
+											key={`trend-${trend.period || trend.month || index}`}
+											className="border rounded-lg p-4"
+										>
 											<div className="flex items-start justify-between mb-3">
 												<div className="flex items-center gap-3">
 													{getTrendIcon(trend.trendDirection)}

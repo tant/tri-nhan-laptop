@@ -3,8 +3,8 @@
  * Handles customer data privacy controls and consent management
  */
 
-import { supabase } from "@/lib/supabase";
 import { maskPhoneNumber } from "@/lib/security/phone-privacy";
+import { supabase } from "@/lib/supabase";
 
 export interface CustomerPrivacySettings {
 	customerId: string;
@@ -378,13 +378,15 @@ export async function exportCustomerData(
 				// Data export functionality removed from Phase 2 requirements
 				return {
 					success: false,
-					error: "CSV export functionality not implemented - removed from Phase 2",
+					error:
+						"CSV export functionality not implemented - removed from Phase 2",
 				};
 			case "pdf":
 				// Data export functionality removed from Phase 2 requirements
 				return {
 					success: false,
-					error: "PDF export functionality not implemented - removed from Phase 2",
+					error:
+						"PDF export functionality not implemented - removed from Phase 2",
 				};
 			default:
 				return {

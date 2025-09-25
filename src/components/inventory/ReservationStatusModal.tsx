@@ -37,7 +37,14 @@ export function ReservationStatusModal({
 	repairId,
 	onReservationUpdate,
 }: ReservationStatusModalProps) {
-	const [reservations, setReservations] = useState<any[]>([]);
+	const [reservations, setReservations] = useState<
+		Array<{
+			id: string;
+			status: string;
+			quantity: number;
+			[key: string]: unknown;
+		}>
+	>([]);
 	const [loading, setLoading] = useState(false);
 	const [processingReservation, setProcessingReservation] = useState<
 		string | null
@@ -60,7 +67,7 @@ export function ReservationStatusModal({
 	const loadReservations = async () => {
 		try {
 			setLoading(true);
-			let data;
+			let data: unknown;
 
 			if (repairId) {
 				// Load reservations for specific repair

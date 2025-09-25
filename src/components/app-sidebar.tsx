@@ -26,7 +26,11 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 
 // Navigation configuration with role-based visibility
-function getNavigationData(profile: any, hasPermission: any, isRole: any) {
+function getNavigationData(
+	profile: { full_name?: string; id?: string } | null,
+	hasPermission: (permission: string) => boolean,
+	isRole: (role: string) => boolean,
+) {
 	const shops = [
 		{
 			name: "Trí Nhân Laptop",

@@ -22,7 +22,10 @@ interface UserProfile {
 
 export function AdminPanel() {
 	const [users, setUsers] = useState<UserProfile[]>([]);
-	const [currentUser, setCurrentUser] = useState<any>(null);
+	const [currentUser, setCurrentUser] = useState<{
+		email?: string;
+		role?: string;
+	} | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [showCreateForm, setShowCreateForm] = useState(false);
 
@@ -136,10 +139,14 @@ export function AdminPanel() {
 					}}
 				>
 					<div className="mb-4">
-						<label className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="admin-email"
+							className="block text-sm font-medium text-gray-700"
+						>
 							Email
 						</label>
 						<input
+							id="admin-email"
 							type="email"
 							name="email"
 							defaultValue="admin@laptop-repair-shop.local"
@@ -148,10 +155,14 @@ export function AdminPanel() {
 						/>
 					</div>
 					<div className="mb-4">
-						<label className="block text-sm font-medium text-gray-700">
+						<label
+							htmlFor="admin-password"
+							className="block text-sm font-medium text-gray-700"
+						>
 							Password
 						</label>
 						<input
+							id="admin-password"
 							type="password"
 							name="password"
 							defaultValue="AdminPass123!"
@@ -184,6 +195,7 @@ export function AdminPanel() {
 						{currentUser.profile?.role})
 					</span>
 					<button
+						type="button"
 						onClick={handleLogout}
 						className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
 					>
@@ -197,6 +209,7 @@ export function AdminPanel() {
 					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-2xl font-semibold">User Management</h2>
 						<button
+							type="button"
 							onClick={() => setShowCreateForm(!showCreateForm)}
 							className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
 						>
@@ -211,10 +224,14 @@ export function AdminPanel() {
 						>
 							<div className="grid grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="new-user-email"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Email
 									</label>
 									<input
+										id="new-user-email"
 										type="email"
 										value={newUser.email}
 										onChange={(e) =>
@@ -225,10 +242,14 @@ export function AdminPanel() {
 									/>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="new-user-password"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Password
 									</label>
 									<input
+										id="new-user-password"
 										type="password"
 										value={newUser.password}
 										onChange={(e) =>
@@ -239,10 +260,14 @@ export function AdminPanel() {
 									/>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="new-user-full-name"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Full Name
 									</label>
 									<input
+										id="new-user-full-name"
 										type="text"
 										value={newUser.full_name}
 										onChange={(e) =>
@@ -253,13 +278,23 @@ export function AdminPanel() {
 									/>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="new-user-role"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Role
 									</label>
 									<select
+										id="new-user-role"
 										value={newUser.role}
 										onChange={(e) =>
-											setNewUser({ ...newUser, role: e.target.value as any })
+											setNewUser({
+												...newUser,
+												role: e.target.value as
+													| "staff"
+													| "technician"
+													| "manager",
+											})
 										}
 										className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
 									>
@@ -269,10 +304,14 @@ export function AdminPanel() {
 									</select>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="new-user-phone"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Phone
 									</label>
 									<input
+										id="new-user-phone"
 										type="tel"
 										value={newUser.phone}
 										onChange={(e) =>
@@ -284,9 +323,9 @@ export function AdminPanel() {
 							</div>
 
 							<div className="mt-4">
-								<label className="block text-sm font-medium text-gray-700 mb-2">
+								<h3 className="block text-sm font-medium text-gray-700 mb-2">
 									Permissions
-								</label>
+								</h3>
 								<div className="space-y-2">
 									<label className="flex items-center">
 										<input
@@ -449,14 +488,23 @@ export function AdminPanel() {
 				<div className="bg-white p-6 rounded-lg shadow">
 					<h3 className="text-lg font-semibold mb-2">Quick Actions</h3>
 					<div className="space-y-2">
-						<button className="block w-full text-left text-blue-600 hover:underline">
+						<button
+							type="button"
+							className="block w-full text-left text-blue-600 hover:underline"
+						>
 							View Repairs
 						</button>
-						<button className="block w-full text-left text-blue-600 hover:underline">
+						<button
+							type="button"
+							className="block w-full text-left text-blue-600 hover:underline"
+						>
 							Manage Customers
 						</button>
 						{currentUser.profile?.can_manage_inventory && (
-							<button className="block w-full text-left text-blue-600 hover:underline">
+							<button
+								type="button"
+								className="block w-full text-left text-blue-600 hover:underline"
+							>
 								Inventory
 							</button>
 						)}

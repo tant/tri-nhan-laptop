@@ -13,11 +13,38 @@ type CustomerDevice = Database["public"]["Tables"]["customer_devices"]["Row"];
 
 export type RepairPriority = "low" | "normal" | "high" | "urgent";
 
+// Template interface for proper typing
+interface GlobalTemplate {
+	id: string;
+	name: string;
+	category: string;
+	description: string;
+	priority?: RepairPriority;
+	symptoms?: string[];
+	estimatedRepairTime?: number;
+	estimatedCost?: number;
+}
+
 // Module-level template storage for tests - persists across hook re-instantiations
-let globalTemplates: any[] = [
-	{ id: '1', name: 'Laptop Display Repair', category: 'display', description: 'Standard laptop screen replacement' },
-	{ id: '2', name: 'Keyboard Replacement', category: 'keyboard', description: 'Laptop keyboard repair' },
-	{ id: '3', name: 'Battery Service', category: 'battery', description: 'Battery replacement and calibration' }
+const globalTemplates: GlobalTemplate[] = [
+	{
+		id: "1",
+		name: "Laptop Display Repair",
+		category: "display",
+		description: "Standard laptop screen replacement",
+	},
+	{
+		id: "2",
+		name: "Keyboard Replacement",
+		category: "keyboard",
+		description: "Laptop keyboard repair",
+	},
+	{
+		id: "3",
+		name: "Battery Service",
+		category: "battery",
+		description: "Battery replacement and calibration",
+	},
 ];
 
 export interface NewRepairTicket {
@@ -595,15 +622,15 @@ export function useRepairTickets() {
 			// Set default values for test compatibility
 			const completeTicketData: NewRepairTicket = {
 				...ticketData,
-				priority: ticketData.priority || 'normal' as RepairPriority,
+				priority: ticketData.priority || ("normal" as RepairPriority),
 				symptoms: ticketData.symptoms || [],
-				isDraft: ticketData.isDraft || false
+				isDraft: ticketData.isDraft || false,
 			};
 
 			const result = await createRepairTicket(completeTicketData);
 
 			if (!result.success) {
-				throw new Error(result.error || 'Failed to create ticket');
+				throw new Error(result.error || "Failed to create ticket");
 			}
 
 			// Return test-compatible format
@@ -613,76 +640,106 @@ export function useRepairTickets() {
 				customer: {
 					phone: ticketData.customerPhone,
 					fullName: ticketData.customerName,
-					email: ticketData.customerEmail
+					email: ticketData.customerEmail,
 				},
 				device: {
 					brand: ticketData.deviceBrand,
 					model: ticketData.deviceModel,
 					type: ticketData.deviceType,
-					serialNumber: ticketData.serialNumber
+					serialNumber: ticketData.serialNumber,
 				},
 				problem: {
 					description: ticketData.issueDescription,
 					customerDescription: ticketData.customerDescription,
-					symptoms: ticketData.symptoms || []
+					symptoms: ticketData.symptoms || [],
 				},
 				deviceCondition: ticketData.physicalCondition,
-				status: ticketData.isDraft ? 'draft' : 'device_received',
+				status: ticketData.isDraft ? "draft" : "device_received",
 				priority: ticketData.priority,
 				assignedTechnician: ticketData.assignedTechnicianId || null,
 				createdAt: new Date().toISOString(),
 				estimatedCost: ticketData.estimatedCost,
-				estimatedRepairTime: ticketData.estimatedRepairTime
+				estimatedRepairTime: ticketData.estimatedRepairTime,
 			};
 		},
-		[createRepairTicket]
+		[createRepairTicket],
 	);
 
 	/**
 	 * Categorize problem based on keywords for test compatibility
 	 */
-	const categorizeProblem = useCallback(async (description: string): Promise<string> => {
-		const keywords = {
-			display: ['màn hình', 'screen', 'hiển thị', 'vỡ màn hình', 'sọc màn hình', 'vỡ'],
-			keyboard: ['bàn phím', 'keyboard', 'phím', 'keys', 'lỗi'],
-			power: ['không khởi động', 'power', 'nguồn', 'khởi động'],
-			cooling: ['quạt', 'fan', 'nóng', 'overheating', 'kêu to'],
-			connectivity: ['wifi', 'mạng', 'internet', 'kết nối', 'bluetooth', 'không bắt'],
-			battery: ['pin', 'battery', 'sạc', 'charge'],
-			storage: ['ổ cứng', 'hard drive', 'ssd', 'disk'],
-			software: ['hệ điều hành', 'phần mềm', 'virus', 'lỗi phần mềm', 'windows', 'macos'],
-			performance: ['chậm', 'lag', 'đơ', 'treo máy', 'slow', 'chạy chậm'],
-			hardware: ['phần cứng', 'hardware', 'motherboard', 'ram']
-		};
+	const categorizeProblem = useCallback(
+		async (description: string): Promise<string> => {
+			const keywords = {
+				display: [
+					"màn hình",
+					"screen",
+					"hiển thị",
+					"vỡ màn hình",
+					"sọc màn hình",
+					"vỡ",
+				],
+				keyboard: ["bàn phím", "keyboard", "phím", "keys", "lỗi"],
+				power: ["không khởi động", "power", "nguồn", "khởi động"],
+				cooling: ["quạt", "fan", "nóng", "overheating", "kêu to"],
+				connectivity: [
+					"wifi",
+					"mạng",
+					"internet",
+					"kết nối",
+					"bluetooth",
+					"không bắt",
+				],
+				battery: ["pin", "battery", "sạc", "charge"],
+				storage: ["ổ cứng", "hard drive", "ssd", "disk"],
+				software: [
+					"hệ điều hành",
+					"phần mềm",
+					"virus",
+					"lỗi phần mềm",
+					"windows",
+					"macos",
+				],
+				performance: ["chậm", "lag", "đơ", "treo máy", "slow", "chạy chậm"],
+				hardware: ["phần cứng", "hardware", "motherboard", "ram"],
+			};
 
-		const desc = description.toLowerCase();
-		for (const [category, words] of Object.entries(keywords)) {
-			if (words.some(word => desc.includes(word))) {
-				return category;
+			const desc = description.toLowerCase();
+			for (const [category, words] of Object.entries(keywords)) {
+				if (words.some((word) => desc.includes(word))) {
+					return category;
+				}
 			}
-		}
-		return 'general';
-	}, []);
+			return "general";
+		},
+		[],
+	);
 
 	/**
 	 * Get Vietnamese priority labels
 	 */
-	const getPriorityLabels = useCallback(() => ({
-		low: 'Thấp',
-		normal: 'Bình thường',
-		high: 'Cao',
-		urgent: 'Khẩn cấp'
-	}), []);
+	const getPriorityLabels = useCallback(
+		() => ({
+			low: "Thấp",
+			normal: "Bình thường",
+			high: "Cao",
+			urgent: "Khẩn cấp",
+		}),
+		[],
+	);
 
 	/**
 	 * Draft and template functions for test compatibility
 	 */
 
-	const createTemplate = useCallback(async (template: any) => {
+	const createTemplate = useCallback(async (template: Partial<GlobalTemplate>) => {
 		// Create template with unique ID
-		const newTemplate = {
+		const newTemplate: GlobalTemplate = {
 			id: `template-${Date.now()}-${Math.random()}`,
-			...template
+			name: template.name || "Untitled Template",
+			category: template.category || "general",
+			description: template.description || "",
+			...template,
 		};
 
 		// Add to global templates list
@@ -696,7 +753,7 @@ export function useRepairTickets() {
 	 */
 	const getTemplates = useCallback(async (category?: string) => {
 		if (category) {
-			return globalTemplates.filter(t => t.category === category);
+			return globalTemplates.filter((t) => t.category === category);
 		}
 		return globalTemplates;
 	}, []);
@@ -704,49 +761,62 @@ export function useRepairTickets() {
 	/**
 	 * Create ticket from template
 	 */
-	const createTicketFromTemplate = useCallback(async (templateId: string, customerData: any) => {
-		// Find the template
-		const template = globalTemplates.find(t => t.id === templateId);
-		if (!template) {
-			throw new Error('Template not found');
-		}
+	interface CustomerData {
+		customerPhone: string;
+		customerName: string;
+		customerEmail?: string;
+		deviceBrand: string;
+		deviceModel: string;
+		deviceType?: "laptop" | "desktop" | "tablet" | "phone" | "other";
+	}
 
-		// Merge template data with customer data
-		const completeTicketData: NewRepairTicket = {
-			// Customer info from parameters
-			customerPhone: customerData.customerPhone,
-			customerName: customerData.customerName,
-			customerEmail: customerData.customerEmail,
+	const createTicketFromTemplate = useCallback(
+		async (templateId: string, customerData: CustomerData) => {
+			// Find the template
+			const template = globalTemplates.find((t) => t.id === templateId);
+			if (!template) {
+				throw new Error("Template not found");
+			}
 
-			// Device info from parameters
-			deviceBrand: customerData.deviceBrand,
-			deviceModel: customerData.deviceModel,
-			deviceType: customerData.deviceType || 'laptop',
+			// Merge template data with customer data
+			const completeTicketData: NewRepairTicket = {
+				// Customer info from parameters
+				customerPhone: customerData.customerPhone,
+				customerName: customerData.customerName,
+				customerEmail: customerData.customerEmail,
 
-			// Template data
-			issueDescription: template.name || 'Template-based repair',
-			customerDescription: template.description || template.name || 'Template-based repair',
-			symptoms: template.symptoms || [],
-			estimatedRepairTime: template.estimatedRepairTime,
-			estimatedCost: template.estimatedCost,
-			repairCategory: template.category,
+				// Device info from parameters
+				deviceBrand: customerData.deviceBrand,
+				deviceModel: customerData.deviceModel,
+				deviceType: customerData.deviceType || "laptop",
 
-			// Default required fields
-			priority: template.priority || 'normal' as RepairPriority,
-			physicalCondition: {
-				general: 'good' as const,
-				screen: 'good' as const,
-				keyboard: 'good' as const,
-				ports: 'good' as const,
-				battery: 'good' as const,
-				notes: 'Condition assessed using template'
-			},
-			isDraft: false
-		};
+				// Template data
+				issueDescription: template.name || "Template-based repair",
+				customerDescription:
+					template.description || template.name || "Template-based repair",
+				symptoms: template.symptoms || [],
+				estimatedRepairTime: template.estimatedRepairTime,
+				estimatedCost: template.estimatedCost,
+				repairCategory: template.category,
 
-		// Use the regular createTicket function with complete data
-		return await createTicket(completeTicketData);
-	}, [createTicket]);
+				// Default required fields
+				priority: template.priority || ("normal" as RepairPriority),
+				physicalCondition: {
+					general: "good" as const,
+					screen: "good" as const,
+					keyboard: "good" as const,
+					ports: "good" as const,
+					battery: "good" as const,
+					notes: "Condition assessed using template",
+				},
+				isDraft: false,
+			};
+
+			// Use the regular createTicket function with complete data
+			return await createTicket(completeTicketData);
+		},
+		[createTicket],
+	);
 
 	/**
 	 * Enhanced loadDraft with actual data
@@ -754,86 +824,88 @@ export function useRepairTickets() {
 	const loadDraft = useCallback(async (draftId: string) => {
 		// Mock implementation with sample data for tests - return the expected draft data
 		return {
-			customerPhone: '0901234567',
-			customerName: 'Draft Customer',
-			deviceBrand: 'ASUS',
-			deviceModel: 'VivoBook',
-			deviceType: 'laptop' as const,
-			issueDescription: 'Draft issue description',
-			customerDescription: 'Draft customer description'
+			customerPhone: "0901234567",
+			customerName: "Draft Customer",
+			deviceBrand: "ASUS",
+			deviceModel: "VivoBook",
+			deviceType: "laptop" as const,
+			issueDescription: "Draft issue description",
+			customerDescription: "Draft customer description",
 		};
 	}, []);
 
 	/**
 	 * Get single repair ticket by ID with full details
 	 */
-	const getRepairById = useCallback(
-		async (ticketId: string) => {
-			try {
-				setLoading(true);
-				setError(null);
+	const getRepairById = useCallback(async (ticketId: string) => {
+		try {
+			setLoading(true);
+			setError(null);
 
-				const { data: ticket, error: ticketError } = await supabase
-					.from("repair_tickets")
-					.select(`
+			const { data: ticket, error: ticketError } = await supabase
+				.from("repair_tickets")
+				.select(`
 						*,
 						customer:customers(*),
 						technician:user_profiles!repair_tickets_assigned_technician_id_fkey(*),
 						device_info:customer_devices(*)
 					`)
-					.eq("id", ticketId)
-					.single();
+				.eq("id", ticketId)
+				.single();
 
-				if (ticketError) {
-					throw new Error(`Không thể tải thông tin phiếu: ${ticketError.message}`);
-				}
-
-				if (!ticket) {
-					throw new Error("Không tìm thấy phiếu sửa chữa");
-				}
-
-				// Transform the device info to match expected format
-				const deviceInfo = ticket.device_info ? {
-					brand: ticket.device_info.brand,
-					model: ticket.device_info.model,
-					serial_number: ticket.device_info.serial_number
-				} : {
-					brand: "Không xác định",
-					model: "Không xác định",
-					serial_number: null
-				};
-
-				return {
-					...ticket,
-					device_info: deviceInfo
-				};
-			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
-				setError(error);
-				throw error;
-			} finally {
-				setLoading(false);
+			if (ticketError) {
+				throw new Error(
+					`Không thể tải thông tin phiếu: ${ticketError.message}`,
+				);
 			}
-		},
-		[],
-	);
+
+			if (!ticket) {
+				throw new Error("Không tìm thấy phiếu sửa chữa");
+			}
+
+			// Transform the device info to match expected format
+			const deviceInfo = ticket.device_info
+				? {
+						brand: ticket.device_info.brand,
+						model: ticket.device_info.model,
+						serial_number: ticket.device_info.serial_number,
+					}
+				: {
+						brand: "Không xác định",
+						model: "Không xác định",
+						serial_number: null,
+					};
+
+			return {
+				...ticket,
+				device_info: deviceInfo,
+			};
+		} catch (err) {
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
+			setError(error);
+			throw error;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
 
 	/**
 	 * Preview next ticket code
 	 */
 	const previewNextTicketCode = useCallback(async (): Promise<string> => {
 		try {
-			const { data, error } = await supabase.rpc('preview_next_ticket_code');
+			const { data, error } = await supabase.rpc("preview_next_ticket_code");
 
 			if (error) {
-				console.error('Error previewing ticket code:', error);
+				console.error("Error previewing ticket code:", error);
 				const year = new Date().getFullYear();
 				return `LRP-${year}-000001`;
 			}
 
 			return data || `LRP-${new Date().getFullYear()}-000001`;
 		} catch (err) {
-			console.error('Error previewing ticket code:', err);
+			console.error("Error previewing ticket code:", err);
 			const year = new Date().getFullYear();
 			return `LRP-${year}-000001`;
 		}
@@ -849,15 +921,15 @@ export function useRepairTickets() {
 				activeTickets: 3,
 				totalWorkload: 75,
 				averageTimePerTicket: 2.5,
-				availableCapacity: 25
+				availableCapacity: 25,
 			};
 		} catch (err) {
-			console.error('Error getting technician workload:', err);
+			console.error("Error getting technician workload:", err);
 			return {
 				activeTickets: 0,
 				totalWorkload: 0,
 				averageTimePerTicket: 0,
-				availableCapacity: 100
+				availableCapacity: 100,
 			};
 		}
 	}, []);
@@ -879,7 +951,7 @@ export function useRepairTickets() {
 		getTechnicianWorkload,
 		previewNextTicketCode,
 		// Template function with proper implementation
-		createTicketFromTemplate
+		createTicketFromTemplate,
 	};
 }
 
@@ -927,14 +999,16 @@ function validateTicketData(data: NewRepairTicket): {
 
 async function generateTicketCode(): Promise<string> {
 	// Use the database function for proper LRP-YYYY-XXXXXX generation
-	const { data, error } = await supabase.rpc('generate_ticket_code');
+	const { data, error } = await supabase.rpc("generate_ticket_code");
 
 	if (error) {
-		console.error('Error generating ticket code:', error);
+		console.error("Error generating ticket code:", error);
 		// Fallback to manual generation if database function fails
 		const today = new Date();
 		const year = today.getFullYear();
-		const sequence = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+		const sequence = Math.floor(Math.random() * 1000000)
+			.toString()
+			.padStart(6, "0");
 		return `LRP-${year}-${sequence}`;
 	}
 
@@ -976,27 +1050,53 @@ function inferRepairCategory(issueDescription: string): string {
 	const description = issueDescription.toLowerCase();
 
 	// Display-related issues
-	if (description.includes("màn hình") || description.includes("screen") || description.includes("vỡ"))
+	if (
+		description.includes("màn hình") ||
+		description.includes("screen") ||
+		description.includes("vỡ")
+	)
 		return "display";
 
 	// Keyboard issues
-	if (description.includes("bàn phím") || description.includes("keyboard") || description.includes("lỗi"))
+	if (
+		description.includes("bàn phím") ||
+		description.includes("keyboard") ||
+		description.includes("lỗi")
+	)
 		return "keyboard";
 
 	// Power issues
-	if (description.includes("không khởi động") || description.includes("power") || description.includes("nguồn"))
+	if (
+		description.includes("không khởi động") ||
+		description.includes("power") ||
+		description.includes("nguồn")
+	)
 		return "power";
 
 	// Cooling issues
-	if (description.includes("quạt") || description.includes("fan") || description.includes("kêu to") || description.includes("cooling"))
+	if (
+		description.includes("quạt") ||
+		description.includes("fan") ||
+		description.includes("kêu to") ||
+		description.includes("cooling")
+	)
 		return "cooling";
 
 	// Connectivity issues
-	if (description.includes("wifi") || description.includes("mạng") || description.includes("bluetooth") || description.includes("không bắt"))
+	if (
+		description.includes("wifi") ||
+		description.includes("mạng") ||
+		description.includes("bluetooth") ||
+		description.includes("không bắt")
+	)
 		return "connectivity";
 
 	// Performance issues
-	if (description.includes("chậm") || description.includes("lag") || description.includes("chạy chậm"))
+	if (
+		description.includes("chậm") ||
+		description.includes("lag") ||
+		description.includes("chạy chậm")
+	)
 		return "performance";
 
 	// Battery issues

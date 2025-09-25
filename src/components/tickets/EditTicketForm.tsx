@@ -2,13 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useRepairTickets } from "@/hooks/use-repair-tickets";
 import type { Database } from "@/lib/supabase";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Save } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 
 type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
@@ -24,7 +30,10 @@ interface EditTicketFormProps {
 	onTicketUpdated?: (ticketId: string) => void;
 }
 
-export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProps) {
+export function EditTicketForm({
+	ticketId,
+	onTicketUpdated,
+}: EditTicketFormProps) {
 	const navigate = useNavigate();
 	const { getRepairById, updateRepair } = useRepairTickets();
 	const [ticket, setTicket] = useState<RepairWithDetails | null>(null);
@@ -55,7 +64,11 @@ export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProp
 				setEstimatedCost(data.estimated_cost?.toString() || "");
 				setNotes(data.notes || "");
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Không thể tải thông tin phiếu sửa chữa");
+				setError(
+					err instanceof Error
+						? err.message
+						: "Không thể tải thông tin phiếu sửa chữa",
+				);
 			} finally {
 				setLoading(false);
 			}
@@ -84,7 +97,11 @@ export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProp
 			await updateRepair(ticketId, updates);
 			onTicketUpdated?.(ticketId);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Không thể cập nhật phiếu sửa chữa");
+			setError(
+				err instanceof Error
+					? err.message
+					: "Không thể cập nhật phiếu sửa chữa",
+			);
 		} finally {
 			setSaving(false);
 		}
@@ -94,8 +111,8 @@ export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProp
 		return (
 			<div className="container mx-auto py-6">
 				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded mb-4"></div>
-					<div className="h-64 bg-gray-200 rounded"></div>
+					<div className="h-8 bg-gray-200 rounded mb-4" />
+					<div className="h-64 bg-gray-200 rounded" />
 				</div>
 			</div>
 		);
@@ -128,7 +145,9 @@ export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProp
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={() => navigate({ to: "/phieu-sua-chua/$id", params: { id: ticketId } })}
+						onClick={() =>
+							navigate({ to: "/phieu-sua-chua/$id", params: { id: ticketId } })
+						}
 					>
 						<ArrowLeft className="h-4 w-4 mr-2" />
 						Quay lại
@@ -228,18 +247,32 @@ export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProp
 										<SelectValue placeholder="Chọn trạng thái" />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="device_received">Tiếp nhận thiết bị</SelectItem>
-										<SelectItem value="preliminary_inspection">Kiểm tra sơ bộ</SelectItem>
-										<SelectItem value="awaiting_repair_plan">Chờ phương án sửa chữa</SelectItem>
-										<SelectItem value="approved_for_repair">Đã phê duyệt sửa chữa</SelectItem>
+										<SelectItem value="device_received">
+											Tiếp nhận thiết bị
+										</SelectItem>
+										<SelectItem value="preliminary_inspection">
+											Kiểm tra sơ bộ
+										</SelectItem>
+										<SelectItem value="awaiting_repair_plan">
+											Chờ phương án sửa chữa
+										</SelectItem>
+										<SelectItem value="approved_for_repair">
+											Đã phê duyệt sửa chữa
+										</SelectItem>
 										<SelectItem value="in_diagnosis">Đang chẩn đoán</SelectItem>
 										<SelectItem value="waiting_parts">Chờ linh kiện</SelectItem>
 										<SelectItem value="in_repair">Đang sửa chữa</SelectItem>
-										<SelectItem value="quality_testing">Kiểm tra chất lượng</SelectItem>
-										<SelectItem value="ready_for_pickup">Sẵn sàng nhận</SelectItem>
+										<SelectItem value="quality_testing">
+											Kiểm tra chất lượng
+										</SelectItem>
+										<SelectItem value="ready_for_pickup">
+											Sẵn sàng nhận
+										</SelectItem>
 										<SelectItem value="completed">Hoàn thành</SelectItem>
 										<SelectItem value="cannot_repair">Không thể sửa</SelectItem>
-										<SelectItem value="cancelled_by_customer">Khách hàng hủy</SelectItem>
+										<SelectItem value="cancelled_by_customer">
+											Khách hàng hủy
+										</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>
@@ -266,16 +299,22 @@ export function EditTicketForm({ ticketId, onTicketUpdated }: EditTicketFormProp
 						<CardContent className="space-y-3">
 							<div>
 								<p className="text-sm text-muted-foreground">Thương hiệu:</p>
-								<p className="font-medium">{ticket?.device_info?.brand || "Không xác định"}</p>
+								<p className="font-medium">
+									{ticket?.device_info?.brand || "Không xác định"}
+								</p>
 							</div>
 							<div>
 								<p className="text-sm text-muted-foreground">Model:</p>
-								<p className="font-medium">{ticket?.device_info?.model || "Không xác định"}</p>
+								<p className="font-medium">
+									{ticket?.device_info?.model || "Không xác định"}
+								</p>
 							</div>
 							{ticket?.device_info?.serial_number && (
 								<div>
 									<p className="text-sm text-muted-foreground">Số serial:</p>
-									<p className="font-medium">{ticket.device_info.serial_number}</p>
+									<p className="font-medium">
+										{ticket.device_info.serial_number}
+									</p>
 								</div>
 							)}
 						</CardContent>

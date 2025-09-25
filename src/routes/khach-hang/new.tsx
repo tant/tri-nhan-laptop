@@ -1,21 +1,21 @@
 import {
-	CustomerProfileForm,
 	type CustomerProfileData,
+	CustomerProfileForm,
 	createDefaultCustomerProfile,
 } from "@/components/customers/CustomerProfileForm";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCustomers } from "@/hooks/use-customers";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Save } from "lucide-react";
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 function ProtectedCreateCustomer() {
 	const navigate = useNavigate();
 	const { createCustomer } = useCustomers();
 	const [customerData, setCustomerData] = useState<CustomerProfileData>(
-		createDefaultCustomerProfile()
+		createDefaultCustomerProfile(),
 	);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);

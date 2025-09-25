@@ -1,6 +1,6 @@
 import { ProtectedRoute } from "@/components/protected-route";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 function ProtectedPartEdit() {
 	const { id } = Route.useParams();

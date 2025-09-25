@@ -51,7 +51,7 @@ function UserMenu() {
 		toast({
 			variant: "success",
 			title: "Đăng xuất thành công!",
-			description: getSuccessMessage('logoutSuccess'),
+			description: getSuccessMessage("logoutSuccess"),
 		});
 		setTimeout(() => {
 			window.location.href = "/login";

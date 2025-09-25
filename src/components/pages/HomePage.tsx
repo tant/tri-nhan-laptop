@@ -102,7 +102,11 @@ export function HomePage() {
 	const getStatusBadge = (status: string) => {
 		const statusMap: Record<
 			string,
-			{ text: string; variant: "secondary" | "outline" | "default"; icon: any }
+			{
+				text: string;
+				variant: "secondary" | "outline" | "default";
+				icon: React.ComponentType;
+			}
 		> = {
 			received: {
 				text: "Đã tiếp nhận",
@@ -482,7 +486,7 @@ export function HomePage() {
 													.slice(-3)
 													.map((log, index) => (
 														<div
-															key={index}
+															key={`status-log-${log.id || log.timestamp || index}`}
 															className="flex items-center gap-2 text-sm"
 														>
 															<CheckCircle className="h-4 w-4 text-green-600" />
@@ -515,7 +519,7 @@ export function HomePage() {
 										<div className="mt-2 space-y-2">
 											{repairInfo.parts_used.map((part, index) => (
 												<div
-													key={index}
+													key={`part-${part.id || part.name || part.part_number || index}`}
 													className="flex justify-between items-center text-sm"
 												>
 													<span>

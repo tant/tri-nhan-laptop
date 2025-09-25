@@ -1,18 +1,18 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
+import { RealtimeNotifications } from "@/components/notifications/RealtimeNotifications";
 import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
+import { AssignTechnicianDropdown } from "@/components/tickets/AssignTechnicianDropdown";
+import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import type { ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "@tanstack/react-router";
+import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, Eye, Package, Plus, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
-import { AssignTechnicianDropdown } from "@/components/tickets/AssignTechnicianDropdown";
-import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown";
-import { RealtimeNotifications } from "@/components/notifications/RealtimeNotifications";
+import { useCallback, useEffect, useState } from "react";
 // Workflow components temporarily disabled for Phase 3 development
 
 // Database types
@@ -37,7 +37,7 @@ export function RepairTicketsPage() {
 	// const currentUser = { id: "mock-user-id", role: "manager" };
 
 	// Fetch repairs with customer and technician details
-	const fetchRepairs = async () => {
+	const fetchRepairs = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -62,18 +62,16 @@ export function RepairTicketsPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, []);
 
 	// Load repairs on component mount
 	useEffect(() => {
 		fetchRepairs();
-	}, []);
-
+	}, [fetchRepairs]);
 
 	const navigateToCreateTicket = () => {
 		navigate({ to: "/phieu-sua-chua/new" });
 	};
-
 
 	// Real-time subscription to repair changes
 	useEffect(() => {
@@ -97,7 +95,7 @@ export function RepairTicketsPage() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, []);
+	}, [fetchRepairs]);
 
 	// Status badge mapping
 	const getStatusBadge = (status: RepairTicket["status"]) => {
@@ -324,7 +322,10 @@ export function RepairTicketsPage() {
 							variant="ghost"
 							size="sm"
 							onClick={() => {
-								navigate({ to: "/phieu-sua-chua/$id", params: { id: repair.id } });
+								navigate({
+									to: "/phieu-sua-chua/$id",
+									params: { id: repair.id },
+								});
 							}}
 							title="Xem chi tiết phiếu sửa chữa"
 						>
@@ -334,7 +335,10 @@ export function RepairTicketsPage() {
 							variant="ghost"
 							size="sm"
 							onClick={() => {
-								navigate({ to: "/phieu-sua-chua/$id/edit", params: { id: repair.id } });
+								navigate({
+									to: "/phieu-sua-chua/$id/edit",
+									params: { id: repair.id },
+								});
 							}}
 							title="Chỉnh sửa phiếu sửa chữa"
 						>
@@ -434,31 +438,31 @@ export function RepairTicketsPage() {
 				<div className="md:col-span-3">
 					{/* Repair Tickets Table */}
 					<Card>
-				<CardHeader>
-					<CardTitle>Danh sách phiếu sửa chữa</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<DataTable
-						columns={columns}
-						data={repairs}
-						globalFilterFn={(row, columnId, filterValue) => {
-							if (!filterValue) return true;
+						<CardHeader>
+							<CardTitle>Danh sách phiếu sửa chữa</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<DataTable
+								columns={columns}
+								data={repairs}
+								globalFilterFn={(row, columnId, filterValue) => {
+									if (!filterValue) return true;
 
-							const searchValue = filterValue.toLowerCase();
-							const customer = row.original.customer;
-							const ticketCode = row.original.ticket_code;
+									const searchValue = filterValue.toLowerCase();
+									const customer = row.original.customer;
+									const ticketCode = row.original.ticket_code;
 
-							// Search across customer name, phone, and ticket code
-							return (
-								customer.full_name?.toLowerCase().includes(searchValue) ||
-								customer.phone?.toLowerCase().includes(searchValue) ||
-								ticketCode?.toLowerCase().includes(searchValue)
-							);
-						}}
-						searchPlaceholder="Tìm kiếm theo tên, SĐT hoặc số phiếu..."
-					/>
-				</CardContent>
-			</Card>
+									// Search across customer name, phone, and ticket code
+									return (
+										customer.full_name?.toLowerCase().includes(searchValue) ||
+										customer.phone?.toLowerCase().includes(searchValue) ||
+										ticketCode?.toLowerCase().includes(searchValue)
+									);
+								}}
+								searchPlaceholder="Tìm kiếm theo tên, SĐT hoặc số phiếu..."
+							/>
+						</CardContent>
+					</Card>
 				</div>
 
 				{/* Real-time Notifications Sidebar */}

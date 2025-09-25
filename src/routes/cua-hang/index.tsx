@@ -1,9 +1,9 @@
 import { ProtectedRoute } from "@/components/protected-route";
-import { createFileRoute } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Settings, Users, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { createFileRoute } from "@tanstack/react-router";
 import { useNavigate } from "@tanstack/react-router";
+import { BarChart3, Settings, Users } from "lucide-react";
 
 function StorePage() {
 	const navigate = useNavigate();

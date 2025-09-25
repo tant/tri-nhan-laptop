@@ -94,7 +94,7 @@ export interface FilteredRepairData {
  * Filter customer data based on access level and privacy requirements
  */
 export function filterCustomerData(
-	rawData: any,
+	rawData: Record<string, unknown>,
 	options: DataFilterOptions,
 ): FilteredCustomerData {
 	const {
@@ -110,9 +110,7 @@ export function filterCustomerData(
 	if (rawData.id) filtered.id = rawData.id;
 	if (rawData.phone) {
 		filtered.phone =
-			accessLevel === "public"
-				? maskPhoneNumber(rawData.phone)
-				: rawData.phone;
+			accessLevel === "public" ? maskPhoneNumber(rawData.phone) : rawData.phone;
 	}
 	if (rawData.full_name) {
 		filtered.full_name =
@@ -197,7 +195,7 @@ export function filterCustomerData(
  * Filter repair ticket data based on access level
  */
 export function filterRepairData(
-	rawData: any,
+	rawData: Record<string, unknown>,
 	options: DataFilterOptions,
 ): FilteredRepairData {
 	const {
@@ -249,7 +247,8 @@ export function filterRepairData(
 
 	// Cost information (internal only)
 	if (includeCostInfo && (accessLevel === "admin" || accessLevel === "staff")) {
-		if (rawData.estimated_cost) filtered.estimated_cost = rawData.estimated_cost;
+		if (rawData.estimated_cost)
+			filtered.estimated_cost = rawData.estimated_cost;
 		if (rawData.actual_cost) filtered.actual_cost = rawData.actual_cost;
 		if (rawData.parts_cost) filtered.parts_cost = rawData.parts_cost;
 		if (rawData.labor_cost) filtered.labor_cost = rawData.labor_cost;
@@ -259,7 +258,10 @@ export function filterRepairData(
 	}
 
 	// Staff information (internal only)
-	if (includeStaffInfo && (accessLevel === "admin" || accessLevel === "staff")) {
+	if (
+		includeStaffInfo &&
+		(accessLevel === "admin" || accessLevel === "staff")
+	) {
 		if (rawData.assigned_technician) {
 			filtered.assigned_technician = rawData.assigned_technician;
 		}
@@ -330,9 +332,7 @@ function maskCustomerName(name: string): string {
 	if (words.length === 1) {
 		// Single word - show first and last character
 		if (words[0].length <= 2) return words[0];
-		return (
-			words[0][0] + "*".repeat(words[0].length - 2) + words[0].slice(-1)
-		);
+		return words[0][0] + "*".repeat(words[0].length - 2) + words[0].slice(-1);
 	}
 
 	// Multiple words - show first word and mask middle words, keep last word
@@ -367,7 +367,7 @@ function sanitizeDescriptionForPublic(description: string): string {
 
 	// Limit length and add ellipsis if needed
 	if (sanitized.length > 200) {
-		sanitized = sanitized.substring(0, 197) + "...";
+		sanitized = `${sanitized.substring(0, 197)}...`;
 	}
 
 	return sanitized.trim() || "Đang xử lý";
@@ -421,7 +421,7 @@ function filterMetadata(
 /**
  * Create public-safe summary of customer data
  */
-export function createPublicCustomerSummary(customerData: any): {
+export function createPublicCustomerSummary(customerData: Record<string, unknown>): {
 	name: string;
 	phone: string;
 	category: string;
@@ -441,7 +441,7 @@ export function createPublicCustomerSummary(customerData: any): {
  * Validate that filtered data doesn't contain sensitive information
  */
 export function validateFilteredData(
-	filteredData: any,
+	filteredData: Record<string, unknown>,
 	accessLevel: string,
 ): { isValid: boolean; violations: string[] } {
 	const violations: string[] = [];
@@ -491,7 +491,7 @@ export function validateFilteredData(
 /**
  * Get all keys from nested object (for validation)
  */
-function getFlatObjectKeys(obj: any, prefix = ""): string[] {
+function getFlatObjectKeys(obj: Record<string, unknown>, prefix = ""): string[] {
 	let keys: string[] = [];
 
 	for (const key in obj) {

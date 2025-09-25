@@ -2,16 +2,33 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useRepairTickets } from "@/hooks/use-repair-tickets";
 import { useCustomers } from "@/hooks/use-customers";
-import { getPopularBrands, getDeviceModel } from "@/lib/devices/vietnamese-brands";
-import { ArrowRight, ArrowLeft, Save, FileText, User, Laptop, AlertTriangle } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useRepairTickets } from "@/hooks/use-repair-tickets";
+import {
+	getDeviceModel,
+	getPopularBrands,
+} from "@/lib/devices/vietnamese-brands";
 import type { Database } from "@/lib/supabase";
+import {
+	AlertTriangle,
+	ArrowLeft,
+	ArrowRight,
+	FileText,
+	Laptop,
+	Save,
+	User,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface CreateTicketFormProps {
 	customerId?: string;
@@ -45,13 +62,21 @@ interface FormData {
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 
-export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: CreateTicketFormProps) {
+export function CreateTicketForm({
+	customerId,
+	onTicketCreated,
+	onSaveDraft,
+}: CreateTicketFormProps) {
 	const { createRepairTicket, previewNextTicketCode } = useRepairTickets();
 	const { getCustomerById, searchCustomers } = useCustomers();
 	const [currentTab, setCurrentTab] = useState("customer");
 	const [isSubmitting, setIsSubmitting] = useState(false);
-	const [customerSuggestions, setCustomerSuggestions] = useState<Customer[]>([]);
-	const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+	const [customerSuggestions, setCustomerSuggestions] = useState<Customer[]>(
+		[],
+	);
+	const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+		null,
+	);
 	const [submitError, setSubmitError] = useState<string | null>(null);
 	const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 	const [nextTicketCode, setNextTicketCode] = useState<string>("");
@@ -93,7 +118,7 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 				const code = await previewNextTicketCode();
 				setNextTicketCode(code);
 			} catch (error) {
-				console.error('Error loading preview ticket code:', error);
+				console.error("Error loading preview ticket code:", error);
 			}
 		};
 		loadPreviewCode();
@@ -172,11 +197,12 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 			}
 
 			if (!data.problem_description.trim()) {
-				validationErrors.problem_description = "Mô tả vấn đề không được để trống";
+				validationErrors.problem_description =
+					"Mô tả vấn đề không được để trống";
 			}
 
 			// Validate estimated cost if provided
-			if (data.estimated_cost && isNaN(Number(data.estimated_cost))) {
+			if (data.estimated_cost && Number.isNaN(Number(data.estimated_cost))) {
 				validationErrors.estimated_cost = "Chi phí ước tính phải là số hợp lệ";
 			}
 
@@ -192,7 +218,7 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 					device_brand: "device",
 					device_model: "device",
 					problem_description: "problem",
-					estimated_cost: "review"
+					estimated_cost: "review",
 				};
 
 				const firstErrorField = Object.keys(validationErrors)[0];
@@ -206,7 +232,7 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 			}
 
 			// Create or get customer
-			let customerData = selectedCustomer;
+			const customerData = selectedCustomer;
 			if (!customerData) {
 				// Customer creation would go here
 				console.log("Would create new customer:", {
@@ -236,7 +262,9 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 				symptoms: [], // Default empty array
 
 				// Initial assessment
-				estimatedCost: data.estimated_cost ? Number(data.estimated_cost) : undefined,
+				estimatedCost: data.estimated_cost
+					? Number(data.estimated_cost)
+					: undefined,
 
 				// Device condition - default values for required fields
 				physicalCondition: {
@@ -245,7 +273,9 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 					keyboard: "good" as const,
 					ports: "good" as const,
 					battery: "good" as const,
-					notes: data.technician_notes || "Tình trạng thiết bị sẽ được kiểm tra chi tiết khi tiếp nhận"
+					notes:
+						data.technician_notes ||
+						"Tình trạng thiết bị sẽ được kiểm tra chi tiết khi tiếp nhận",
 				},
 
 				// Priority and assignment
@@ -253,7 +283,7 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 				repairCategory: data.problem_category,
 
 				// Workflow
-				isDraft: false
+				isDraft: false,
 			};
 
 			const result = await createRepairTicket(ticketData);
@@ -263,7 +293,9 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 				setSubmitError(null);
 				setFieldErrors({});
 			} else {
-				setSubmitError(result.error || "Không thể tạo phiếu sửa chữa. Vui lòng thử lại.");
+				setSubmitError(
+					result.error || "Không thể tạo phiếu sửa chữa. Vui lòng thử lại.",
+				);
 			}
 		} catch (error) {
 			console.error("Error creating ticket:", error);
@@ -272,14 +304,27 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 			let errorMessage = "Đã xảy ra lỗi khi tạo phiếu sửa chữa.";
 
 			if (error instanceof Error) {
-				if (error.message.includes("network") || error.message.includes("fetch")) {
-					errorMessage = "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.";
-				} else if (error.message.includes("duplicate") || error.message.includes("unique")) {
-					errorMessage = "Dữ liệu đã tồn tại trong hệ thống. Vui lòng kiểm tra lại thông tin.";
-				} else if (error.message.includes("required") || error.message.includes("null")) {
-					errorMessage = "Thiếu thông tin bắt buộc. Vui lòng kiểm tra lại tất cả các trường.";
+				if (
+					error.message.includes("network") ||
+					error.message.includes("fetch")
+				) {
+					errorMessage =
+						"Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet và thử lại.";
+				} else if (
+					error.message.includes("duplicate") ||
+					error.message.includes("unique")
+				) {
+					errorMessage =
+						"Dữ liệu đã tồn tại trong hệ thống. Vui lòng kiểm tra lại thông tin.";
+				} else if (
+					error.message.includes("required") ||
+					error.message.includes("null")
+				) {
+					errorMessage =
+						"Thiếu thông tin bắt buộc. Vui lòng kiểm tra lại tất cả các trường.";
 				} else if (error.message.includes("unauthorized")) {
-					errorMessage = "Không có quyền thực hiện thao tác này. Vui lòng đăng nhập lại.";
+					errorMessage =
+						"Không có quyền thực hiện thao tác này. Vui lòng đăng nhập lại.";
 				} else {
 					errorMessage = `Lỗi: ${error.message}`;
 				}
@@ -332,16 +377,24 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 				<div className="flex items-center justify-between mb-2">
 					<div className="flex items-center">
 						<FileText className="h-8 w-8 mr-3 text-blue-600" />
-						<h1 className="text-3xl font-bold text-gray-900">Tạo phiếu sửa chữa mới</h1>
+						<h1 className="text-3xl font-bold text-gray-900">
+							Tạo phiếu sửa chữa mới
+						</h1>
 					</div>
 					{nextTicketCode && (
 						<div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-							<div className="text-sm text-blue-600 font-medium">Mã phiếu tiếp theo</div>
-							<div className="text-lg font-bold text-blue-800 font-mono">{nextTicketCode}</div>
+							<div className="text-sm text-blue-600 font-medium">
+								Mã phiếu tiếp theo
+							</div>
+							<div className="text-lg font-bold text-blue-800 font-mono">
+								{nextTicketCode}
+							</div>
 						</div>
 					)}
 				</div>
-				<p className="text-gray-600">Điền thông tin chi tiết để tạo phiếu sửa chữa cho khách hàng</p>
+				<p className="text-gray-600">
+					Điền thông tin chi tiết để tạo phiếu sửa chữa cho khách hàng
+				</p>
 			</div>
 
 			{/* Global Error Message */}
@@ -350,7 +403,9 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 					<div className="flex items-center">
 						<AlertTriangle className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
 						<div>
-							<h3 className="text-sm font-medium text-red-800 mb-1">Không thể gửi form</h3>
+							<h3 className="text-sm font-medium text-red-800 mb-1">
+								Không thể gửi form
+							</h3>
 							<p className="text-sm text-red-700">{submitError}</p>
 						</div>
 					</div>
@@ -397,12 +452,17 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 								<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-100">
 									<div className="flex items-center mb-4">
 										<User className="h-6 w-6 mr-3 text-blue-600" />
-										<h3 className="text-xl font-semibold text-gray-900">Thông tin khách hàng</h3>
+										<h3 className="text-xl font-semibold text-gray-900">
+											Thông tin khách hàng
+										</h3>
 									</div>
 
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 										<div className="space-y-2">
-											<Label htmlFor="customer_phone" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="customer_phone"
+												className="text-sm font-medium text-gray-700"
+											>
 												Số điện thoại <span className="text-red-500">*</span>
 											</Label>
 											<Input
@@ -417,16 +477,21 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 												placeholder="0912345678"
 												className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
 											/>
-											{(errors.customer_phone || fieldErrors.customer_phone) && (
+											{(errors.customer_phone ||
+												fieldErrors.customer_phone) && (
 												<p className="text-sm text-red-500 flex items-center mt-1">
 													<AlertTriangle className="h-4 w-4 mr-1" />
-													{errors.customer_phone?.message || fieldErrors.customer_phone}
+													{errors.customer_phone?.message ||
+														fieldErrors.customer_phone}
 												</p>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="customer_name" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="customer_name"
+												className="text-sm font-medium text-gray-700"
+											>
 												Tên khách hàng <span className="text-red-500">*</span>
 											</Label>
 											<Input
@@ -440,14 +505,18 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											{(errors.customer_name || fieldErrors.customer_name) && (
 												<p className="text-sm text-red-500 flex items-center mt-1">
 													<AlertTriangle className="h-4 w-4 mr-1" />
-													{errors.customer_name?.message || fieldErrors.customer_name}
+													{errors.customer_name?.message ||
+														fieldErrors.customer_name}
 												</p>
 											)}
 										</div>
 									</div>
 
 									<div className="mt-6">
-										<Label htmlFor="customer_email" className="text-sm font-medium text-gray-700">
+										<Label
+											htmlFor="customer_email"
+											className="text-sm font-medium text-gray-700"
+										>
 											Email (không bắt buộc)
 										</Label>
 										<Input
@@ -463,13 +532,24 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 										<div className="mt-6 p-4 bg-white border border-blue-200 rounded-lg shadow-sm">
 											<div className="flex items-center mb-3">
 												<User className="h-5 w-5 mr-2 text-green-600" />
-												<p className="text-sm font-medium text-green-800">Khách hàng đã tồn tại:</p>
+												<p className="text-sm font-medium text-green-800">
+													Khách hàng đã tồn tại:
+												</p>
 											</div>
 											{customerSuggestions.map((customer) => (
-												<div key={customer.phone} className="text-sm p-2 bg-green-50 rounded border-l-4 border-green-400">
-													<div className="font-medium text-gray-900">{customer.full_name}</div>
+												<div
+													key={customer.phone}
+													className="text-sm p-2 bg-green-50 rounded border-l-4 border-green-400"
+												>
+													<div className="font-medium text-gray-900">
+														{customer.full_name}
+													</div>
 													<div className="text-gray-600">{customer.phone}</div>
-													{customer.email && <div className="text-gray-600">{customer.email}</div>}
+													{customer.email && (
+														<div className="text-gray-600">
+															{customer.email}
+														</div>
+													)}
 												</div>
 											))}
 										</div>
@@ -482,15 +562,24 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 								<div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 border border-green-100">
 									<div className="flex items-center mb-6">
 										<Laptop className="h-6 w-6 mr-3 text-green-600" />
-										<h3 className="text-xl font-semibold text-gray-900">Thông tin thiết bị</h3>
+										<h3 className="text-xl font-semibold text-gray-900">
+											Thông tin thiết bị
+										</h3>
 									</div>
 
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 										<div className="space-y-2">
-											<Label htmlFor="device_brand" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="device_brand"
+												className="text-sm font-medium text-gray-700"
+											>
 												Thương hiệu <span className="text-red-500">*</span>
 											</Label>
-											<Select onValueChange={(value) => setValue("device_brand", value)}>
+											<Select
+												onValueChange={(value) =>
+													setValue("device_brand", value)
+												}
+											>
 												<SelectTrigger className="h-11 border-gray-200 focus:border-green-500 focus:ring-green-500">
 													<SelectValue placeholder="Chọn thương hiệu" />
 												</SelectTrigger>
@@ -505,13 +594,17 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											{(errors.device_brand || fieldErrors.device_brand) && (
 												<p className="text-sm text-red-500 flex items-center mt-1">
 													<AlertTriangle className="h-4 w-4 mr-1" />
-													{errors.device_brand?.message || fieldErrors.device_brand}
+													{errors.device_brand?.message ||
+														fieldErrors.device_brand}
 												</p>
 											)}
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="device_model" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="device_model"
+												className="text-sm font-medium text-gray-700"
+											>
 												Model <span className="text-red-500">*</span>
 											</Label>
 											<Input
@@ -525,7 +618,8 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											{(errors.device_model || fieldErrors.device_model) && (
 												<p className="text-sm text-red-500 flex items-center mt-1">
 													<AlertTriangle className="h-4 w-4 mr-1" />
-													{errors.device_model?.message || fieldErrors.device_model}
+													{errors.device_model?.message ||
+														fieldErrors.device_model}
 												</p>
 											)}
 										</div>
@@ -533,7 +627,10 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 
 									<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
 										<div className="space-y-2">
-											<Label htmlFor="device_serial" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="device_serial"
+												className="text-sm font-medium text-gray-700"
+											>
 												Số serial
 											</Label>
 											<Input
@@ -544,7 +641,10 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											/>
 										</div>
 										<div className="space-y-2">
-											<Label htmlFor="device_year" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="device_year"
+												className="text-sm font-medium text-gray-700"
+											>
 												Năm sản xuất
 											</Label>
 											<Input
@@ -566,13 +666,19 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 								<div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-6 border border-red-100">
 									<div className="flex items-center mb-6">
 										<AlertTriangle className="h-6 w-6 mr-3 text-red-600" />
-										<h3 className="text-xl font-semibold text-gray-900">Mô tả vấn đề</h3>
+										<h3 className="text-xl font-semibold text-gray-900">
+											Mô tả vấn đề
+										</h3>
 									</div>
 
 									<div className="space-y-6">
 										<div className="space-y-2">
-											<Label htmlFor="problem_description" className="text-sm font-medium text-gray-700">
-												Mô tả chi tiết vấn đề <span className="text-red-500">*</span>
+											<Label
+												htmlFor="problem_description"
+												className="text-sm font-medium text-gray-700"
+											>
+												Mô tả chi tiết vấn đề{" "}
+												<span className="text-red-500">*</span>
 											</Label>
 											<Textarea
 												id="problem_description"
@@ -583,20 +689,29 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 												rows={4}
 												className="border-gray-200 focus:border-red-500 focus:ring-red-500 resize-none"
 											/>
-											{(errors.problem_description || fieldErrors.problem_description) && (
+											{(errors.problem_description ||
+												fieldErrors.problem_description) && (
 												<p className="text-sm text-red-500 flex items-center mt-1">
 													<AlertTriangle className="h-4 w-4 mr-1" />
-													{errors.problem_description?.message || fieldErrors.problem_description}
+													{errors.problem_description?.message ||
+														fieldErrors.problem_description}
 												</p>
 											)}
 										</div>
 
 										<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 											<div className="space-y-2">
-												<Label htmlFor="problem_category" className="text-sm font-medium text-gray-700">
+												<Label
+													htmlFor="problem_category"
+													className="text-sm font-medium text-gray-700"
+												>
 													Phân loại vấn đề
 												</Label>
-												<Select onValueChange={(value) => setValue("problem_category", value)}>
+												<Select
+													onValueChange={(value) =>
+														setValue("problem_category", value)
+													}
+												>
 													<SelectTrigger className="h-11 border-gray-200 focus:border-red-500 focus:ring-red-500">
 														<SelectValue placeholder="Chọn loại vấn đề" />
 													</SelectTrigger>
@@ -612,10 +727,17 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											</div>
 
 											<div className="space-y-2">
-												<Label htmlFor="urgency_level" className="text-sm font-medium text-gray-700">
+												<Label
+													htmlFor="urgency_level"
+													className="text-sm font-medium text-gray-700"
+												>
 													Mức độ ưu tiên
 												</Label>
-												<Select onValueChange={(value) => setValue("urgency_level", value)}>
+												<Select
+													onValueChange={(value) =>
+														setValue("urgency_level", value)
+													}
+												>
 													<SelectTrigger className="h-11 border-gray-200 focus:border-red-500 focus:ring-red-500">
 														<SelectValue placeholder="Chọn độ ưu tiên" />
 													</SelectTrigger>
@@ -630,7 +752,10 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="estimated_cost" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="estimated_cost"
+												className="text-sm font-medium text-gray-700"
+											>
 												Chi phí ước tính (VND)
 											</Label>
 											<Input
@@ -649,7 +774,10 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 										</div>
 
 										<div className="space-y-2">
-											<Label htmlFor="customer_notes" className="text-sm font-medium text-gray-700">
+											<Label
+												htmlFor="customer_notes"
+												className="text-sm font-medium text-gray-700"
+											>
 												Ghi chú của khách hàng
 											</Label>
 											<Textarea
@@ -669,7 +797,9 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 								<div className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg p-6 border border-emerald-100">
 									<div className="flex items-center mb-6">
 										<FileText className="h-6 w-6 mr-3 text-emerald-600" />
-										<h3 className="text-xl font-semibold text-gray-900">Xem lại thông tin</h3>
+										<h3 className="text-xl font-semibold text-gray-900">
+											Xem lại thông tin
+										</h3>
 									</div>
 
 									<div className="space-y-6">
@@ -678,21 +808,29 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											<div className="p-4 bg-white rounded-lg border-l-4 border-blue-500 shadow-sm">
 												<div className="flex items-center mb-3">
 													<User className="h-5 w-5 mr-2 text-blue-600" />
-													<h4 className="font-semibold text-gray-900">Thông tin khách hàng</h4>
+													<h4 className="font-semibold text-gray-900">
+														Thông tin khách hàng
+													</h4>
 												</div>
 												<div className="space-y-2 text-sm">
 													<div className="flex justify-between">
 														<span className="text-gray-600">Tên:</span>
-														<span className="font-medium text-gray-900">{watch("customer_name") || "Chưa có"}</span>
+														<span className="font-medium text-gray-900">
+															{watch("customer_name") || "Chưa có"}
+														</span>
 													</div>
 													<div className="flex justify-between">
 														<span className="text-gray-600">Điện thoại:</span>
-														<span className="font-medium text-gray-900">{watch("customer_phone") || "Chưa có"}</span>
+														<span className="font-medium text-gray-900">
+															{watch("customer_phone") || "Chưa có"}
+														</span>
 													</div>
 													{watch("customer_email") && (
 														<div className="flex justify-between">
 															<span className="text-gray-600">Email:</span>
-															<span className="font-medium text-gray-900">{watch("customer_email")}</span>
+															<span className="font-medium text-gray-900">
+																{watch("customer_email")}
+															</span>
 														</div>
 													)}
 												</div>
@@ -702,27 +840,37 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											<div className="p-4 bg-white rounded-lg border-l-4 border-green-500 shadow-sm">
 												<div className="flex items-center mb-3">
 													<Laptop className="h-5 w-5 mr-2 text-green-600" />
-													<h4 className="font-semibold text-gray-900">Thông tin thiết bị</h4>
+													<h4 className="font-semibold text-gray-900">
+														Thông tin thiết bị
+													</h4>
 												</div>
 												<div className="space-y-2 text-sm">
 													<div className="flex justify-between">
 														<span className="text-gray-600">Thương hiệu:</span>
-														<span className="font-medium text-gray-900">{watch("device_brand") || "Chưa có"}</span>
+														<span className="font-medium text-gray-900">
+															{watch("device_brand") || "Chưa có"}
+														</span>
 													</div>
 													<div className="flex justify-between">
 														<span className="text-gray-600">Model:</span>
-														<span className="font-medium text-gray-900">{watch("device_model") || "Chưa có"}</span>
+														<span className="font-medium text-gray-900">
+															{watch("device_model") || "Chưa có"}
+														</span>
 													</div>
 													{watch("device_serial") && (
 														<div className="flex justify-between">
 															<span className="text-gray-600">Serial:</span>
-															<span className="font-medium text-gray-900">{watch("device_serial")}</span>
+															<span className="font-medium text-gray-900">
+																{watch("device_serial")}
+															</span>
 														</div>
 													)}
 													{watch("device_year") && (
 														<div className="flex justify-between">
 															<span className="text-gray-600">Năm SX:</span>
-															<span className="font-medium text-gray-900">{watch("device_year")}</span>
+															<span className="font-medium text-gray-900">
+																{watch("device_year")}
+															</span>
 														</div>
 													)}
 												</div>
@@ -733,11 +881,15 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 										<div className="p-4 bg-white rounded-lg border-l-4 border-red-500 shadow-sm">
 											<div className="flex items-center mb-3">
 												<AlertTriangle className="h-5 w-5 mr-2 text-red-600" />
-												<h4 className="font-semibold text-gray-900">Mô tả vấn đề</h4>
+												<h4 className="font-semibold text-gray-900">
+													Mô tả vấn đề
+												</h4>
 											</div>
 											<div className="text-sm text-gray-800 bg-gray-50 p-3 rounded border">
 												{watch("problem_description") ? (
-													<p className="whitespace-pre-wrap leading-relaxed">{watch("problem_description")}</p>
+													<p className="whitespace-pre-wrap leading-relaxed">
+														{watch("problem_description")}
+													</p>
 												) : (
 													<p className="italic text-gray-500">Chưa có mô tả</p>
 												)}
@@ -757,7 +909,11 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 												)}
 												{watch("estimated_cost") && (
 													<span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-														Dự kiến: {Number(watch("estimated_cost")).toLocaleString('vi-VN')} VNĐ
+														Dự kiến:{" "}
+														{Number(watch("estimated_cost")).toLocaleString(
+															"vi-VN",
+														)}{" "}
+														VNĐ
 													</span>
 												)}
 											</div>
@@ -765,7 +921,9 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 											{/* Customer Notes */}
 											{watch("customer_notes") && (
 												<div className="mt-3">
-													<p className="text-xs text-gray-500 mb-1">Ghi chú khách hàng:</p>
+													<p className="text-xs text-gray-500 mb-1">
+														Ghi chú khách hàng:
+													</p>
 													<p className="text-sm text-gray-700 bg-yellow-50 p-2 rounded border border-yellow-200">
 														{watch("customer_notes")}
 													</p>
@@ -823,7 +981,7 @@ export function CreateTicketForm({ customerId, onTicketCreated, onSaveDraft }: C
 									>
 										{isSubmitting ? (
 											<>
-												<div className="animate-spin rounded-full h-4 w-4 mr-2 border-b-2 border-white"></div>
+												<div className="animate-spin rounded-full h-4 w-4 mr-2 border-b-2 border-white" />
 												Đang tạo...
 											</>
 										) : (

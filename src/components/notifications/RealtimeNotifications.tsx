@@ -3,24 +3,27 @@
  * Displays live status updates and system notifications
  */
 
-import { useState, useEffect } from "react";
-import { useRealtimeUpdates, RealtimeEvent } from "@/hooks/use-realtime-updates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+	type RealtimeEvent,
+	useRealtimeUpdates,
+} from "@/hooks/use-realtime-updates";
+import { cn } from "@/lib/utils";
+import {
+	AlertTriangle,
 	Bell,
 	BellRing,
 	CheckCircle,
-	AlertTriangle,
+	Clock,
+	FileText,
 	Info,
-	X,
 	Wifi,
 	WifiOff,
-	Clock,
-	FileText
+	X,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 interface RealtimeNotificationsProps {
 	maxItems?: number;
@@ -31,7 +34,7 @@ interface RealtimeNotificationsProps {
 export function RealtimeNotifications({
 	maxItems = 5,
 	showConnectionStatus = true,
-	className
+	className,
 }: RealtimeNotificationsProps) {
 	const {
 		events,
@@ -40,7 +43,7 @@ export function RealtimeNotifications({
 		getRecentEvents,
 		isConnected,
 		isReconnecting,
-		reconnect
+		reconnect,
 	} = useRealtimeUpdates();
 
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -49,8 +52,8 @@ export function RealtimeNotifications({
 
 	// Calculate unread events
 	useEffect(() => {
-		const newEvents = events.filter(event =>
-			new Date(event.timestamp).getTime() > lastViewedTimestamp
+		const newEvents = events.filter(
+			(event) => new Date(event.timestamp).getTime() > lastViewedTimestamp,
 		);
 		setUnreadCount(newEvents.length);
 	}, [events, lastViewedTimestamp]);
@@ -64,43 +67,45 @@ export function RealtimeNotifications({
 	}, [isExpanded]);
 
 	const recentEvents = getRecentEvents(30); // Last 30 minutes
-	const displayEvents = isExpanded ? events.slice(0, maxItems * 2) : recentEvents.slice(0, maxItems);
+	const displayEvents = isExpanded
+		? events.slice(0, maxItems * 2)
+		: recentEvents.slice(0, maxItems);
 
-	const getEventIcon = (type: RealtimeEvent['type']) => {
+	const getEventIcon = (type: RealtimeEvent["type"]) => {
 		switch (type) {
-			case 'ticket_created':
+			case "ticket_created":
 				return <FileText className="h-4 w-4 text-blue-500" />;
-			case 'status_changed':
+			case "status_changed":
 				return <CheckCircle className="h-4 w-4 text-green-500" />;
-			case 'ticket_updated':
+			case "ticket_updated":
 				return <Info className="h-4 w-4 text-orange-500" />;
-			case 'notification_sent':
+			case "notification_sent":
 				return <BellRing className="h-4 w-4 text-purple-500" />;
 			default:
 				return <Info className="h-4 w-4 text-gray-500" />;
 		}
 	};
 
-	const getEventBadgeVariant = (type: RealtimeEvent['type']) => {
+	const getEventBadgeVariant = (type: RealtimeEvent["type"]) => {
 		switch (type) {
-			case 'ticket_created':
-				return 'default';
-			case 'status_changed':
-				return 'secondary';
-			case 'ticket_updated':
-				return 'outline';
-			case 'notification_sent':
-				return 'secondary';
+			case "ticket_created":
+				return "default";
+			case "status_changed":
+				return "secondary";
+			case "ticket_updated":
+				return "outline";
+			case "notification_sent":
+				return "secondary";
 			default:
-				return 'outline';
+				return "outline";
 		}
 	};
 
 	const formatTime = (timestamp: string) => {
-		return new Date(timestamp).toLocaleTimeString('vi-VN', {
-			timeZone: 'Asia/Ho_Chi_Minh',
-			hour: '2-digit',
-			minute: '2-digit'
+		return new Date(timestamp).toLocaleTimeString("vi-VN", {
+			timeZone: "Asia/Ho_Chi_Minh",
+			hour: "2-digit",
+			minute: "2-digit",
 		});
 	};
 
@@ -110,7 +115,7 @@ export function RealtimeNotifications({
 		const diffMs = now.getTime() - eventTime.getTime();
 		const diffMinutes = Math.floor(diffMs / (1000 * 60));
 
-		if (diffMinutes < 1) return 'Vừa xong';
+		if (diffMinutes < 1) return "Vừa xong";
 		if (diffMinutes < 60) return `${diffMinutes} phút trước`;
 
 		const diffHours = Math.floor(diffMinutes / 60);
@@ -154,9 +159,7 @@ export function RealtimeNotifications({
 					</div>
 
 					{connectionStatus.error && (
-						<div className="text-xs text-red-500">
-							{connectionStatus.error}
-						</div>
+						<div className="text-xs text-red-500">{connectionStatus.error}</div>
 					)}
 				</div>
 			)}
@@ -176,7 +179,7 @@ export function RealtimeNotifications({
 							variant="destructive"
 							className="ml-2 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
 						>
-							{unreadCount > 99 ? '99+' : unreadCount}
+							{unreadCount > 99 ? "99+" : unreadCount}
 						</Badge>
 					)}
 				</Button>
@@ -222,10 +225,10 @@ export function RealtimeNotifications({
 												variant={getEventBadgeVariant(event.type)}
 												className="text-xs"
 											>
-												{event.type === 'ticket_created' && 'Phiếu mới'}
-												{event.type === 'status_changed' && 'Thay đổi'}
-												{event.type === 'ticket_updated' && 'Cập nhật'}
-												{event.type === 'notification_sent' && 'Thông báo'}
+												{event.type === "ticket_created" && "Phiếu mới"}
+												{event.type === "status_changed" && "Thay đổi"}
+												{event.type === "ticket_updated" && "Cập nhật"}
+												{event.type === "notification_sent" && "Thông báo"}
 											</Badge>
 
 											<div className="flex items-center space-x-2 text-xs text-gray-500">
@@ -282,10 +285,12 @@ export function NotificationIndicator() {
 	return (
 		<div className="relative">
 			<Button variant="ghost" size="sm">
-				<Bell className={cn(
-					"h-4 w-4",
-					unreadCount > 0 ? "text-blue-600" : "text-gray-500"
-				)} />
+				<Bell
+					className={cn(
+						"h-4 w-4",
+						unreadCount > 0 ? "text-blue-600" : "text-gray-500",
+					)}
+				/>
 			</Button>
 
 			{unreadCount > 0 && (
@@ -293,15 +298,17 @@ export function NotificationIndicator() {
 					variant="destructive"
 					className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
 				>
-					{unreadCount > 9 ? '9+' : unreadCount}
+					{unreadCount > 9 ? "9+" : unreadCount}
 				</Badge>
 			)}
 
 			{/* Connection status dot */}
-			<div className={cn(
-				"absolute -bottom-1 -right-1 h-2 w-2 rounded-full",
-				isConnected ? "bg-green-400" : "bg-red-400"
-			)} />
+			<div
+				className={cn(
+					"absolute -bottom-1 -right-1 h-2 w-2 rounded-full",
+					isConnected ? "bg-green-400" : "bg-red-400",
+				)}
+			/>
 		</div>
 	);
 }

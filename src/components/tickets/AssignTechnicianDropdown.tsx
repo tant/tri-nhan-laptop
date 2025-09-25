@@ -8,8 +8,8 @@ import {
 import { useRepairTickets } from "@/hooks/use-repair-tickets";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import { UserPlus, Check } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Check, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
@@ -87,7 +87,9 @@ export function AssignTechnicianDropdown({
 		handleAssign("");
 	};
 
-	const currentTechnician = technicians.find(t => t.id === currentTechnicianId);
+	const currentTechnician = technicians.find(
+		(t) => t.id === currentTechnicianId,
+	);
 
 	return (
 		<DropdownMenu>
@@ -96,17 +98,21 @@ export function AssignTechnicianDropdown({
 					variant="ghost"
 					size="sm"
 					disabled={disabled || isUpdating}
-					title={currentTechnician ? `Đã phân công: ${currentTechnician.full_name}` : "Phân công kỹ thuật viên"}
+					title={
+						currentTechnician
+							? `Đã phân công: ${currentTechnician.full_name}`
+							: "Phân công kỹ thuật viên"
+					}
 				>
 					<UserPlus className="h-4 w-4" />
-					{currentTechnician && <Check className="h-3 w-3 ml-1 text-green-600" />}
+					{currentTechnician && (
+						<Check className="h-3 w-3 ml-1 text-green-600" />
+					)}
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" className="w-56">
 				{loading ? (
-					<DropdownMenuItem disabled>
-						Đang tải...
-					</DropdownMenuItem>
+					<DropdownMenuItem disabled>Đang tải...</DropdownMenuItem>
 				) : (
 					<>
 						{currentTechnicianId && (
@@ -129,7 +135,9 @@ export function AssignTechnicianDropdown({
 								<DropdownMenuItem
 									key={technician.id}
 									onClick={() => handleAssign(technician.id)}
-									className={currentTechnicianId === technician.id ? "bg-muted" : ""}
+									className={
+										currentTechnicianId === technician.id ? "bg-muted" : ""
+									}
 								>
 									<div className="flex items-center justify-between w-full">
 										<span>{technician.full_name}</span>

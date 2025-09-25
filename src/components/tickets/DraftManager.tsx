@@ -11,7 +11,7 @@ import {
 	User,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRepairTickets } from "../../hooks/use-repair-tickets";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
@@ -27,6 +27,21 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
+interface RepairTicketFormData {
+	customer_name?: string;
+	customer_phone?: string;
+	customer_email?: string;
+	device_brand?: string;
+	device_model?: string;
+	device_serial?: string;
+	device_year?: string;
+	problem_description?: string;
+	problem_category?: string;
+	urgency_level?: string;
+	estimated_cost?: number;
+	[key: string]: unknown; // Allow additional fields
+}
+
 interface TicketDraft {
 	id: string;
 	title: string;
@@ -39,7 +54,7 @@ interface TicketDraft {
 	problem_category: string;
 	urgency_level: string;
 	estimated_cost?: number;
-	draft_data: any; // Complete form data
+	draft_data: RepairTicketFormData;
 	created_at: string;
 	updated_at: string;
 	created_by: string;
@@ -48,8 +63,8 @@ interface TicketDraft {
 
 interface DraftManagerProps {
 	onDraftSelect?: (draft: TicketDraft) => void;
-	onDraftLoad?: (draftData: any) => void;
-	currentDraft?: any; // Current form data to save as draft
+	onDraftLoad?: (draftData: RepairTicketFormData) => void;
+	currentDraft?: RepairTicketFormData;
 	showLoadButton?: boolean;
 }
 
@@ -64,6 +79,7 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 	const [drafts, setDrafts] = useState<TicketDraft[]>([]);
 	const [filteredDrafts, setFilteredDrafts] = useState<TicketDraft[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
+	const [selectedStatus, setSelectedStatus] = useState<string>("all");
 	const [isLoading, setIsLoading] = useState(false);
 	const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 	const [draftTitle, setDraftTitle] = useState("");
@@ -153,28 +169,7 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 		},
 	];
 
-	useEffect(() => {
-		loadDrafts();
-	}, []);
-
-	useEffect(() => {
-		filterDrafts();
-	}, [drafts, searchQuery]);
-
-	const loadDrafts = async () => {
-		setIsLoading(true);
-		try {
-			// In real implementation, this would call the API
-			// const draftsData = await getDrafts();
-			setDrafts(mockDrafts);
-		} catch (error) {
-			console.error("Error loading drafts:", error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
-
-	const filterDrafts = () => {
+	const filterDrafts = useCallback(() => {
 		let filtered = drafts;
 
 		if (searchQuery) {
@@ -190,13 +185,38 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 			);
 		}
 
-		// Sort by updated_at desc
+		if (selectedStatus !== "all") {
+			filtered = filtered.filter((draft) => draft.status === selectedStatus);
+		}
+
+		// Sort by modification date (newest first)
 		filtered.sort(
 			(a, b) =>
-				new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+				new Date(b.modified_at).getTime() - new Date(a.modified_at).getTime(),
 		);
 
 		setFilteredDrafts(filtered);
+	}, [drafts, searchQuery, selectedStatus]);
+
+	useEffect(() => {
+		loadDrafts();
+	}, []);
+
+	useEffect(() => {
+		filterDrafts();
+	}, [filterDrafts]);
+
+	const loadDrafts = async () => {
+		setIsLoading(true);
+		try {
+			// In real implementation, this would call the API
+			// const draftsData = await getDrafts();
+			setDrafts(mockDrafts);
+		} catch (error) {
+			console.error("Error loading drafts:", error);
+		} finally {
+			setIsLoading(false);
+		}
 	};
 
 	const handleSaveDraft = async () => {
@@ -216,7 +236,7 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 			if (result.success) {
 				// Add to local state
 				const newDraft: TicketDraft = {
-					id: result.draft_id!,
+					id: result.draft_id || `draft-${Date.now()}`,
 					title: draftTitle.trim(),
 					customer_name: currentDraft.customer_name || "",
 					customer_phone: currentDraft.customer_phone || "",
@@ -263,7 +283,9 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 		}
 	};
 
-	const calculateCompletionPercentage = (formData: any): number => {
+	const calculateCompletionPercentage = (
+		formData: RepairTicketFormData,
+	): number => {
 		const requiredFields = [
 			"customer_name",
 			"customer_phone",
@@ -285,19 +307,19 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 		let total = requiredFields.length + optionalFields.length;
 
 		// Check required fields (weight: 2)
-		requiredFields.forEach((field) => {
+		for (const field of requiredFields) {
 			if (formData[field]?.toString().trim()) {
 				completed += 2;
 			}
 			total += 1; // Additional weight for required fields
-		});
+		}
 
 		// Check optional fields (weight: 1)
-		optionalFields.forEach((field) => {
+		for (const field of optionalFields) {
 			if (formData[field]?.toString().trim()) {
 				completed += 1;
 			}
-		});
+		}
 
 		return Math.round((completed / total) * 100);
 	};

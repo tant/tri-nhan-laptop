@@ -48,13 +48,31 @@ interface ProblemDocumentation {
 	previousRepairs: string;
 }
 
+interface DeviceDocumentationData {
+	deviceSpecs: DeviceSpec[];
+	problemDoc: ProblemDocumentation;
+	photos: File[];
+	documents: File[];
+	diagnosticNotes: string;
+	repairEstimate: RepairEstimate | null;
+}
+
+interface RepairEstimate {
+	estimatedCost: number;
+	estimatedTime: string;
+	partsNeeded: string[];
+	laborCost: number;
+	partsCost: number;
+	notes?: string;
+}
+
 interface DeviceDocumentationProps {
 	deviceBrand: string;
 	deviceModel: string;
 	deviceSerial?: string;
 	deviceYear?: string;
-	onDocumentationChange?: (documentation: any) => void;
-	initialData?: any;
+	onDocumentationChange?: (documentation: DeviceDocumentationData) => void;
+	initialData?: DeviceDocumentationData;
 }
 
 export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
@@ -78,10 +96,12 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 	const [photos, setPhotos] = useState<File[]>([]);
 	const [documents, setDocuments] = useState<File[]>([]);
 	const [diagnosticNotes, setDiagnosticNotes] = useState("");
-	const [repairEstimate, setRepairEstimate] = useState<any>(null);
+	const [repairEstimate, setRepairEstimate] = useState<RepairEstimate | null>(
+		null,
+	);
 	const [currentErrorMessage, setCurrentErrorMessage] = useState("");
 
-	const componentIcons: Record<string, any> = {
+	const componentIcons: Record<string, React.ComponentType> = {
 		"Màn hình": Monitor,
 		"Bàn phím": Keyboard,
 		"Touchpad/Chuột": Mouse,
@@ -160,11 +180,20 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 			setDiagnosticNotes(initialData.diagnosticNotes || "");
 			setDeviceSpecs(initialData.deviceSpecs || []);
 		}
-	}, [initialData]);
+	}, [initialData, problemDoc]);
 
 	useEffect(() => {
-		notifyDocumentationChange();
-	}, [deviceSpecs, problemDoc, photos, documents, diagnosticNotes]);
+		if (onDocumentationChange) {
+			onDocumentationChange({
+				deviceSpecs,
+				problemDoc,
+				photos,
+				documents,
+				diagnosticNotes,
+				repairEstimate,
+			});
+		}
+	}, [onDocumentationChange, deviceSpecs, problemDoc, photos, documents, diagnosticNotes, repairEstimate]);
 
 	const initializeDeviceSpecs = () => {
 		const brandData = getDeviceBrand(deviceBrand);
@@ -182,7 +211,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 		}
 
 		// Add common components if not already present
-		commonComponents.forEach((component) => {
+		for (const component of commonComponents) {
 			if (!specs.find((spec) => spec.component === component)) {
 				specs.push({
 					component,
@@ -190,7 +219,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 					status: "unknown",
 				});
 			}
-		});
+		}
 
 		setDeviceSpecs(specs);
 	};
@@ -204,18 +233,6 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 		setRepairEstimate(estimate);
 	};
 
-	const notifyDocumentationChange = () => {
-		if (onDocumentationChange) {
-			onDocumentationChange({
-				deviceSpecs,
-				problemDoc,
-				photos,
-				documents,
-				diagnosticNotes,
-				repairEstimate,
-			});
-		}
-	};
 
 	const updateDeviceSpec = (
 		index: number,
@@ -227,7 +244,10 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 		);
 	};
 
-	const updateProblemDoc = (field: keyof ProblemDocumentation, value: any) => {
+	const updateProblemDoc = (
+		field: keyof ProblemDocumentation,
+		value: ProblemDocumentation[keyof ProblemDocumentation],
+	) => {
 		setProblemDoc((prev) => ({ ...prev, [field]: value }));
 	};
 
@@ -367,7 +387,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 									const IconComponent = componentIcons[spec.component] || Info;
 									return (
 										<div
-											key={index}
+											key={`${spec.component}-${spec.condition}-${index}`}
 											className="grid grid-cols-12 gap-4 items-center"
 										>
 											<div className="col-span-3 flex items-center gap-2">
@@ -509,7 +529,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 								<div className="flex flex-wrap gap-2">
 									{problemDoc.errorMessages.map((message, index) => (
 										<Badge
-											key={index}
+											key={`problem-error-${message}-${problemDoc.errorMessages.length}`}
 											variant="outline"
 											className="cursor-pointer"
 											onClick={() => removeErrorMessage(index)}
@@ -564,7 +584,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 								<div className="space-y-2">
 									{repairEstimate.commonIssues.map(
 										(issue: string, index: number) => (
-											<div key={index} className="flex items-start gap-2">
+											<div key={`repair-issue-${issue}-${repairEstimate.commonIssues.length}`} className="flex items-start gap-2">
 												<AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5" />
 												<p className="text-sm">{issue}</p>
 											</div>
@@ -607,13 +627,14 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 							{photos.length > 0 && (
 								<div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
 									{photos.map((photo, index) => (
-										<div key={index} className="relative">
+										<div key={`device-photo-${photo.name}-${photo.size}-${index}`} className="relative">
 											<img
 												src={URL.createObjectURL(photo)}
-												alt={`Device photo ${index + 1}`}
+												alt={`Device condition ${index + 1}`}
 												className="w-full h-24 object-cover rounded-lg"
 											/>
 											<button
+												type="button"
 												onClick={() => removeFile(index, "photos")}
 												className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
 											>
@@ -660,7 +681,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 								<div className="mt-4 space-y-2">
 									{documents.map((doc, index) => (
 										<div
-											key={index}
+											key={`device-document-${doc.name}-${doc.size}-${index}`}
 											className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
 										>
 											<div className="flex items-center gap-2">
@@ -671,6 +692,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 												</span>
 											</div>
 											<button
+												type="button"
 												onClick={() => removeFile(index, "documents")}
 												className="text-red-500 hover:text-red-700"
 											>

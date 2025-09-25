@@ -218,9 +218,10 @@ export function NotificationCenter({
 
 										return (
 											<div key={notification.id}>
-												<div
+												<Button
+													variant="ghost"
 													className={cn(
-														"p-4 hover:bg-muted/50 cursor-pointer transition-colors",
+														"p-4 h-auto w-full justify-start text-left hover:bg-muted/50 transition-colors",
 														!notification.read &&
 															"bg-[#299fce]/5 border-l-4 border-l-[#299fce]",
 													)}
@@ -301,7 +302,7 @@ export function NotificationCenter({
 															</div>
 														</div>
 													</div>
-												</div>
+												</Button>
 
 												{index < filteredNotifications.length - 1 && (
 													<Separator />

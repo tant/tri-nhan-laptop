@@ -63,7 +63,10 @@ export function ServiceHistoryDisplay({
 	const getStatusBadge = (status: string) => {
 		const statusMap: Record<
 			string,
-			{ variant: "secondary" | "outline" | "default"; icon: any }
+			{
+				variant: "secondary" | "outline" | "default";
+				icon: React.ComponentType;
+			}
 		> = {
 			received: { variant: "secondary", icon: Clock },
 			diagnosed: { variant: "outline", icon: CheckCircle },

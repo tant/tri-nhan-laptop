@@ -34,7 +34,7 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	searchKey?: string;
 	searchPlaceholder?: string;
-	globalFilterFn?: (row: any, columnId: string, filterValue: string) => boolean;
+	globalFilterFn?: (row: Record<string, unknown>, columnId: string, filterValue: string) => boolean;
 }
 
 // Column ID to Vietnamese label mapping
@@ -48,7 +48,7 @@ const getColumnLabel = (columnId: string): string => {
 		priority: "Ưu tiên",
 		estimated_cost: "Giá dự kiến",
 		technician: "Kỹ thuật viên",
-		actions: "Thao tác"
+		actions: "Thao tác",
 	};
 	return labelMap[columnId] || columnId;
 };
@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
 		getFilteredRowModel: getFilteredRowModel(),
 		onColumnVisibilityChange: setColumnVisibility,
 		onGlobalFilterChange: setGlobalFilter,
-		globalFilterFn: globalFilterFn || 'includesString',
+		globalFilterFn: globalFilterFn || "includesString",
 		state: {
 			sorting,
 			columnFilters,

@@ -169,7 +169,10 @@ export function PartsFormModal({
 		setErrors({});
 	}, [part]);
 
-	const updateFormData = (field: keyof PartFormData, value: any) => {
+	const updateFormData = (
+		field: keyof PartFormData,
+		value: PartFormData[keyof PartFormData],
+	) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 		// Clear error when user starts typing
 		if (errors[field]) {

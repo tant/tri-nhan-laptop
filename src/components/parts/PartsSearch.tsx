@@ -27,6 +27,10 @@ import { useCallback, useEffect, useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
 
+const removeDiacritics = (str: string): string => {
+	return str.normalize("NFD").replace(/[\p{M}]/gu, "");
+};
+
 interface PartsSearchProps {
 	parts: Part[];
 	onSearchResults: (filteredParts: Part[]) => void;
@@ -122,15 +126,9 @@ export function PartsSearch({
 							(field) =>
 								field?.toLowerCase().includes(searchLower) ||
 								// Support Vietnamese diacritical marks by normalizing
-								field
-									?.normalize("NFD")
-									.replace(/[\u0300-\u036f]/g, "")
+								removeDiacritics(field || "")
 									.toLowerCase()
-									.includes(
-										searchLower
-											.normalize("NFD")
-											.replace(/[\u0300-\u036f]/g, ""),
-									),
+									.includes(removeDiacritics(searchLower)),
 						);
 
 					// Category filter
@@ -208,7 +206,10 @@ export function PartsSearch({
 		};
 	}, [searchDebounce]);
 
-	const updateFilter = (key: keyof SearchFilters, value: any) => {
+	const updateFilter = (
+		key: keyof SearchFilters,
+		value: SearchFilters[keyof SearchFilters],
+	) => {
 		setFilters((prev) => ({ ...prev, [key]: value }));
 	};
 

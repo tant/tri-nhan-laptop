@@ -249,7 +249,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 		}
 	};
 
-	const filterTemplates = () => {
+	const filterTemplates = useCallback(() => {
 		let filtered = templates;
 
 		if (searchQuery) {
@@ -269,7 +269,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 		}
 
 		setFilteredTemplates(filtered);
-	};
+	}, [templates, searchQuery, categoryFilter]);
 
 	const resetTemplateForm = () => {
 		setTemplateForm({
@@ -591,9 +591,10 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 					</div>
 					<div className="flex flex-wrap gap-2">
 						{templateForm.parts_needed.map((part, index) => (
-							<Badge key={index} variant="outline" className="cursor-pointer">
+							<Badge key={`template-part-${part}-${index}`} variant="outline" className="cursor-pointer">
 								{part}
 								<button
+									type="button"
 									onClick={() => removeFromList("parts_needed", index)}
 									className="ml-2 text-red-500"
 								>
@@ -631,6 +632,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 									{index + 1}. {step}
 								</span>
 								<button
+									type="button"
 									onClick={() => removeFromList("diagnostic_steps", index)}
 									className="ml-auto text-red-500"
 								>

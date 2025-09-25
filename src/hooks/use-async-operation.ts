@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
 
-export interface AsyncOperationOptions {
+export interface AsyncOperationOptions<T = unknown> {
 	maxRetries?: number;
 	retryDelay?: number;
-	onSuccess?: (data: any) => void;
+	onSuccess?: (data: T) => void;
 	onError?: (error: Error) => void;
 	autoRetry?: boolean;
 }
@@ -16,9 +16,9 @@ export interface AsyncOperationState<T> {
 	isRetrying: boolean;
 }
 
-export function useAsyncOperation<T = any>(
+export function useAsyncOperation<T = unknown>(
 	asyncFunction: () => Promise<T>,
-	options: AsyncOperationOptions = {},
+	options: AsyncOperationOptions<T> = {},
 ) {
 	const {
 		maxRetries = 3,
@@ -126,9 +126,9 @@ export function useAsyncOperation<T = any>(
 }
 
 // Specialized hook for Supabase operations
-export function useSupabaseOperation<T = any>(
+export function useSupabaseOperation<T = unknown>(
 	asyncFunction: () => Promise<T>,
-	options: AsyncOperationOptions = {},
+	options: AsyncOperationOptions<T> = {},
 ) {
 	return useAsyncOperation(asyncFunction, {
 		maxRetries: 3,
@@ -139,9 +139,9 @@ export function useSupabaseOperation<T = any>(
 }
 
 // Hook for operations that should auto-retry on network errors
-export function useNetworkOperation<T = any>(
+export function useNetworkOperation<T = unknown>(
 	asyncFunction: () => Promise<T>,
-	options: AsyncOperationOptions = {},
+	options: AsyncOperationOptions<T> = {},
 ) {
 	return useAsyncOperation(asyncFunction, {
 		maxRetries: 5,

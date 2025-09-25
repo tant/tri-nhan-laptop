@@ -3,19 +3,19 @@
  * Handles public repair status lookups with comprehensive security measures
  */
 
-import { supabase } from "@/lib/supabase";
 import {
+	AUDIT_CONFIG,
+	RATE_LIMITS,
 	auditRepairTicketAccess,
 	checkRateLimit,
 	getClientIP,
 	getUserAgent,
 	logAuditEntry,
-	RATE_LIMITS,
-	AUDIT_CONFIG,
 } from "@/lib/audit/audit-logger";
-import { maskPhoneNumber } from "@/lib/security/phone-privacy";
-import { translateStatusForCustomer } from "@/lib/translation/status-translator";
 import { filterCustomerData } from "@/lib/security/customer-data-filter";
+import { maskPhoneNumber } from "@/lib/security/phone-privacy";
+import { supabase } from "@/lib/supabase";
+import { translateStatusForCustomer } from "@/lib/translation/status-translator";
 
 export interface PublicLookupRequest {
 	phone: string;
@@ -152,7 +152,8 @@ export async function secureRepairLookup(
 		if (!lookupResult) {
 			return {
 				success: false,
-				error: "Không tìm thấy thông tin phiếu sửa chữa với số điện thoại và mã phiếu này.",
+				error:
+					"Không tìm thấy thông tin phiếu sửa chữa với số điện thoại và mã phiếu này.",
 				rateLimitInfo: {
 					remaining: rateLimitResult.remaining || 0,
 					resetTime: rateLimitResult.resetTime,
@@ -216,7 +217,8 @@ function validateLookupInput(request: PublicLookupRequest): {
 	if (!phonePattern.test(request.phone.replace(/\s+/g, ""))) {
 		return {
 			valid: false,
-			error: "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam.",
+			error:
+				"Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam.",
 		};
 	}
 
@@ -294,9 +296,15 @@ async function performSecureLookup(phone: string, ticketCode: string) {
 /**
  * Transform internal data for safe public display
  */
-async function transformForPublicDisplay(
-	ticketData: any,
-): Promise<PublicLookupResponse["data"]> {
+async function transformForPublicDisplay(ticketData: {
+	current_status: string;
+	ticket_code: string;
+	customer_phone: string;
+	device_info: { brand: string; model: string };
+	created_at: string;
+	updated_at: string;
+	[key: string]: unknown;
+}): Promise<PublicLookupResponse["data"]> {
 	// Filter sensitive data
 	const filteredData = filterCustomerData(ticketData, {
 		accessLevel: "public",
@@ -376,8 +384,8 @@ export function generateSecurityHeaders(): SecurityHeaders {
 		"Content-Security-Policy": "default-src 'self'",
 		"Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 		"Cache-Control": "no-store, no-cache, must-revalidate, private",
-		"Pragma": "no-cache",
-		"Expires": "0",
+		Pragma: "no-cache",
+		Expires: "0",
 	};
 }
 
@@ -407,9 +415,7 @@ export function validateRequestSecurity(
 
 	// Allow legitimate bots but block obvious scrapers
 	const allowedBots = [/googlebot/i, /bingbot/i];
-	const isAllowedBot = allowedBots.some((pattern) =>
-		pattern.test(userAgent),
-	);
+	const isAllowedBot = allowedBots.some((pattern) => pattern.test(userAgent));
 	const isSuspicious = suspiciousPatterns.some((pattern) =>
 		pattern.test(userAgent),
 	);

@@ -4,10 +4,10 @@ import type { Session, User } from "@supabase/supabase-js";
 import {
 	type ReactNode,
 	createContext,
+	useCallback,
 	useContext,
 	useEffect,
 	useState,
-	useCallback,
 } from "react";
 
 // Define user profile type from database
@@ -33,30 +33,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [loading, setLoading] = useState(true);
 
 	// Fetch user profile from database with better error handling
-	const fetchUserProfile = useCallback(async (userId: string): Promise<UserProfile | null> => {
-		try {
-			console.log('🔍 Fetching user profile for:', userId);
+	const fetchUserProfile = useCallback(
+		async (userId: string): Promise<UserProfile | null> => {
+			try {
+				console.log("🔍 Fetching user profile for:", userId);
 
-			const { data, error } = await supabase
-				.from("user_profiles")
-				.select("*")
-				.eq("id", userId)
-				.single();
+				const { data, error } = await supabase
+					.from("user_profiles")
+					.select("*")
+					.eq("id", userId)
+					.single();
 
-			if (error) {
-				console.error("Error fetching user profile:", error);
+				if (error) {
+					console.error("Error fetching user profile:", error);
+					// Don't throw - return null and let auth continue
+					return null;
+				}
+
+				console.log("✅ User profile fetched successfully:", data);
+				return data;
+			} catch (error) {
+				console.error("Unexpected error fetching user profile:", error);
 				// Don't throw - return null and let auth continue
 				return null;
 			}
-
-			console.log('✅ User profile fetched successfully:', data);
-			return data;
-		} catch (error) {
-			console.error("Unexpected error fetching user profile:", error);
-			// Don't throw - return null and let auth continue
-			return null;
-		}
-	}, []);
+		},
+		[],
+	);
 
 	// Sign in function
 	const signIn = async (email: string, password: string) => {
@@ -99,56 +102,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	};
 
 	// Handle auth state changes with better error handling
-	const handleAuthStateChange = useCallback(async (session: Session | null) => {
-		console.log('🔄 Auth state change:', session ? 'authenticated' : 'not authenticated');
+	const handleAuthStateChange = useCallback(
+		async (session: Session | null) => {
+			console.log(
+				"🔄 Auth state change:",
+				session ? "authenticated" : "not authenticated",
+			);
 
-		setSession(session);
-		setUser(session?.user ?? null);
+			setSession(session);
+			setUser(session?.user ?? null);
 
-		if (session?.user) {
-			try {
-				// Add timeout to prevent hanging
-				const profilePromise = fetchUserProfile(session.user.id);
-				const timeoutPromise = new Promise<null>((_, reject) =>
-					setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
-				);
+			if (session?.user) {
+				try {
+					// Add timeout to prevent hanging
+					const profilePromise = fetchUserProfile(session.user.id);
+					const timeoutPromise = new Promise<null>((_, reject) =>
+						setTimeout(() => reject(new Error("Profile fetch timeout")), 5000),
+					);
 
-				const userProfile = await Promise.race([profilePromise, timeoutPromise]);
-				setProfile(userProfile);
-			} catch (error) {
-				console.error('Profile fetch failed or timed out:', error);
-				// Set profile to null but don't block auth
+					const userProfile = await Promise.race([
+						profilePromise,
+						timeoutPromise,
+					]);
+					setProfile(userProfile);
+				} catch (error) {
+					console.error("Profile fetch failed or timed out:", error);
+					// Set profile to null but don't block auth
+					setProfile(null);
+				}
+			} else {
+				// Clear profile when signed out
 				setProfile(null);
 			}
-		} else {
-			// Clear profile when signed out
-			setProfile(null);
-		}
 
-		console.log('✅ Auth state updated, setting loading to false');
-		setLoading(false);
-	}, [fetchUserProfile]);
+			console.log("✅ Auth state updated, setting loading to false");
+			setLoading(false);
+		},
+		[fetchUserProfile],
+	);
 
 	// Listen for auth state changes
 	useEffect(() => {
-		console.log('🚀 Setting up auth state listener');
+		console.log("🚀 Setting up auth state listener");
 
 		const {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange(async (event, session) => {
-			console.log('📡 Auth event:', event);
+			console.log("📡 Auth event:", event);
 			await handleAuthStateChange(session);
 		});
 
 		return () => {
-			console.log('🧹 Cleaning up auth state listener');
+			console.log("🧹 Cleaning up auth state listener");
 			subscription.unsubscribe();
 		};
 	}, [handleAuthStateChange]);
 
 	// Check initial session
 	useEffect(() => {
-		console.log('🔍 Checking initial session');
+		console.log("🔍 Checking initial session");
 
 		const checkSession = async () => {
 			try {
@@ -156,10 +168,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					data: { session },
 				} = await supabase.auth.getSession();
 
-				console.log('📋 Initial session:', session ? 'found' : 'not found');
+				console.log("📋 Initial session:", session ? "found" : "not found");
 				await handleAuthStateChange(session);
 			} catch (error) {
-				console.error('Error checking initial session:', error);
+				console.error("Error checking initial session:", error);
 				setLoading(false); // Always set loading to false
 			}
 		};

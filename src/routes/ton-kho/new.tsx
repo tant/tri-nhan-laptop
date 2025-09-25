@@ -5,9 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { usePartsManagement } from "@/hooks/use-parts-management";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Save } from "lucide-react";
 import { useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 function ProtectedCreatePart() {
 	const navigate = useNavigate();
@@ -28,7 +28,7 @@ function ProtectedCreatePart() {
 	const [error, setError] = useState<string | null>(null);
 
 	const handleInputChange = (field: string, value: string) => {
-		setFormData(prev => ({ ...prev, [field]: value }));
+		setFormData((prev) => ({ ...prev, [field]: value }));
 	};
 
 	const handleSave = async () => {
@@ -138,7 +138,9 @@ function ProtectedCreatePart() {
 								<Input
 									id="partNumber"
 									value={formData.partNumber}
-									onChange={(e) => handleInputChange("partNumber", e.target.value)}
+									onChange={(e) =>
+										handleInputChange("partNumber", e.target.value)
+									}
 									placeholder="Mã linh kiện"
 								/>
 							</div>
@@ -148,7 +150,9 @@ function ProtectedCreatePart() {
 								<Textarea
 									id="description"
 									value={formData.description}
-									onChange={(e) => handleInputChange("description", e.target.value)}
+									onChange={(e) =>
+										handleInputChange("description", e.target.value)
+									}
 									placeholder="Mô tả linh kiện"
 									rows={3}
 								/>
@@ -169,7 +173,9 @@ function ProtectedCreatePart() {
 										id="costPrice"
 										type="number"
 										value={formData.costPrice}
-										onChange={(e) => handleInputChange("costPrice", e.target.value)}
+										onChange={(e) =>
+											handleInputChange("costPrice", e.target.value)
+										}
 										placeholder="0"
 										min="0"
 									/>
@@ -180,7 +186,9 @@ function ProtectedCreatePart() {
 										id="sellingPrice"
 										type="number"
 										value={formData.sellingPrice}
-										onChange={(e) => handleInputChange("sellingPrice", e.target.value)}
+										onChange={(e) =>
+											handleInputChange("sellingPrice", e.target.value)
+										}
 										placeholder="0"
 										min="0"
 									/>
@@ -194,7 +202,9 @@ function ProtectedCreatePart() {
 										id="quantity"
 										type="number"
 										value={formData.quantity}
-										onChange={(e) => handleInputChange("quantity", e.target.value)}
+										onChange={(e) =>
+											handleInputChange("quantity", e.target.value)
+										}
 										placeholder="0"
 										min="0"
 									/>
@@ -205,7 +215,9 @@ function ProtectedCreatePart() {
 										id="minimumStock"
 										type="number"
 										value={formData.minimumStock}
-										onChange={(e) => handleInputChange("minimumStock", e.target.value)}
+										onChange={(e) =>
+											handleInputChange("minimumStock", e.target.value)
+										}
 										placeholder="0"
 										min="0"
 									/>
@@ -217,7 +229,9 @@ function ProtectedCreatePart() {
 								<Input
 									id="location"
 									value={formData.location}
-									onChange={(e) => handleInputChange("location", e.target.value)}
+									onChange={(e) =>
+										handleInputChange("location", e.target.value)
+									}
 									placeholder="Kệ A1, Ngăn 3..."
 								/>
 							</div>

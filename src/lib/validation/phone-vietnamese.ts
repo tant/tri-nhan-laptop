@@ -108,12 +108,15 @@ export function normalizePhoneNumber(phone: string): string {
 
 	// For international numbers starting with +, preserve the +
 	if (phone.trim().startsWith("+")) {
-		return "+" + phone.replace(/[\s\-\(\)\.\+]/g, "");
+		return `+${phone.replace(/[\s\-\(\)\.\+]/g, "")}`;
 	}
 
 	// For numbers starting with 84 (country code), add + prefix
-	if (phone.replace(/[\s\-\(\)\.\+]/g, "").startsWith("84") && phone.replace(/[\s\-\(\)\.\+]/g, "").length > 10) {
-		return "+" + phone.replace(/[\s\-\(\)\.\+]/g, "");
+	if (
+		phone.replace(/[\s\-\(\)\.\+]/g, "").startsWith("84") &&
+		phone.replace(/[\s\-\(\)\.\+]/g, "").length > 10
+	) {
+		return `+${phone.replace(/[\s\-\(\)\.\+]/g, "")}`;
 	}
 
 	// For other cases, remove all formatting including +
@@ -153,11 +156,11 @@ function getCarrierName(phone: string): string | undefined {
 	const prefix = normalized.substring(0, 3);
 
 	const carrierMapping = {
-		viettel: 'Viettel',
-		vinaphone: 'Vinaphone',
-		mobifone: 'Mobifone',
-		vietnamobile: 'Vietnamobile',
-		gmobile: 'Gmobile'
+		viettel: "Viettel",
+		vinaphone: "Vinaphone",
+		mobifone: "Mobifone",
+		vietnamobile: "Vietnamobile",
+		gmobile: "Gmobile",
 	};
 
 	for (const [carrier, prefixes] of Object.entries(
@@ -208,8 +211,14 @@ export function validateVietnamesePhone(phone: string): PhoneValidationResult {
 	const normalized = normalizePhoneNumber(phone);
 
 	// Check for malicious content and security issues first
-	if (/[<>'"&\\${}]|script|drop|select|insert|update|delete|union|\.\.\/|etc\/passwd/i.test(normalized) ||
-		/[<>'"&\\${}]|script|drop|select|insert|update|delete|union|\.\.\/|etc\/passwd/i.test(phone)) {
+	if (
+		/[<>'"&\\${}]|script|drop|select|insert|update|delete|union|\.\.\/|etc\/passwd/i.test(
+			normalized,
+		) ||
+		/[<>'"&\\${}]|script|drop|select|insert|update|delete|union|\.\.\/|etc\/passwd/i.test(
+			phone,
+		)
+	) {
 		return {
 			isValid: false,
 			formatted: "",
@@ -229,9 +238,11 @@ export function validateVietnamesePhone(phone: string): PhoneValidationResult {
 	}
 
 	// Check for invalid characters and basic format issues
-	if (/[a-zA-Z]/.test(normalized) ||
-		(normalized.length > 15) ||
-		(normalized.length < 8 && !normalized.startsWith("+"))) {
+	if (
+		/[a-zA-Z]/.test(normalized) ||
+		normalized.length > 15 ||
+		(normalized.length < 8 && !normalized.startsWith("+"))
+	) {
 		return {
 			isValid: false,
 			formatted: "",
@@ -248,7 +259,7 @@ export function validateVietnamesePhone(phone: string): PhoneValidationResult {
 			return {
 				...localValidation,
 				type: "international",
-				formatted: formatInternationalPhone(phone)
+				formatted: formatInternationalPhone(phone),
 			};
 		}
 		return localValidation;
@@ -260,7 +271,7 @@ export function validateVietnamesePhone(phone: string): PhoneValidationResult {
 			return {
 				...localValidation,
 				type: "international",
-				formatted: formatInternationalPhone(phone)
+				formatted: formatInternationalPhone(phone),
 			};
 		}
 		return localValidation;
@@ -269,7 +280,11 @@ export function validateVietnamesePhone(phone: string): PhoneValidationResult {
 	// Check if it starts with + (international format)
 	if (normalized.startsWith("+")) {
 		const cleanNumber = normalized.substring(1);
-		if (cleanNumber.length >= 10 && cleanNumber.length <= 15 && /^\d+$/.test(cleanNumber)) {
+		if (
+			cleanNumber.length >= 10 &&
+			cleanNumber.length <= 15 &&
+			/^\d+$/.test(cleanNumber)
+		) {
 			return {
 				isValid: true,
 				formatted: formatInternationalPhone(phone),
@@ -281,7 +296,12 @@ export function validateVietnamesePhone(phone: string): PhoneValidationResult {
 	// Check if it's a valid Vietnamese number
 	if (!normalized.startsWith("0")) {
 		// Check if it might be an international number (without + prefix)
-		if (normalized.length >= 10 && normalized.length <= 15 && /^\d+$/.test(normalized) && !normalized.startsWith("0")) {
+		if (
+			normalized.length >= 10 &&
+			normalized.length <= 15 &&
+			/^\d+$/.test(normalized) &&
+			!normalized.startsWith("0")
+		) {
 			return {
 				isValid: true,
 				formatted: formatInternationalPhone(phone),

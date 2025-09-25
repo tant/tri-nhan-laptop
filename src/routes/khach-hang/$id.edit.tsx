@@ -1,20 +1,22 @@
 import {
-	CustomerProfileForm,
 	type CustomerProfileData,
+	CustomerProfileForm,
 } from "@/components/customers/CustomerProfileForm";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCustomers } from "@/hooks/use-customers";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 function ProtectedCustomerEdit() {
 	const { id } = Route.useParams();
 	const navigate = useNavigate();
 	const { getCustomerById, updateCustomer } = useCustomers();
-	const [customerData, setCustomerData] = useState<CustomerProfileData | null>(null);
+	const [customerData, setCustomerData] = useState<CustomerProfileData | null>(
+		null,
+	);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ function ProtectedCustomerEdit() {
 					idCard: null, // May need conversion
 
 					// Address
-					address: data.address as any, // Type conversion may be needed
+					address: data.address as string | null, // Type conversion may be needed
 
 					// Category and business info
 					category: "individual" as const,
@@ -66,7 +68,11 @@ function ProtectedCustomerEdit() {
 				};
 				setCustomerData(profileData);
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Không thể tải thông tin khách hàng");
+				setError(
+					err instanceof Error
+						? err.message
+						: "Không thể tải thông tin khách hàng",
+				);
 			} finally {
 				setLoading(false);
 			}
@@ -92,7 +98,9 @@ function ProtectedCustomerEdit() {
 			// Navigate back to customer detail
 			navigate({ to: "/khach-hang/$id", params: { id } });
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Không thể cập nhật khách hàng");
+			setError(
+				err instanceof Error ? err.message : "Không thể cập nhật khách hàng",
+			);
 		} finally {
 			setSaving(false);
 		}
@@ -102,8 +110,8 @@ function ProtectedCustomerEdit() {
 		return (
 			<div className="container mx-auto py-6">
 				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded mb-4"></div>
-					<div className="h-64 bg-gray-200 rounded"></div>
+					<div className="h-8 bg-gray-200 rounded mb-4" />
+					<div className="h-64 bg-gray-200 rounded" />
 				</div>
 			</div>
 		);
@@ -114,8 +122,13 @@ function ProtectedCustomerEdit() {
 			<div className="container mx-auto py-6">
 				<Card>
 					<CardContent className="p-6">
-						<p className="text-red-500">{error || "Không thể tải thông tin khách hàng"}</p>
-						<Button onClick={() => navigate({ to: "/khach-hang" })} className="mt-4">
+						<p className="text-red-500">
+							{error || "Không thể tải thông tin khách hàng"}
+						</p>
+						<Button
+							onClick={() => navigate({ to: "/khach-hang" })}
+							className="mt-4"
+						>
 							<ArrowLeft className="h-4 w-4 mr-2" />
 							Quay lại danh sách
 						</Button>
@@ -134,7 +147,9 @@ function ProtectedCustomerEdit() {
 						<Button
 							variant="outline"
 							size="sm"
-							onClick={() => navigate({ to: "/khach-hang/$id", params: { id } })}
+							onClick={() =>
+								navigate({ to: "/khach-hang/$id", params: { id } })
+							}
 						>
 							<ArrowLeft className="h-4 w-4 mr-2" />
 							Quay lại

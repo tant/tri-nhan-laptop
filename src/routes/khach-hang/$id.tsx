@@ -1,12 +1,12 @@
 import { ProtectedRoute } from "@/components/protected-route";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useCustomers } from "@/hooks/use-customers";
-import { ArrowLeft, Edit, Phone, Mail, MapPin } from "lucide-react";
-import { useEffect, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import type { Database } from "@/lib/supabase";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Edit, Mail, MapPin, Phone } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 
@@ -25,7 +25,11 @@ function ProtectedCustomerDetail() {
 				const data = await getCustomerById(id);
 				setCustomer(data);
 			} catch (err) {
-				setError(err instanceof Error ? err.message : "Không thể tải thông tin khách hàng");
+				setError(
+					err instanceof Error
+						? err.message
+						: "Không thể tải thông tin khách hàng",
+				);
 			} finally {
 				setLoading(false);
 			}
@@ -38,8 +42,8 @@ function ProtectedCustomerDetail() {
 		return (
 			<div className="container mx-auto py-6">
 				<div className="animate-pulse">
-					<div className="h-8 bg-gray-200 rounded mb-4"></div>
-					<div className="h-64 bg-gray-200 rounded"></div>
+					<div className="h-8 bg-gray-200 rounded mb-4" />
+					<div className="h-64 bg-gray-200 rounded" />
 				</div>
 			</div>
 		);
@@ -50,8 +54,13 @@ function ProtectedCustomerDetail() {
 			<div className="container mx-auto py-6">
 				<Card>
 					<CardContent className="p-6">
-						<p className="text-red-500">{error || "Không tìm thấy khách hàng"}</p>
-						<Button onClick={() => navigate({ to: "/khach-hang" })} className="mt-4">
+						<p className="text-red-500">
+							{error || "Không tìm thấy khách hàng"}
+						</p>
+						<Button
+							onClick={() => navigate({ to: "/khach-hang" })}
+							className="mt-4"
+						>
 							<ArrowLeft className="h-4 w-4 mr-2" />
 							Quay lại danh sách
 						</Button>
@@ -77,10 +86,16 @@ function ProtectedCustomerDetail() {
 						</Button>
 						<div>
 							<h1 className="text-2xl font-bold">{customer.full_name}</h1>
-							<p className="text-muted-foreground">Mã khách hàng: {customer.phone}</p>
+							<p className="text-muted-foreground">
+								Mã khách hàng: {customer.phone}
+							</p>
 						</div>
 					</div>
-					<Button onClick={() => navigate({ to: "/khach-hang/$id/edit", params: { id } })}>
+					<Button
+						onClick={() =>
+							navigate({ to: "/khach-hang/$id/edit", params: { id } })
+						}
+					>
 						<Edit className="h-4 w-4 mr-2" />
 						Chỉnh sửa
 					</Button>
@@ -118,7 +133,11 @@ function ProtectedCustomerDetail() {
 									<p className="text-sm text-muted-foreground">Địa chỉ:</p>
 									<p className="font-medium flex items-start">
 										<MapPin className="h-4 w-4 mr-2 mt-1" />
-										<span>{typeof customer.address === 'string' ? customer.address : JSON.stringify(customer.address)}</span>
+										<span>
+											{typeof customer.address === "string"
+												? customer.address
+												: JSON.stringify(customer.address)}
+										</span>
 									</p>
 								</div>
 							)}
@@ -138,7 +157,9 @@ function ProtectedCustomerDetail() {
 								</p>
 							</div>
 							<div>
-								<p className="text-sm text-muted-foreground">Cập nhật lần cuối:</p>
+								<p className="text-sm text-muted-foreground">
+									Cập nhật lần cuối:
+								</p>
 								<p className="font-medium">
 									{new Date(customer.updated_at).toLocaleDateString("vi-VN")}
 								</p>

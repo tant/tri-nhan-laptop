@@ -226,7 +226,10 @@ export function CostBreakdownModal({
 		);
 	};
 
-	const handleFormFieldChange = (field: keyof AddCostItemForm, value: any) => {
+	const handleFormFieldChange = (
+		field: keyof AddCostItemForm,
+		value: AddCostItemForm[keyof AddCostItemForm],
+	) => {
 		setAddItemForm((prev) => ({
 			...prev,
 			[field]: value,

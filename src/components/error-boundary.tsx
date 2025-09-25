@@ -202,7 +202,7 @@ export function SupabaseErrorAlert({
 	autoRetry = false,
 	maxRetries = 3,
 }: {
-	error: any;
+	error: Error | unknown;
 	onRetry?: () => void;
 	onDismiss?: () => void;
 	autoRetry?: boolean;
@@ -242,7 +242,7 @@ export function SupabaseErrorAlert({
 		}
 	}, [isOnline, autoRetry, error, retryCount, maxRetries, onRetry]);
 
-	const isNetworkError = (error: any): boolean => {
+	const isNetworkError = (error: Error | unknown): boolean => {
 		const message = error?.message?.toLowerCase() || "";
 		return (
 			message.includes("failed to fetch") ||
@@ -271,7 +271,7 @@ export function SupabaseErrorAlert({
 		}
 	};
 
-	const getErrorMessage = (error: any): string => {
+	const getErrorMessage = (error: Error | unknown): string => {
 		// Use the comprehensive Vietnamese translation utility
 		return translateAuthError(error);
 	};

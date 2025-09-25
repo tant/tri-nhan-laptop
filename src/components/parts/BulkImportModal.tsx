@@ -129,9 +129,9 @@ export function BulkImportModal({
 				const values = lines[i]
 					.split(",")
 					.map((v) => v.trim().replace(/"/g, ""));
-				const rowData: any = {};
+				const rowData: Partial<Part> = {};
 
-				headers.forEach((header, index) => {
+				for (const [index, header] of headers.entries()) {
 					const value = values[index] || "";
 
 					// Type conversion based on header
@@ -152,7 +152,7 @@ export function BulkImportModal({
 						default:
 							rowData[header] = value;
 					}
-				});
+				}
 
 				// Add metadata
 				rowData.created_at = new Date().toISOString();
@@ -179,7 +179,7 @@ export function BulkImportModal({
 		}
 	};
 
-	const validateRow = (data: any): string | null => {
+	const validateRow = (data: Partial<Part>): string | null => {
 		if (!data.name?.trim()) return "Thiếu tên linh kiện";
 		if (!data.part_number?.trim()) return "Thiếu mã linh kiện";
 		if (!data.category?.trim()) return "Thiếu danh mục";

@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import { RefreshCw, ArrowRight } from "lucide-react";
+import { ArrowRight, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
 type RepairStatus = Database["public"]["Enums"]["repair_status"];
@@ -22,11 +22,28 @@ interface StatusChangeDropdownProps {
 
 // Define valid status transitions
 const STATUS_TRANSITIONS: Record<RepairStatus, RepairStatus[]> = {
-	device_received: ["preliminary_inspection", "cannot_repair", "cancelled_by_customer"],
-	preliminary_inspection: ["awaiting_repair_plan", "cannot_repair", "cancelled_by_customer"],
-	awaiting_repair_plan: ["approved_for_repair", "cannot_repair", "cancelled_by_customer"],
+	device_received: [
+		"preliminary_inspection",
+		"cannot_repair",
+		"cancelled_by_customer",
+	],
+	preliminary_inspection: [
+		"awaiting_repair_plan",
+		"cannot_repair",
+		"cancelled_by_customer",
+	],
+	awaiting_repair_plan: [
+		"approved_for_repair",
+		"cannot_repair",
+		"cancelled_by_customer",
+	],
 	approved_for_repair: ["in_diagnosis", "cancelled_by_customer"],
-	in_diagnosis: ["waiting_parts", "in_repair", "cannot_repair", "cancelled_by_customer"],
+	in_diagnosis: [
+		"waiting_parts",
+		"in_repair",
+		"cannot_repair",
+		"cancelled_by_customer",
+	],
 	waiting_parts: ["in_repair", "cannot_repair", "cancelled_by_customer"],
 	in_repair: ["quality_testing", "repair_failed", "cancelled_by_customer"],
 	quality_testing: ["ready_for_pickup", "in_repair", "repair_failed"],
@@ -61,7 +78,10 @@ const STATUS_LABELS: Record<RepairStatus, string> = {
 };
 
 // Status badge variants
-const STATUS_VARIANTS: Record<RepairStatus, "default" | "secondary" | "destructive" | "outline"> = {
+const STATUS_VARIANTS: Record<
+	RepairStatus,
+	"default" | "secondary" | "destructive" | "outline"
+> = {
 	device_received: "outline",
 	preliminary_inspection: "secondary",
 	awaiting_repair_plan: "secondary",
@@ -94,7 +114,9 @@ export function StatusChangeDropdown({
 		try {
 			setIsUpdating(true);
 
-			const updateData: any = {
+			const updateData: Partial<
+				Database["public"]["Tables"]["repair_tickets"]["Update"]
+			> = {
 				status: newStatus,
 				updated_at: new Date().toISOString(),
 			};
@@ -126,7 +148,12 @@ export function StatusChangeDropdown({
 	if (validNextStatuses.length === 0) {
 		// No valid transitions available
 		return (
-			<Button variant="ghost" size="sm" disabled title="Không thể chuyển trạng thái">
+			<Button
+				variant="ghost"
+				size="sm"
+				disabled
+				title="Không thể chuyển trạng thái"
+			>
 				<RefreshCw className="h-4 w-4" />
 			</Button>
 		);
@@ -141,7 +168,9 @@ export function StatusChangeDropdown({
 					disabled={disabled || isUpdating}
 					title="Chuyển trạng thái"
 				>
-					<RefreshCw className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`} />
+					<RefreshCw
+						className={`h-4 w-4 ${isUpdating ? "animate-spin" : ""}`}
+					/>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start" className="w-64">

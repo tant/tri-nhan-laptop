@@ -199,8 +199,10 @@ export function usePartsManagement() {
 			if (error) throw error;
 
 			// Filter for low stock parts on client side
-			const lowStockParts = (data || []).filter(part =>
-				part.current_stock <= part.min_stock_level || part.current_stock === 0
+			const lowStockParts = (data || []).filter(
+				(part) =>
+					part.current_stock <= part.min_stock_level ||
+					part.current_stock === 0,
 			);
 
 			setState((prev) => ({
