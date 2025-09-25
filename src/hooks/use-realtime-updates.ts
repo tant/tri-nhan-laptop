@@ -4,7 +4,8 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { REPAIR_STATES, RepairState } from "@/lib/workflow/repair-states";
+import type { RepairState } from "@/lib/workflow/repair-states";
+import { REPAIR_STATES } from "@/lib/workflow/repair-states";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface RealtimeEvent {
