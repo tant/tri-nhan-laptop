@@ -10,7 +10,7 @@ vi.mock("@/lib/supabase", () => {
 	let ticketCodeCounter = 1;
 
 	const mockChainBuilder = (tableName?: string) => {
-		const chain = {
+		const chain: any = {
 			select: vi.fn((columns?: string, options?: any) => {
 				// Handle count queries for ticket code generation
 				if (tableName === "repair_tickets" && options?.count === "exact") {
@@ -292,7 +292,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 
 	// Reset mock state
-	const mockModule = vi.mocked(vi.importMock("@/lib/supabase"));
+	const mockModule = vi.importMock("@/lib/supabase") as any;
 	if (mockModule._mockState) {
 		mockModule._mockState.reset();
 	}

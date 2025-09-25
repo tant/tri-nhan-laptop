@@ -71,7 +71,7 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 	currentDraft,
 	showLoadButton = false,
 }) => {
-	const { saveDraft, getDrafts, deleteDraft } = useRepairTickets();
+	const { saveDraft, _getDrafts, deleteDraft } = useRepairTickets();
 
 	const [drafts, setDrafts] = useState<TicketDraft[]>([]);
 	const [filteredDrafts, setFilteredDrafts] = useState<TicketDraft[]>([]);

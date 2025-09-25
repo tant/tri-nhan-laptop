@@ -93,12 +93,12 @@ export function RepairDetailsModal({
 	const {
 		getRepairParts,
 		addPartsToRepair,
-		calculateRepairPartsCost,
+		_calculateRepairPartsCost,
 		reservePartsForRepair,
-		addPartsToRepairWithReservation,
+		_addPartsToRepairWithReservation,
 	} = usePartsManagement();
 
-	const { calculateRepairCosts, loading: costLoading } = useCostTracking();
+	const { _calculateRepairCosts, loading: costLoading } = useCostTracking();
 
 	// Load current parts when repair changes
 	useEffect(() => {

@@ -1,5 +1,5 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { RealtimeNotifications } from "@/components/notifications/RealtimeNotifications";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
 import { AssignTechnicianDropdown } from "@/components/tickets/AssignTechnicianDropdown";
 import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown";
@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
+import { useMultipleTicketsActivity } from "@/hooks/use-ticket-activity";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import { useNavigate } from "@tanstack/react-router";
@@ -32,6 +33,10 @@ export function RepairTicketsPage() {
 	const [repairs, setRepairs] = useState<RepairWithDetails[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<Error | null>(null);
+
+	// Track activity for all visible tickets
+	const ticketIds = repairs.map(repair => repair.id);
+	const ticketActivities = useMultipleTicketsActivity(ticketIds, 30);
 	// const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 	// const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);
 	// const currentUser = { id: "mock-user-id", role: "manager" };
@@ -203,11 +208,29 @@ export function RepairTicketsPage() {
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			),
-			cell: ({ row }) => (
-				<div className="font-medium ml-4">
-					{row.getValue("ticket_code") || `#${row.original.id.slice(0, 8)}`}
-				</div>
-			),
+			cell: ({ row }) => {
+				const ticketId = row.original.id;
+				const hasActivity = ticketActivities[ticketId]?.hasRecentActivity;
+				const activityCount = ticketActivities[ticketId]?.activityCount || 0;
+
+				return (
+					<div className="flex items-center gap-2 ml-4">
+						<div className="font-medium">
+							{row.getValue("ticket_code") || `#${row.original.id.slice(0, 8)}`}
+						</div>
+						{hasActivity && (
+							<div className="flex items-center gap-1">
+								<div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+								{activityCount > 1 && (
+									<Badge variant="secondary" className="text-xs h-4 px-1">
+										{activityCount}
+									</Badge>
+								)}
+							</div>
+						)}
+					</div>
+				);
+			},
 		},
 		{
 			accessorKey: "customer",
@@ -359,7 +382,8 @@ export function RepairTicketsPage() {
 		<div className="p-6 space-y-6">
 			<div className="flex justify-between items-center">
 				<h1 className="text-3xl font-bold">Quản lý phiếu sửa chữa</h1>
-				<div className="flex gap-2">
+				<div className="flex items-center gap-2">
+					<NotificationBell />
 					<Button variant="outline" onClick={fetchRepairs} disabled={loading}>
 						<RefreshCw
 							className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
@@ -433,47 +457,33 @@ export function RepairTicketsPage() {
 				</Card>
 			</div>
 
-			{/* Real-time Notifications and Data Table */}
-			<div className="grid gap-6 md:grid-cols-4">
-				<div className="md:col-span-3">
-					{/* Repair Tickets Table */}
-					<Card>
-						<CardHeader>
-							<CardTitle>Danh sách phiếu sửa chữa</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<DataTable
-								columns={columns}
-								data={repairs}
-								globalFilterFn={(row, _columnId, filterValue) => {
-									if (!filterValue) return true;
+			{/* Repair Tickets Table - Full Width */}
+			<Card>
+				<CardHeader>
+					<CardTitle>Danh sách phiếu sửa chữa</CardTitle>
+				</CardHeader>
+				<CardContent>
+					<DataTable
+						columns={columns}
+						data={repairs}
+						globalFilterFn={(row, _columnId, filterValue) => {
+							if (!filterValue) return true;
 
-									const searchValue = filterValue.toLowerCase();
-									const customer = row.original.customer;
-									const ticketCode = row.original.ticket_code;
+							const searchValue = filterValue.toLowerCase();
+							const customer = row.original.customer;
+							const ticketCode = row.original.ticket_code;
 
-									// Search across customer name, phone, and ticket code
-									return (
-										customer.full_name?.toLowerCase().includes(searchValue) ||
-										customer.phone?.toLowerCase().includes(searchValue) ||
-										ticketCode?.toLowerCase().includes(searchValue)
-									);
-								}}
-								searchPlaceholder="Tìm kiếm theo tên, SĐT hoặc số phiếu..."
-							/>
-						</CardContent>
-					</Card>
-				</div>
-
-				{/* Real-time Notifications Sidebar */}
-				<div>
-					<RealtimeNotifications
-						maxItems={8}
-						showConnectionStatus={true}
-						className="sticky top-4"
+							// Search across customer name, phone, and ticket code
+							return (
+								customer.full_name?.toLowerCase().includes(searchValue) ||
+								customer.phone?.toLowerCase().includes(searchValue) ||
+								ticketCode?.toLowerCase().includes(searchValue)
+							);
+						}}
+						searchPlaceholder="Tìm kiếm theo tên, SĐT hoặc số phiếu..."
 					/>
-				</div>
-			</div>
+				</CardContent>
+			</Card>
 
 			{/* Status Transition Dialog */}
 			{/* {selectedRepair && (

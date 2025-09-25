@@ -64,7 +64,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 	selectedCategory,
 	showSelectButton = false,
 }) => {
-	const { getRepairTemplates } = useRepairTickets();
+	const { _getRepairTemplates } = useRepairTickets();
 
 	const [templates, setTemplates] = useState<RepairTemplate[]>([]);
 	const [filteredTemplates, setFilteredTemplates] = useState<RepairTemplate[]>(
@@ -669,6 +669,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 									{index + 1}. {step}
 								</span>
 								<button
+									type="button"
 									onClick={() => removeFromList("solution_steps", index)}
 									className="ml-auto text-red-500"
 								>
@@ -694,6 +695,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 							<Badge key={index} variant="secondary" className="cursor-pointer">
 								{tag}
 								<button
+									type="button"
 									onClick={() => removeFromList("tags", index)}
 									className="ml-2 text-red-500"
 								>

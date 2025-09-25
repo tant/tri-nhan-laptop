@@ -75,10 +75,10 @@ interface TicketAssignmentProps {
 }
 
 export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
-	ticketId,
-	problemCategory,
-	deviceBrand,
-	deviceModel,
+	_ticketId,
+	_problemCategory,
+	_deviceBrand,
+	_deviceModel,
 	urgencyLevel,
 	problemClassification,
 	onAssignmentChange,

@@ -55,8 +55,8 @@ export function PartsPickerModal({
 	onClose,
 	onConfirm,
 	onReserve,
-	repairTicket,
-	customerDeviceModel,
+	_repairTicket,
+	_customerDeviceModel,
 	allowReservations = false,
 }: PartsPickerModalProps) {
 	const [searchTerm, setSearchTerm] = useState("");
@@ -70,9 +70,9 @@ export function PartsPickerModal({
 
 	const {
 		getPartsWithStockStatus,
-		searchAvailableParts,
-		calculateRepairPartsCost,
-		getAvailableStock,
+		_searchAvailableParts,
+		_calculateRepairPartsCost,
+		_getAvailableStock,
 	} = usePartsManagement();
 
 	// Load available parts on open

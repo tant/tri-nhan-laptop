@@ -12,7 +12,6 @@ import {
 	getUserAgent,
 	logAuditEntry,
 } from "@/lib/audit/audit-logger";
-import { filterCustomerData } from "@/lib/security/customer-data-filter";
 import { maskPhoneNumber } from "@/lib/security/phone-privacy";
 import { supabase } from "@/lib/supabase";
 import { translateStatusForCustomer } from "@/lib/translation/status-translator";
@@ -64,7 +63,6 @@ export async function secureRepairLookup(
 ): Promise<PublicLookupResponse> {
 	const clientIP = getClientIP(headers);
 	const userAgent = getUserAgent(headers);
-	const _timestamp = new Date().toISOString();
 
 	// 1. Rate Limiting Check
 	const rateLimitResult = await checkRateLimit(
@@ -300,43 +298,55 @@ async function transformForPublicDisplay(ticketData: {
 	current_status: string;
 	ticket_code: string;
 	customer_phone: string;
-	device_info: { brand: string; model: string };
+	customer_name?: string;
+	device_type?: string;
+	device_model?: string;
+	device_brand?: string;
+	issue_description?: string;
+	estimated_completion_date?: string;
 	created_at: string;
-	updated_at: string;
+	last_status_update?: string;
+	customers?: {
+		full_name?: string;
+		phone?: string;
+	} | {
+		full_name?: string;
+		phone?: string;
+	}[];
 	[key: string]: unknown;
 }): Promise<PublicLookupResponse["data"]> {
-	// Filter sensitive data
-	const filteredData = filterCustomerData(ticketData, {
-		accessLevel: "public",
-		includeInternalNotes: false,
-		includeCostInfo: false,
-	});
-
 	// Translate status for customer
 	const customerStatus = await translateStatusForCustomer(
-		filteredData.current_status,
+		ticketData.current_status,
 	);
 
 	// Calculate progress percentage
 	const progressPercentage = calculateProgressPercentage(
-		filteredData.current_status,
+		ticketData.current_status,
 	);
 
+	// Get customer name from nested customer data
+	const customerName = ticketData.customer_name ||
+					     (Array.isArray(ticketData.customers)
+					      ? ticketData.customers[0]?.full_name
+					      : ticketData.customers?.full_name) ||
+					     "Khách hàng";
+
 	return {
-		ticketCode: filteredData.ticket_code,
-		customerName: filteredData.customer_name || "Khách hàng",
-		deviceInfo: `${filteredData.device_brand || ""} ${
-			filteredData.device_model || ""
+		ticketCode: ticketData.ticket_code,
+		customerName,
+		deviceInfo: `${ticketData.device_brand || ""} ${
+			ticketData.device_model || ""
 		}`.trim(),
 		status: {
-			current: filteredData.current_status,
-			description: filteredData.issue_description || "Đang xử lý",
+			current: ticketData.current_status,
+			description: ticketData.issue_description || "Đang xử lý",
 			vietnameseLabel: customerStatus.vietnameseLabel,
-			estimatedCompletion: filteredData.estimated_completion_date,
+			estimatedCompletion: ticketData.estimated_completion_date,
 			progressPercentage,
 		},
-		createdAt: filteredData.created_at,
-		lastUpdated: filteredData.last_status_update || filteredData.created_at,
+		createdAt: ticketData.created_at,
+		lastUpdated: ticketData.last_status_update || ticketData.created_at,
 		shopInfo: {
 			name: "Laptop Repair Pro",
 			phone: "0123 456 789",
