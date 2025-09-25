@@ -15,22 +15,27 @@ export function TableSkeleton({
 	columns = 6,
 }: { rows?: number; columns?: number }) {
 	const uniqueId = Math.random().toString(36).substr(2, 9);
+	const headerKeys = Array.from({ length: columns }, (_, i) => `th-${uniqueId}-col-${i}`);
+	const rowKeys = Array.from({ length: rows }, (_, r) =>
+		Array.from({ length: columns }, (_, c) => `cell-${uniqueId}-${r}-${c}`)
+	);
+
 	return (
 		<Table>
 			<TableHeader>
 				<TableRow>
-					{Array.from({ length: columns }, (_, i) => (
-						<TableHead key={`th-${uniqueId}-col-${i}`}>
+					{headerKeys.map((key, i) => (
+						<TableHead key={key}>
 							<Skeleton className="h-4 w-24" />
 						</TableHead>
 					))}
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{Array.from({ length: rows }, (_, r) => (
-					<TableRow key={`tr-${uniqueId}-row-${r}`}>
-						{Array.from({ length: columns }, (_, c) => (
-							<TableCell key={`td-${uniqueId}-cell-${r}-${c}`}>
+				{Array.from({ length: rows }, (_, r) => `row-${uniqueId}-${r}`).map((rowKey, r) => (
+					<TableRow key={rowKey}>
+						{rowKeys[r].map((cellKey) => (
+							<TableCell key={cellKey}>
 								<Skeleton className="h-4 w-full" />
 							</TableCell>
 						))}
@@ -60,12 +65,14 @@ export function StatCardSkeleton() {
 // Customer list skeleton
 export function CustomerListSkeleton() {
 	const uniqueId = Math.random().toString(36).substr(2, 9);
+	const statKeys = Array.from({ length: 4 }, (_, i) => `customer-stat-${uniqueId}-${i}`);
+
 	return (
 		<div className="space-y-6">
 			{/* Statistics cards */}
 			<div className="grid gap-4 md:grid-cols-4">
-				{Array.from({ length: 4 }, (_, i) => (
-					<StatCardSkeleton key={`customer-stat-${uniqueId}-card-${i}`} />
+				{statKeys.map((key) => (
+					<StatCardSkeleton key={key} />
 				))}
 			</div>
 
@@ -110,8 +117,8 @@ export function RepairTicketsSkeleton() {
 			{/* Statistics cards */}
 			<div className="grid gap-4 mb-6">
 				<div className="grid gap-4 md:grid-cols-4">
-					{Array.from({ length: 4 }, (_, i) => (
-						<StatCardSkeleton key={`repair-stat-card-${i}`} />
+					{Array.from({ length: 4 }, (_, i) => `repair-stat-${i}`).map((key) => (
+						<StatCardSkeleton key={key} />
 					))}
 				</div>
 			</div>
@@ -146,8 +153,8 @@ export function PartsInventorySkeleton() {
 
 			{/* Statistics cards */}
 			<div className="grid gap-4 md:grid-cols-4">
-				{Array.from({ length: 4 }, (_, i) => (
-					<StatCardSkeleton key={`parts-stat-card-${i}`} />
+				{Array.from({ length: 4 }, (_, i) => `parts-stat-${i}`).map((key) => (
+					<StatCardSkeleton key={key} />
 				))}
 			</div>
 
@@ -159,8 +166,8 @@ export function PartsInventorySkeleton() {
 				<CardContent>
 					<Skeleton className="h-4 w-full mb-2" />
 					<div className="flex flex-wrap gap-2">
-						{Array.from({ length: 3 }, (_, i) => (
-							<Skeleton key={`alert-badge-item-${i}`} className="h-6 w-24" />
+						{Array.from({ length: 3 }, (_, i) => `alert-badge-${i}`).map((key) => (
+							<Skeleton key={key} className="h-6 w-24" />
 						))}
 					</div>
 				</CardContent>
@@ -210,8 +217,8 @@ export function DashboardSkeleton() {
 
 			{/* Quick stats */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-				{Array.from({ length: 4 }, (_, i) => (
-					<StatCardSkeleton key={`dashboard-stat-card-${i}`} />
+				{Array.from({ length: 4 }, (_, i) => `dashboard-stat-${i}`).map((key) => (
+					<StatCardSkeleton key={key} />
 				))}
 			</div>
 
@@ -231,8 +238,8 @@ export function DashboardSkeleton() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{Array.from({ length: 5 }, (_, i) => (
-								<div key={`activity-item-${i}`} className="flex items-center space-x-4">
+							{Array.from({ length: 5 }, (_, i) => `activity-${i}`).map((key) => (
+								<div key={key} className="flex items-center space-x-4">
 									<Skeleton className="h-12 w-12 rounded-full" />
 									<div className="space-y-2 flex-1">
 										<Skeleton className="h-4 w-full" />
@@ -275,8 +282,8 @@ export function PageSkeleton() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{Array.from({ length: 6 }, (_, i) => (
-								<Skeleton key={`page-skeleton-item-${i}`} className="h-12 w-full" />
+							{Array.from({ length: 6 }, (_, i) => `page-item-${i}`).map((key) => (
+								<Skeleton key={key} className="h-12 w-full" />
 							))}
 						</div>
 					</CardContent>
