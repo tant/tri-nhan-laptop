@@ -213,4 +213,22 @@ If database reset fails or public lookup returns empty results:
 - **Date/Time**: Vietnamese format with Asia/Ho_Chi_Minh timezone
 
 This application is specifically designed for Vietnamese laptop repair shops and includes domain-specific business logic that should be preserved when making changes.
+
+## Code Quality & Linting Standards
+
+### Biome Configuration Notes
+The following rules are configured to work with this codebase:
+
+- **suspicious/noArrayIndexKey**: Disabled - Array indices as React keys are allowed for skeleton loaders
+- **suspicious/noExplicitAny**: Disabled - Explicit `any` types are permitted where needed
+- **a11y rules**: Disabled - Accessibility warnings turned off for faster development
+- **correctness/useExhaustiveDependencies**: Warning only - Hook dependency suggestions
+- **correctness/noUnusedVariables**: Warning only - Won't block development
+
+### When Writing Code
+- Use `Array.from({ length: n }, (_, i) => key-${i})` pattern for skeleton components
+- Prefix unused variables with underscore: `const _unusedVar = value;`
+- Hook dependencies as warnings - address if causing issues
+- Auto-fix with: `pnpm biome check --write`
+
 - to memorize every time you change code and script, make sure to check and update documents and testscript to reflex final changes. I just need to current best version, the changes is not quite needed
