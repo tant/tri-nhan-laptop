@@ -12,7 +12,7 @@ import {
 	Users,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -72,9 +72,9 @@ interface TicketAssignmentProps {
 	deviceBrand: string;
 	deviceModel: string;
 	urgencyLevel: string;
-	problemClassification?: any;
-	onAssignmentChange?: (assignment: any) => void;
-	initialData?: any;
+	problemClassification?: Record<string, unknown>;
+	onAssignmentChange?: (assignment: Record<string, unknown>) => void;
+	initialData?: Record<string, unknown>;
 }
 
 export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
@@ -179,41 +179,6 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 	];
 
 	useEffect(() => {
-		loadTechnicians();
-	}, [problemCategory]);
-
-	useEffect(() => {
-		if (initialData) {
-			setSelectedTechnician(initialData.selectedTechnician || "");
-			setAssignmentPriority(initialData.assignmentPriority || urgencyLevel);
-			setEstimatedStartDate(initialData.estimatedStartDate || "");
-			setEstimatedCompletionDate(initialData.estimatedCompletionDate || "");
-			setAssignmentNotes(initialData.assignmentNotes || "");
-			setCostAssessment(initialData.costAssessment || costAssessment);
-		}
-	}, [initialData]);
-
-	useEffect(() => {
-		calculateTotalCost();
-	}, [
-		costAssessment.laborCost,
-		costAssessment.partsCosts,
-		costAssessment.additionalCosts,
-		costAssessment.profitMargin,
-	]);
-
-	useEffect(() => {
-		notifyAssignmentChange();
-	}, [
-		selectedTechnician,
-		assignmentPriority,
-		estimatedStartDate,
-		estimatedCompletionDate,
-		assignmentNotes,
-		costAssessment,
-	]);
-
-	const loadTechnicians = () => {
 		// Filter technicians based on problem category
 		const filteredTechnicians = mockTechnicians.filter(
 			(tech) =>
@@ -230,9 +195,20 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 		});
 
 		setAvailableTechnicians(sortedTechnicians);
-	};
+	}, [problemCategory]);
 
-	const calculateTotalCost = () => {
+	useEffect(() => {
+		if (initialData) {
+			setSelectedTechnician(initialData.selectedTechnician || "");
+			setAssignmentPriority(initialData.assignmentPriority || urgencyLevel);
+			setEstimatedStartDate(initialData.estimatedStartDate || "");
+			setEstimatedCompletionDate(initialData.estimatedCompletionDate || "");
+			setAssignmentNotes(initialData.assignmentNotes || "");
+			setCostAssessment(initialData.costAssessment || costAssessment);
+		}
+	}, [initialData, urgencyLevel, costAssessment]);
+
+	useEffect(() => {
 		const partsTotal = costAssessment.partsCosts.reduce(
 			(sum, part) => sum + part.quantity * part.unitPrice,
 			0,
@@ -251,9 +227,9 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 			totalEstimatedCost: subtotal,
 			finalQuote: Math.round(finalQuote),
 		}));
-	};
+	}, [costAssessment]);
 
-	const notifyAssignmentChange = () => {
+	useEffect(() => {
 		if (onAssignmentChange) {
 			onAssignmentChange({
 				selectedTechnician,
@@ -264,7 +240,8 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 				costAssessment,
 			});
 		}
-	};
+	}, [onAssignmentChange, selectedTechnician, assignmentPriority, estimatedStartDate, estimatedCompletionDate, assignmentNotes, costAssessment]);
+
 
 	const addPart = () => {
 		if (newPartName && newPartPrice > 0) {
@@ -674,7 +651,7 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 								<div className="space-y-2">
 									{costAssessment.partsCosts.map((part, index) => (
 										<div
-											key={index}
+											key={`part-${part.partName}-${index}`}
 											className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
 										>
 											<div className="flex-1 grid grid-cols-4 gap-4 text-sm">
@@ -736,7 +713,7 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 								<div className="space-y-2">
 									{costAssessment.additionalCosts.map((cost, index) => (
 										<div
-											key={index}
+											key={`cost-${cost.description}-${index}`}
 											className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
 										>
 											<div className="flex-1 grid grid-cols-2 gap-4 text-sm">
