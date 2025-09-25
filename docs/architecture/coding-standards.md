@@ -19,6 +19,17 @@ This document defines the coding standards for the Vietnamese Laptop Repair Mana
 - **Quote Style**: Double quotes for JavaScript/TypeScript
 - **Import Organization**: Automatic import sorting enabled
 
+#### Biome Linting Rules (Customized)
+```json
+{
+  "suspicious/noArrayIndexKey": "off", // Array indices as React keys allowed for skeleton loaders
+  "suspicious/noExplicitAny": "off", // Explicit any types permitted where needed
+  "a11y/*": "off", // Accessibility warnings disabled for faster development
+  "correctness/useExhaustiveDependencies": "warn", // Hook dependency suggestions only
+  "correctness/noUnusedVariables": "warn" // Unused variables as warnings only
+}
+```
+
 #### Code Style Rules
 ```typescript
 // ✅ Good - Proper TypeScript interface
@@ -28,7 +39,15 @@ interface RepairTicket {
   status: RepairStatus;
 }
 
-// ❌ Bad - Using any type
+// ✅ Acceptable - Array indices for skeleton components
+{Array.from({ length: 4 }, (_, i) => `skeleton-${i}`).map((key) => (
+  <SkeletonCard key={key} />
+))}
+
+// ✅ Acceptable - Prefix unused variables with underscore
+const _unusedParam = getValue(); // Won't trigger linting error
+
+// ❌ Bad - Using any without justification
 interface RepairTicket {
   id: any;
   data: any;
@@ -175,6 +194,11 @@ const formatDate = (date: Date) =>
 - **Initial Load**: < 2 seconds for main application
 - **Search Results**: < 1 second for parts/customer search
 - **Database Operations**: < 500ms for standard CRUD operations
+
+### Biome Auto-fix
+- **Run auto-fix**: `pnpm biome check --write`
+- **Unsafe fixes**: `pnpm biome check --write --unsafe`
+- **Check only**: `pnpm run lint`
 
 ## Security Standards
 
