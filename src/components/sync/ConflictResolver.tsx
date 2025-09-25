@@ -187,7 +187,7 @@ export function ConflictResolver({
 	const handleFieldMerge = (
 		field: string,
 		value: ConflictValue,
-		source: "local" | "remote",
+		_source: "local" | "remote",
 	) => {
 		setMergedData((prev) => ({
 			...prev,

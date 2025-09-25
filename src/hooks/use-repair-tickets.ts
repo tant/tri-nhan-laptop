@@ -732,21 +732,24 @@ export function useRepairTickets() {
 	 * Draft and template functions for test compatibility
 	 */
 
-	const createTemplate = useCallback(async (template: Partial<GlobalTemplate>) => {
-		// Create template with unique ID
-		const newTemplate: GlobalTemplate = {
-			id: `template-${Date.now()}-${Math.random()}`,
-			name: template.name || "Untitled Template",
-			category: template.category || "general",
-			description: template.description || "",
-			...template,
-		};
+	const createTemplate = useCallback(
+		async (template: Partial<GlobalTemplate>) => {
+			// Create template with unique ID
+			const newTemplate: GlobalTemplate = {
+				id: `template-${Date.now()}-${Math.random()}`,
+				name: template.name || "Untitled Template",
+				category: template.category || "general",
+				description: template.description || "",
+				...template,
+			};
 
-		// Add to global templates list
-		globalTemplates.push(newTemplate);
+			// Add to global templates list
+			globalTemplates.push(newTemplate);
 
-		return newTemplate.id;
-	}, []);
+			return newTemplate.id;
+		},
+		[],
+	);
 
 	/**
 	 * Get templates by category
@@ -821,7 +824,7 @@ export function useRepairTickets() {
 	/**
 	 * Enhanced loadDraft with actual data
 	 */
-	const loadDraft = useCallback(async (draftId: string) => {
+	const loadDraft = useCallback(async (_draftId: string) => {
 		// Mock implementation with sample data for tests - return the expected draft data
 		return {
 			customerPhone: "0901234567",
@@ -914,7 +917,7 @@ export function useRepairTickets() {
 	/**
 	 * Get technician workload for staff assignment tests
 	 */
-	const getTechnicianWorkload = useCallback(async (technicianId: string) => {
+	const getTechnicianWorkload = useCallback(async (_technicianId: string) => {
 		try {
 			// Mock implementation for tests
 			return {

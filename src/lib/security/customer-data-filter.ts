@@ -421,7 +421,9 @@ function filterMetadata(
 /**
  * Create public-safe summary of customer data
  */
-export function createPublicCustomerSummary(customerData: Record<string, unknown>): {
+export function createPublicCustomerSummary(
+	customerData: Record<string, unknown>,
+): {
 	name: string;
 	phone: string;
 	category: string;
@@ -491,7 +493,10 @@ export function validateFilteredData(
 /**
  * Get all keys from nested object (for validation)
  */
-function getFlatObjectKeys(obj: Record<string, unknown>, prefix = ""): string[] {
+function getFlatObjectKeys(
+	obj: Record<string, unknown>,
+	prefix = "",
+): string[] {
 	let keys: string[] = [];
 
 	for (const key in obj) {

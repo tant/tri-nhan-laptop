@@ -34,7 +34,11 @@ interface DataTableProps<TData, TValue> {
 	data: TData[];
 	searchKey?: string;
 	searchPlaceholder?: string;
-	globalFilterFn?: (row: Record<string, unknown>, columnId: string, filterValue: string) => boolean;
+	globalFilterFn?: (
+		row: Record<string, unknown>,
+		columnId: string,
+		filterValue: string,
+	) => boolean;
 }
 
 // Column ID to Vietnamese label mapping

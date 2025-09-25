@@ -1,18 +1,15 @@
 import {
 	AlertCircle,
-	Award,
 	Calculator,
-	Calendar,
 	CheckCircle,
 	Clock,
 	DollarSign,
-	FileText,
 	Settings,
 	User,
 	Users,
 } from "lucide-react";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -240,8 +237,15 @@ export const TicketAssignment: React.FC<TicketAssignmentProps> = ({
 				costAssessment,
 			});
 		}
-	}, [onAssignmentChange, selectedTechnician, assignmentPriority, estimatedStartDate, estimatedCompletionDate, assignmentNotes, costAssessment]);
-
+	}, [
+		onAssignmentChange,
+		selectedTechnician,
+		assignmentPriority,
+		estimatedStartDate,
+		estimatedCompletionDate,
+		assignmentNotes,
+		costAssessment,
+	]);
 
 	const addPart = () => {
 		if (newPartName && newPartPrice > 0) {

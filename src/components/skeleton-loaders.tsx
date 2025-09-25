@@ -15,16 +15,19 @@ export function TableSkeleton({
 	columns = 6,
 }: { rows?: number; columns?: number }) {
 	const uniqueId = Math.random().toString(36).substr(2, 9);
-	const headerKeys = Array.from({ length: columns }, (_, i) => `th-${uniqueId}-col-${i}`);
+	const headerKeys = Array.from(
+		{ length: columns },
+		(_, i) => `th-${uniqueId}-col-${i}`,
+	);
 	const rowKeys = Array.from({ length: rows }, (_, r) =>
-		Array.from({ length: columns }, (_, c) => `cell-${uniqueId}-${r}-${c}`)
+		Array.from({ length: columns }, (_, c) => `cell-${uniqueId}-${r}-${c}`),
 	);
 
 	return (
 		<Table>
 			<TableHeader>
 				<TableRow>
-					{headerKeys.map((key, i) => (
+					{headerKeys.map((key, _i) => (
 						<TableHead key={key}>
 							<Skeleton className="h-4 w-24" />
 						</TableHead>
@@ -32,15 +35,17 @@ export function TableSkeleton({
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{Array.from({ length: rows }, (_, r) => `row-${uniqueId}-${r}`).map((rowKey, r) => (
-					<TableRow key={rowKey}>
-						{rowKeys[r].map((cellKey) => (
-							<TableCell key={cellKey}>
-								<Skeleton className="h-4 w-full" />
-							</TableCell>
-						))}
-					</TableRow>
-				))}
+				{Array.from({ length: rows }, (_, r) => `row-${uniqueId}-${r}`).map(
+					(rowKey, r) => (
+						<TableRow key={rowKey}>
+							{rowKeys[r].map((cellKey) => (
+								<TableCell key={cellKey}>
+									<Skeleton className="h-4 w-full" />
+								</TableCell>
+							))}
+						</TableRow>
+					),
+				)}
 			</TableBody>
 		</Table>
 	);
@@ -65,7 +70,10 @@ export function StatCardSkeleton() {
 // Customer list skeleton
 export function CustomerListSkeleton() {
 	const uniqueId = Math.random().toString(36).substr(2, 9);
-	const statKeys = Array.from({ length: 4 }, (_, i) => `customer-stat-${uniqueId}-${i}`);
+	const statKeys = Array.from(
+		{ length: 4 },
+		(_, i) => `customer-stat-${uniqueId}-${i}`,
+	);
 
 	return (
 		<div className="space-y-6">
@@ -117,9 +125,11 @@ export function RepairTicketsSkeleton() {
 			{/* Statistics cards */}
 			<div className="grid gap-4 mb-6">
 				<div className="grid gap-4 md:grid-cols-4">
-					{Array.from({ length: 4 }, (_, i) => `repair-stat-${i}`).map((key) => (
-						<StatCardSkeleton key={key} />
-					))}
+					{Array.from({ length: 4 }, (_, i) => `repair-stat-${i}`).map(
+						(key) => (
+							<StatCardSkeleton key={key} />
+						),
+					)}
 				</div>
 			</div>
 
@@ -166,9 +176,11 @@ export function PartsInventorySkeleton() {
 				<CardContent>
 					<Skeleton className="h-4 w-full mb-2" />
 					<div className="flex flex-wrap gap-2">
-						{Array.from({ length: 3 }, (_, i) => `alert-badge-${i}`).map((key) => (
-							<Skeleton key={key} className="h-6 w-24" />
-						))}
+						{Array.from({ length: 3 }, (_, i) => `alert-badge-${i}`).map(
+							(key) => (
+								<Skeleton key={key} className="h-6 w-24" />
+							),
+						)}
 					</div>
 				</CardContent>
 			</Card>
@@ -217,9 +229,11 @@ export function DashboardSkeleton() {
 
 			{/* Quick stats */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-				{Array.from({ length: 4 }, (_, i) => `dashboard-stat-${i}`).map((key) => (
-					<StatCardSkeleton key={key} />
-				))}
+				{Array.from({ length: 4 }, (_, i) => `dashboard-stat-${i}`).map(
+					(key) => (
+						<StatCardSkeleton key={key} />
+					),
+				)}
 			</div>
 
 			{/* Charts and recent activity */}
@@ -238,15 +252,17 @@ export function DashboardSkeleton() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{Array.from({ length: 5 }, (_, i) => `activity-${i}`).map((key) => (
-								<div key={key} className="flex items-center space-x-4">
-									<Skeleton className="h-12 w-12 rounded-full" />
-									<div className="space-y-2 flex-1">
-										<Skeleton className="h-4 w-full" />
-										<Skeleton className="h-3 w-3/4" />
+							{Array.from({ length: 5 }, (_, i) => `activity-${i}`).map(
+								(key) => (
+									<div key={key} className="flex items-center space-x-4">
+										<Skeleton className="h-12 w-12 rounded-full" />
+										<div className="space-y-2 flex-1">
+											<Skeleton className="h-4 w-full" />
+											<Skeleton className="h-3 w-3/4" />
+										</div>
 									</div>
-								</div>
-							))}
+								),
+							)}
 						</div>
 					</CardContent>
 				</Card>
@@ -282,9 +298,11 @@ export function PageSkeleton() {
 					</CardHeader>
 					<CardContent>
 						<div className="space-y-4">
-							{Array.from({ length: 6 }, (_, i) => `page-item-${i}`).map((key) => (
-								<Skeleton key={key} className="h-12 w-full" />
-							))}
+							{Array.from({ length: 6 }, (_, i) => `page-item-${i}`).map(
+								(key) => (
+									<Skeleton key={key} className="h-12 w-full" />
+								),
+							)}
 						</div>
 					</CardContent>
 				</Card>

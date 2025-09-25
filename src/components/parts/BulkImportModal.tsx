@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,14 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import {
-	AlertTriangle,
-	CheckCircle,
-	Download,
-	FileText,
-	Upload,
-	XCircle,
-} from "lucide-react";
+import { CheckCircle, Download, FileText, Upload, XCircle } from "lucide-react";
 import { useRef, useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
@@ -53,9 +45,9 @@ export function BulkImportModal({
 	onClose,
 	onSuccess,
 }: BulkImportModalProps) {
-	const [file, setFile] = useState<File | null>(null);
+	const [_file, setFile] = useState<File | null>(null);
 	const [importData, setImportData] = useState<ImportRow[]>([]);
-	const [importing, setImporting] = useState(false);
+	const [_importing, setImporting] = useState(false);
 	const [stats, setStats] = useState<ImportStats>({
 		total: 0,
 		success: 0,
@@ -222,7 +214,7 @@ export function BulkImportModal({
 						row.status = "success";
 						successCount++;
 					}
-				} catch (error) {
+				} catch (_error) {
 					row.status = "error";
 					row.error = "Lỗi khi lưu vào cơ sở dữ liệu";
 					errorCount++;

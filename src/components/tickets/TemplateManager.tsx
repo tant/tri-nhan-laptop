@@ -1,12 +1,8 @@
 import {
-	AlertCircle,
 	CheckCircle,
 	Copy,
 	Edit,
-	FileText,
-	Folder,
 	Plus,
-	Save,
 	Search,
 	Template,
 	Trash2,
@@ -14,10 +10,9 @@ import {
 import type React from "react";
 import { useEffect, useState } from "react";
 import { useRepairTickets } from "../../hooks/use-repair-tickets";
-import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -591,7 +586,11 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 					</div>
 					<div className="flex flex-wrap gap-2">
 						{templateForm.parts_needed.map((part, index) => (
-							<Badge key={`template-part-${part}-${index}`} variant="outline" className="cursor-pointer">
+							<Badge
+								key={`template-part-${part}-${index}`}
+								variant="outline"
+								className="cursor-pointer"
+							>
 								{part}
 								<button
 									type="button"

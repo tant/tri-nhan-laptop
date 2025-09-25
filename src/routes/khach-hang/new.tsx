@@ -5,10 +5,10 @@ import {
 } from "@/components/customers/CustomerProfileForm";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useCustomers } from "@/hooks/use-customers";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
 function ProtectedCreateCustomer() {

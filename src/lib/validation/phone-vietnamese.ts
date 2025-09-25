@@ -96,7 +96,7 @@ const VIETNAMESE_LANDLINE_REGIONS = {
 	"0299": "Kiên Giang",
 };
 
-const VIETNAMESE_LANDLINE_PREFIXES = Object.keys(VIETNAMESE_LANDLINE_REGIONS);
+const _VIETNAMESE_LANDLINE_PREFIXES = Object.keys(VIETNAMESE_LANDLINE_REGIONS);
 
 /**
  * Normalize phone number by removing spaces, dashes, and other formatting

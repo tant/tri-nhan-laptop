@@ -141,7 +141,7 @@ export function useConnectionManager() {
 			}
 
 			return latency;
-		} catch (error) {
+		} catch (_error) {
 			return 9999; // High latency indicates connection problems
 		}
 	}, []);
@@ -219,7 +219,7 @@ export function useConnectionManager() {
 
 			if (error) throw error;
 
-			const duration = Date.now() - startTime;
+			const _duration = Date.now() - startTime;
 			setIsConnected(true);
 
 			return true;

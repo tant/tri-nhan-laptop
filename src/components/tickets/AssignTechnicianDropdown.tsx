@@ -5,7 +5,6 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRepairTickets } from "@/hooks/use-repair-tickets";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import { Check, UserPlus } from "lucide-react";

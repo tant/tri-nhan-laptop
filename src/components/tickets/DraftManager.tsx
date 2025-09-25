@@ -1,5 +1,4 @@
 import {
-	AlertCircle,
 	Calendar,
 	CheckCircle,
 	Clock,
@@ -8,15 +7,13 @@ import {
 	Save,
 	Search,
 	Trash2,
-	User,
 } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { useRepairTickets } from "../../hooks/use-repair-tickets";
-import { Alert, AlertDescription } from "../ui/alert";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import {
 	Dialog,
 	DialogContent,
@@ -79,7 +76,7 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 	const [drafts, setDrafts] = useState<TicketDraft[]>([]);
 	const [filteredDrafts, setFilteredDrafts] = useState<TicketDraft[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [selectedStatus, setSelectedStatus] = useState<string>("all");
+	const [selectedStatus, _setSelectedStatus] = useState<string>("all");
 	const [isLoading, setIsLoading] = useState(false);
 	const [saveDialogOpen, setSaveDialogOpen] = useState(false);
 	const [draftTitle, setDraftTitle] = useState("");

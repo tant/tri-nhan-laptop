@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Edit, Eye, Package, Plus, RefreshCw } from "lucide-react";
+import { ArrowUpDown, Edit, Eye, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 // Workflow components temporarily disabled for Phase 3 development
 
@@ -445,7 +445,7 @@ export function RepairTicketsPage() {
 							<DataTable
 								columns={columns}
 								data={repairs}
-								globalFilterFn={(row, columnId, filterValue) => {
+								globalFilterFn={(row, _columnId, filterValue) => {
 									if (!filterValue) return true;
 
 									const searchValue = filterValue.toLowerCase();

@@ -169,7 +169,7 @@ export function StockAdjustmentModal({
 	const currentStatus = getStockStatus(part.current_stock);
 	const newStatus = getStockStatus(finalStock);
 	const CurrentIcon = currentStatus.icon;
-	const NewIcon = newStatus.icon;
+	const _NewIcon = newStatus.icon;
 
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>

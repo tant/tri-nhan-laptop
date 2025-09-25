@@ -18,14 +18,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCostTracking } from "@/hooks/use-cost-tracking";
 import { usePartsManagement } from "@/hooks/use-parts-management";
-import { formatVND, formatVNDDetailed } from "@/lib/currency";
+import { formatVND } from "@/lib/currency";
 import type { Database } from "@/lib/supabase";
 import {
 	Calculator,
 	Calendar,
 	Clock,
-	DollarSign,
-	Edit,
 	FileText,
 	Laptop,
 	Package,
@@ -140,7 +138,7 @@ export function RepairDetailsModal({
 
 	const handleAddParts = async (
 		selectedParts: SelectedPart[],
-		totalCost: number,
+		_totalCost: number,
 	) => {
 		if (!repair?.id) return;
 

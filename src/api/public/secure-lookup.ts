@@ -64,7 +64,7 @@ export async function secureRepairLookup(
 ): Promise<PublicLookupResponse> {
 	const clientIP = getClientIP(headers);
 	const userAgent = getUserAgent(headers);
-	const timestamp = new Date().toISOString();
+	const _timestamp = new Date().toISOString();
 
 	// 1. Rate Limiting Check
 	const rateLimitResult = await checkRateLimit(

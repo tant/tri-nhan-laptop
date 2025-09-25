@@ -13,7 +13,6 @@ import {
 	ArrowLeft,
 	Calendar,
 	Clock,
-	DollarSign,
 	Edit,
 	FileText,
 	Laptop,

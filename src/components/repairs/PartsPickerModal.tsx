@@ -12,7 +12,6 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { usePartsManagement } from "@/hooks/use-parts-management";
 import type { Database } from "@/lib/supabase";
@@ -63,11 +62,11 @@ export function PartsPickerModal({
 	const [searchTerm, setSearchTerm] = useState("");
 	const [availableParts, setAvailableParts] = useState<Part[]>([]);
 	const [selectedParts, setSelectedParts] = useState<SelectedPart[]>([]);
-	const [loading, setLoading] = useState(false);
+	const [_loading, setLoading] = useState(false);
 	const [isReservationMode, setIsReservationMode] = useState(false);
-	const [availableStock, setAvailableStock] = useState<Record<string, number>>(
-		{},
-	);
+	const [_availableStock, _setAvailableStock] = useState<
+		Record<string, number>
+	>({});
 
 	const {
 		getPartsWithStockStatus,

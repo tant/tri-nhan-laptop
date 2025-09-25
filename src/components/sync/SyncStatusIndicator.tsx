@@ -5,7 +5,6 @@
 
 import { useSyncManager } from "@/hooks/use-sync-manager";
 import { cn } from "@/lib/utils";
-import React from "react";
 
 interface SyncStatusIndicatorProps {
 	className?: string;

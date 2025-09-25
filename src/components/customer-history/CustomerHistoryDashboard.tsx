@@ -37,11 +37,9 @@ import { analyzeCustomerPatterns } from "@/lib/analytics/repair-patterns";
 import {
 	AlertTriangle,
 	BarChart3,
-	Calendar,
 	DollarSign,
 	Download,
 	Eye,
-	FileText,
 	History,
 	Search,
 	Settings,

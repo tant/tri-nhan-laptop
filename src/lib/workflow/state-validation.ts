@@ -117,7 +117,7 @@ export class StateValidator {
 
 	private validateBusinessRules(
 		context: TransitionContext,
-		transition: StateTransition,
+		_transition: StateTransition,
 		result: ValidationResult,
 	): void {
 		// Validate based on specific business rules for each transition

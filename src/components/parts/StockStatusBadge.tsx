@@ -17,23 +17,23 @@ export function StockStatusBadge({
 	const currentStock = part.current_stock;
 
 	// Determine stock status
-	let status: "out_of_stock" | "low_stock" | "in_stock";
+	let _status: "out_of_stock" | "low_stock" | "in_stock";
 	let label: string;
 	let variant: "destructive" | "outline" | "secondary";
 	let icon: React.ComponentType<{ className?: string }>;
 
 	if (currentStock === 0) {
-		status = "out_of_stock";
+		_status = "out_of_stock";
 		label = "Hết hàng";
 		variant = "destructive";
 		icon = AlertTriangle;
 	} else if (currentStock <= minStock) {
-		status = "low_stock";
+		_status = "low_stock";
 		label = "Sắp hết";
 		variant = "outline";
 		icon = TrendingDown;
 	} else {
-		status = "in_stock";
+		_status = "in_stock";
 		label = "Còn hàng";
 		variant = "secondary";
 		icon = Package;

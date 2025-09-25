@@ -2,13 +2,7 @@ import { SupabaseErrorAlert } from "@/components/error-boundary";
 import { CustomerListSkeleton } from "@/components/skeleton-loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import {
 	Dialog,
@@ -554,7 +548,7 @@ export function CustomersPage() {
 					<DataTable
 						columns={columns}
 						data={customers}
-						globalFilterFn={(row, columnId, filterValue) => {
+						globalFilterFn={(row, _columnId, filterValue) => {
 							if (!filterValue) return true;
 
 							const searchValue = filterValue.toLowerCase();

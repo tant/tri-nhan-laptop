@@ -96,7 +96,7 @@ export function useAsyncOperation<T = unknown>(
 
 		try {
 			await execute(true);
-		} catch (error) {
+		} catch (_error) {
 			// If auto-retry is enabled and we haven't hit max retries, try again
 			if (autoRetry && state.retryCount < maxRetries - 1) {
 				setTimeout(() => retry(), delay);

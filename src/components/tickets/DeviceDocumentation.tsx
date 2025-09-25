@@ -193,7 +193,15 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 				repairEstimate,
 			});
 		}
-	}, [onDocumentationChange, deviceSpecs, problemDoc, photos, documents, diagnosticNotes, repairEstimate]);
+	}, [
+		onDocumentationChange,
+		deviceSpecs,
+		problemDoc,
+		photos,
+		documents,
+		diagnosticNotes,
+		repairEstimate,
+	]);
 
 	const initializeDeviceSpecs = () => {
 		const brandData = getDeviceBrand(deviceBrand);
@@ -232,7 +240,6 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 		);
 		setRepairEstimate(estimate);
 	};
-
 
 	const updateDeviceSpec = (
 		index: number,
@@ -301,7 +308,7 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 		}
 	};
 
-	const getStatusColor = (status: string) => {
+	const _getStatusColor = (status: string) => {
 		switch (status) {
 			case "working":
 				return "bg-green-100 text-green-800";
@@ -583,8 +590,11 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 							<CardContent>
 								<div className="space-y-2">
 									{repairEstimate.commonIssues.map(
-										(issue: string, index: number) => (
-											<div key={`repair-issue-${issue}-${repairEstimate.commonIssues.length}`} className="flex items-start gap-2">
+										(issue: string, _index: number) => (
+											<div
+												key={`repair-issue-${issue}-${repairEstimate.commonIssues.length}`}
+												className="flex items-start gap-2"
+											>
 												<AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5" />
 												<p className="text-sm">{issue}</p>
 											</div>
@@ -627,7 +637,10 @@ export const DeviceDocumentation: React.FC<DeviceDocumentationProps> = ({
 							{photos.length > 0 && (
 								<div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
 									{photos.map((photo, index) => (
-										<div key={`device-photo-${photo.name}-${photo.size}-${index}`} className="relative">
+										<div
+											key={`device-photo-${photo.name}-${photo.size}-${index}`}
+											className="relative"
+										>
 											<img
 												src={URL.createObjectURL(photo)}
 												alt={`Device condition ${index + 1}`}

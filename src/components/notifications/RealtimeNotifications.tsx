@@ -12,7 +12,6 @@ import {
 } from "@/hooks/use-realtime-updates";
 import { cn } from "@/lib/utils";
 import {
-	AlertTriangle,
 	Bell,
 	BellRing,
 	CheckCircle,

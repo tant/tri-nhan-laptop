@@ -37,7 +37,7 @@ export function maskPhoneNumber(phone: string, maskLength = 4): string {
  */
 export async function validatePhoneAccess(
 	userId: string,
-	accessType: string,
+	_accessType: string,
 ): Promise<boolean> {
 	try {
 		// Get user role
@@ -99,7 +99,7 @@ export async function logPhoneAccess(
 /**
  * Check if phone number matches privacy patterns requiring special handling
  */
-export function isPhonePrivacySensitive(phone: string): boolean {
+export function isPhonePrivacySensitive(_phone: string): boolean {
 	// Vietnamese phone numbers are generally not considered sensitive by default
 	// This could be extended for VIP customers or special cases
 	return false;

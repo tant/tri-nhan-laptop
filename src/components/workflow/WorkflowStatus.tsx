@@ -29,10 +29,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	StateChangeLog,
 	type WorkflowTicket,
 	useRepairWorkflow,
 } from "@/hooks/use-repair-workflow";
@@ -45,7 +43,7 @@ import {
 	History,
 	Info,
 } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 
 interface WorkflowStatusProps {
 	ticket: WorkflowTicket;
@@ -107,7 +105,7 @@ export function WorkflowStatus({
 			} else {
 				alert(`Lỗi: ${result.error}`);
 			}
-		} catch (error) {
+		} catch (_error) {
 			alert("Lỗi khi thay đổi trạng thái");
 		} finally {
 			setSubmitting(false);

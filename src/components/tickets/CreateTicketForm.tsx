@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,10 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCustomers } from "@/hooks/use-customers";
 import { useRepairTickets } from "@/hooks/use-repair-tickets";
-import {
-	getDeviceModel,
-	getPopularBrands,
-} from "@/lib/devices/vietnamese-brands";
+import { getPopularBrands } from "@/lib/devices/vietnamese-brands";
 import type { Database } from "@/lib/supabase";
 import {
 	AlertTriangle,

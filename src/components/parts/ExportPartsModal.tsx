@@ -18,15 +18,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import {
-	AlertTriangle,
-	CheckCircle,
-	Download,
-	FileText,
-	Package,
-} from "lucide-react";
+import { CheckCircle, Download, FileText, Package } from "lucide-react";
 import { useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];
@@ -72,7 +65,7 @@ export function ExportPartsModal({
 		all: false,
 	});
 
-	const [exporting, setExporting] = useState(false);
+	const [_exporting, setExporting] = useState(false);
 	const [exportProgress, setExportProgress] = useState(0);
 	const [phase, setPhase] = useState<"setup" | "exporting" | "complete">(
 		"setup",
@@ -257,7 +250,7 @@ export function ExportPartsModal({
 		setPhase("setup");
 	};
 
-	const formatPrice = (price: number) => {
+	const _formatPrice = (price: number) => {
 		return new Intl.NumberFormat("vi-VN", {
 			style: "currency",
 			currency: "VND",

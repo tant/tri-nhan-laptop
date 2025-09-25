@@ -26,20 +26,9 @@ import {
 	type WorkflowTicket,
 	useRepairWorkflow,
 } from "@/hooks/use-repair-workflow";
-import {
-	REPAIR_STATES,
-	type RepairState,
-	getStatesByCategory,
-} from "@/lib/workflow/repair-states";
-import {
-	AlertTriangle,
-	BarChart3,
-	Clock,
-	Filter,
-	Search,
-	Users,
-} from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { REPAIR_STATES, type RepairState } from "@/lib/workflow/repair-states";
+import { AlertTriangle, BarChart3, Clock, Search, Users } from "lucide-react";
+import React, { useState } from "react";
 import { WorkflowStatus } from "./WorkflowStatus";
 
 interface WorkflowDashboardProps {

@@ -6,7 +6,7 @@ function ProtectedPartEdit() {
 	const { id } = Route.useParams();
 	const navigate = useNavigate();
 
-	const handlePartUpdated = (partId: string) => {
+	const _handlePartUpdated = (partId: string) => {
 		console.log("Part updated:", partId);
 		// Navigate back to part detail
 		navigate({ to: "/ton-kho/$id", params: { id } });

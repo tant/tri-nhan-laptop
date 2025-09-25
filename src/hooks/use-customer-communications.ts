@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { REPAIR_STATES, type RepairState } from "@/lib/workflow/repair-states";
+import type { RepairState } from "@/lib/workflow/repair-states";
 import { useCallback, useState } from "react";
 
 export interface NotificationTemplate {
@@ -55,8 +55,10 @@ export function useCustomerCommunications() {
 	const [notifications, setNotifications] = useState<CustomerNotification[]>(
 		[],
 	);
-	const [templates, setTemplates] = useState<NotificationTemplate[]>([]);
-	const [preferences, setPreferences] = useState<NotificationPreferences[]>([]);
+	const [templates, _setTemplates] = useState<NotificationTemplate[]>([]);
+	const [preferences, _setPreferences] = useState<NotificationPreferences[]>(
+		[],
+	);
 	const [stats, setStats] = useState<NotificationStats | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);

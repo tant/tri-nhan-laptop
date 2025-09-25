@@ -4,7 +4,6 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { RepairState } from "@/lib/workflow/repair-states";
 import { REPAIR_STATES } from "@/lib/workflow/repair-states";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -51,13 +50,18 @@ export function useRealtimeUpdates() {
 		error: null,
 	});
 
-	const channelsRef = useRef<Map<string, ReturnType<typeof supabase.channel>>>(new Map());
+	const channelsRef = useRef<Map<string, ReturnType<typeof supabase.channel>>>(
+		new Map(),
+	);
 	const eventHandlersRef = useRef<Map<string, (event: RealtimeEvent) => void>>(
 		new Map(),
 	);
 
 	// Vietnamese event messages
-	const getVietnameseMessage = (type: string, data: Record<string, unknown>): string => {
+	const getVietnameseMessage = (
+		type: string,
+		data: Record<string, unknown>,
+	): string => {
 		switch (type) {
 			case "ticket_created":
 				return `Đã tạo phiếu sửa chữa mới: ${data.ticket_code}`;
@@ -73,26 +77,29 @@ export function useRealtimeUpdates() {
 	};
 
 	// Add event to history
-	const addEvent = useCallback((type: RealtimeEvent["type"], data: Record<string, unknown>) => {
-		const event: RealtimeEvent = {
-			id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-			type,
-			timestamp: new Date().toISOString(),
-			data,
-			message: getVietnameseMessage(type, data),
-		};
+	const addEvent = useCallback(
+		(type: RealtimeEvent["type"], data: Record<string, unknown>) => {
+			const event: RealtimeEvent = {
+				id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+				type,
+				timestamp: new Date().toISOString(),
+				data,
+				message: getVietnameseMessage(type, data),
+			};
 
-		setEvents((prev) => [event, ...prev.slice(0, 99)]); // Keep last 100 events
+			setEvents((prev) => [event, ...prev.slice(0, 99)]); // Keep last 100 events
 
-		// Trigger custom event handlers
-		eventHandlersRef.current.forEach((handler) => {
-			try {
-				handler(event);
-			} catch (error) {
-				console.error("Error in event handler:", error);
-			}
-		});
-	}, []);
+			// Trigger custom event handlers
+			eventHandlersRef.current.forEach((handler) => {
+				try {
+					handler(event);
+				} catch (error) {
+					console.error("Error in event handler:", error);
+				}
+			});
+		},
+		[],
+	);
 
 	// Subscribe to ticket changes
 	const subscribeToTickets = useCallback(() => {
@@ -294,7 +301,7 @@ export function useRealtimeUpdates() {
 			.subscribe();
 
 		// Listen for custom PostgreSQL notifications
-		const handleNotification = (payload: {type: string; payload: string}) => {
+		const handleNotification = (payload: { type: string; payload: string }) => {
 			try {
 				const data = JSON.parse(payload.payload);
 
@@ -428,7 +435,7 @@ export function useRealtimeUpdates() {
 			}));
 
 			return true;
-		} catch (error) {
+		} catch (_error) {
 			setConnectionStatus((prev) => ({
 				...prev,
 				connected: false,

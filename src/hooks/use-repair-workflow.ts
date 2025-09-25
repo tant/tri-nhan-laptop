@@ -8,7 +8,6 @@ import {
 	REPAIR_STATES,
 	type RepairState,
 	type RepairType,
-	getTransitionInfo,
 	getValidTransitions,
 	getWorkflowPath,
 	isValidTransition,

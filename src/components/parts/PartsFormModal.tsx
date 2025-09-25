@@ -18,12 +18,11 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import { AlertTriangle, FileEdit, Package, Plus, Save, X } from "lucide-react";
+import { AlertTriangle, FileEdit, Plus, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 type Part = Database["public"]["Tables"]["parts"]["Row"];

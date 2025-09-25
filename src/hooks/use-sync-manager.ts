@@ -5,7 +5,6 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { RepairState } from "@/lib/workflow/repair-states";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface SyncEvent {
@@ -99,14 +98,17 @@ export function useSyncManager() {
 	);
 	const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 	const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
-	const eventQueue = useRef<SyncEvent[]>([]);
+	const _eventQueue = useRef<SyncEvent[]>([]);
 	const versionMap = useRef<Map<string, number>>(new Map());
-	const conflictHandlers = useRef<
+	const _conflictHandlers = useRef<
 		Map<string, (conflict: ConflictInfo) => Promise<Record<string, unknown>>>
 	>(new Map());
 
 	// Vietnamese status messages
-	const getSyncMessage = (type: string, data: Record<string, unknown>): string => {
+	const getSyncMessage = (
+		type: string,
+		data: Record<string, unknown>,
+	): string => {
 		switch (type) {
 			case "status_update":
 				return `Trạng thái được cập nhật: ${data.from_state} → ${data.to_state}`;
@@ -510,47 +512,56 @@ export function useSyncManager() {
 	}, []);
 
 	// Session management
-	const handleSessionUpdate = useCallback((payload: {eventType: string; new?: SyncSession; old?: SyncSession}) => {
-		if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-			const session = payload.new as SyncSession;
-			setActiveSessions((prev) => {
-				const filtered = prev.filter((s) => s.id !== session.id);
-				return session.active ? [session, ...filtered] : filtered;
-			});
-		} else if (payload.eventType === "DELETE") {
-			const session = payload.old as SyncSession;
-			setActiveSessions((prev) => prev.filter((s) => s.id !== session.id));
-		}
-	}, []);
+	const handleSessionUpdate = useCallback(
+		(payload: { eventType: string; new?: SyncSession; old?: SyncSession }) => {
+			if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+				const session = payload.new as SyncSession;
+				setActiveSessions((prev) => {
+					const filtered = prev.filter((s) => s.id !== session.id);
+					return session.active ? [session, ...filtered] : filtered;
+				});
+			} else if (payload.eventType === "DELETE") {
+				const session = payload.old as SyncSession;
+				setActiveSessions((prev) => prev.filter((s) => s.id !== session.id));
+			}
+		},
+		[],
+	);
 
 	// Handle ticket updates
-	const handleTicketUpdate = useCallback((payload: {new: Record<string, unknown>; old: Record<string, unknown>}) => {
-		const updatedTicket = payload.new;
-		const oldTicket = payload.old;
+	const handleTicketUpdate = useCallback(
+		(payload: {
+			new: Record<string, unknown>;
+			old: Record<string, unknown>;
+		}) => {
+			const updatedTicket = payload.new;
+			const oldTicket = payload.old;
 
-		// Check if this is a status change
-		if (oldTicket.current_state !== updatedTicket.current_state) {
-			// This update came through the database, create sync event
-			const event: SyncEvent = {
-				id: `auto-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-				type: "status_update",
-				entity_type: "repair_ticket",
-				entity_id: updatedTicket.id,
-				timestamp: updatedTicket.updated_at || new Date().toISOString(),
-				user_id: "system",
-				user_name: "Hệ thống",
-				session_id: "auto",
-				data: {
-					ticket_code: updatedTicket.ticket_code,
-					from_state: oldTicket.current_state,
-					to_state: updatedTicket.current_state,
-				},
-				version: Date.now(), // Use timestamp as version for auto events
-			};
+			// Check if this is a status change
+			if (oldTicket.current_state !== updatedTicket.current_state) {
+				// This update came through the database, create sync event
+				const event: SyncEvent = {
+					id: `auto-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+					type: "status_update",
+					entity_type: "repair_ticket",
+					entity_id: updatedTicket.id,
+					timestamp: updatedTicket.updated_at || new Date().toISOString(),
+					user_id: "system",
+					user_name: "Hệ thống",
+					session_id: "auto",
+					data: {
+						ticket_code: updatedTicket.ticket_code,
+						from_state: oldTicket.current_state,
+						to_state: updatedTicket.current_state,
+					},
+					version: Date.now(), // Use timestamp as version for auto events
+				};
 
-			handleRemoteSyncEvent(event);
-		}
-	}, []);
+				handleRemoteSyncEvent(event);
+			}
+		},
+		[],
+	);
 
 	// Utility functions
 	const getTableFromEntityType = (
