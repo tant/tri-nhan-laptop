@@ -306,13 +306,15 @@ async function transformForPublicDisplay(ticketData: {
 	estimated_completion_date?: string;
 	created_at: string;
 	last_status_update?: string;
-	customers?: {
-		full_name?: string;
-		phone?: string;
-	} | {
-		full_name?: string;
-		phone?: string;
-	}[];
+	customers?:
+		| {
+				full_name?: string;
+				phone?: string;
+		  }
+		| {
+				full_name?: string;
+				phone?: string;
+		  }[];
 	[key: string]: unknown;
 }): Promise<PublicLookupResponse["data"]> {
 	// Translate status for customer
@@ -326,11 +328,12 @@ async function transformForPublicDisplay(ticketData: {
 	);
 
 	// Get customer name from nested customer data
-	const customerName = ticketData.customer_name ||
-					     (Array.isArray(ticketData.customers)
-					      ? ticketData.customers[0]?.full_name
-					      : ticketData.customers?.full_name) ||
-					     "Khách hàng";
+	const customerName =
+		ticketData.customer_name ||
+		(Array.isArray(ticketData.customers)
+			? ticketData.customers[0]?.full_name
+			: ticketData.customers?.full_name) ||
+		"Khách hàng";
 
 	return {
 		ticketCode: ticketData.ticket_code,

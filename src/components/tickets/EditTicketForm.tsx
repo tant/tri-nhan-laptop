@@ -193,7 +193,9 @@ export function EditTicketForm({
 							</div>
 
 							<div>
-								<Label htmlFor="customer_description">Mô tả của khách hàng</Label>
+								<Label htmlFor="customer_description">
+									Mô tả của khách hàng
+								</Label>
 								<Textarea
 									id="customer_description"
 									value={customerDescription}

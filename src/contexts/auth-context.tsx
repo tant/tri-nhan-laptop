@@ -31,12 +31,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [profile, setProfile] = useState<UserProfile | null>(null);
 
 	// localStorage key for caching profile
-	const PROFILE_CACHE_KEY = 'user_profile_cache';
+	const PROFILE_CACHE_KEY = "user_profile_cache";
 	const [session, setSession] = useState<Session | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	// Track to prevent redundant profile fetches
-	const [fetchingProfileFor, setFetchingProfileFor] = useState<string | null>(null);
+	const [fetchingProfileFor, setFetchingProfileFor] = useState<string | null>(
+		null,
+	);
 
 	// Cache profile to localStorage
 	const cacheProfile = (profile: UserProfile | null) => {
@@ -178,7 +180,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 				// Check if we already have the profile for this user
 				const cached = getCachedProfile();
 				if (cached && cached.id === session.user.id) {
-					console.log("📋 Using existing cached profile, skipping DB fetch:", cached.role);
+					console.log(
+						"📋 Using existing cached profile, skipping DB fetch:",
+						cached.role,
+					);
 					setProfile(cached);
 					setLoading(false);
 					return;
@@ -186,7 +191,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 				// Check if we're already fetching for this user
 				if (fetchingProfileFor === session.user.id) {
-					console.log("⏳ Already fetching profile for this user, skipping duplicate request");
+					console.log(
+						"⏳ Already fetching profile for this user, skipping duplicate request",
+					);
 					return;
 				}
 
@@ -196,8 +203,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 					// Add timeout to prevent hanging - increased timeout and retry logic
 					const profilePromise = fetchUserProfile(session.user.id);
-					const timeoutPromise = new Promise<null>((_, reject) =>
-						setTimeout(() => reject(new Error("Profile fetch timeout")), 10000), // Increased to 10 seconds
+					const timeoutPromise = new Promise<null>(
+						(_, reject) =>
+							setTimeout(
+								() => reject(new Error("Profile fetch timeout")),
+								10000,
+							), // Increased to 10 seconds
 					);
 
 					const userProfile = await Promise.race([

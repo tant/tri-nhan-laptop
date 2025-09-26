@@ -1,22 +1,14 @@
-import { ProtectedRoute } from "@/components/protected-route";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AdminRoute } from "@/components/protected-route";
+import { StaffManagementTable } from "@/components/staff/StaffManagementTable";
 import { createFileRoute } from "@tanstack/react-router";
 
 function StaffManagement() {
 	return (
-		<ProtectedRoute>
+		<AdminRoute>
 			<div className="container mx-auto py-6">
-				<Card>
-					<CardHeader>
-						<CardTitle>Quản lý nhân viên</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<p>Quản lý thông tin nhân viên và phân quyền</p>
-						{/* TODO: Implement StaffManagementTable component */}
-					</CardContent>
-				</Card>
+				<StaffManagementTable />
 			</div>
-		</ProtectedRoute>
+		</AdminRoute>
 	);
 }
 

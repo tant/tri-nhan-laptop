@@ -35,7 +35,7 @@ export function RepairTicketsPage() {
 	const [error, setError] = useState<Error | null>(null);
 
 	// Track activity for all visible tickets
-	const ticketIds = repairs.map(repair => repair.id);
+	const ticketIds = repairs.map((repair) => repair.id);
 	const ticketActivities = useMultipleTicketsActivity(ticketIds, 30);
 	// const [statusDialogOpen, setStatusDialogOpen] = useState(false);
 	// const [timelineDialogOpen, setTimelineDialogOpen] = useState(false);

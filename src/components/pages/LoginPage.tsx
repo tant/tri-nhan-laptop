@@ -93,9 +93,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 						className="h-16 w-auto"
 					/>
 				</div>
-				<h1 className="text-2xl font-bold text-white">
-					Đăng nhập hệ thống
-				</h1>
+				<h1 className="text-2xl font-bold text-white">Đăng nhập hệ thống</h1>
 				<p className="text-gray-300 text-sm text-balance">
 					Nhập thông tin đăng nhập để truy cập hệ thống quản lý tiệm sửa laptop
 				</p>
@@ -114,7 +112,9 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 			)}
 			<div className="grid gap-6">
 				<div className="grid gap-3">
-					<Label htmlFor="email" className="text-white">Email</Label>
+					<Label htmlFor="email" className="text-white">
+						Email
+					</Label>
 					<Input
 						id="email"
 						type="email"
@@ -142,7 +142,9 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 				</div>
 				<div className="grid gap-3">
 					<div className="flex items-center">
-						<Label htmlFor="password" className="text-white">Mật khẩu</Label>
+						<Label htmlFor="password" className="text-white">
+							Mật khẩu
+						</Label>
 						<button
 							type="button"
 							className="ml-auto text-sm text-[#299fce] underline-offset-4 hover:underline bg-transparent border-none cursor-pointer"
@@ -199,7 +201,10 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 			</div>
 			<div className="text-center text-sm text-gray-300">
 				Bạn là khách hàng?{" "}
-				<a href="/" className="text-[#299fce] underline underline-offset-4 hover:text-[#299fce]/80">
+				<a
+					href="/"
+					className="text-[#299fce] underline underline-offset-4 hover:text-[#299fce]/80"
+				>
 					Tra cứu phiếu sửa chữa
 				</a>
 			</div>

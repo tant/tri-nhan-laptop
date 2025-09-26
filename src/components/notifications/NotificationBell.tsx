@@ -14,9 +14,20 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { useRealtimeUpdates, type RealtimeEvent } from "@/hooks/use-realtime-updates";
+import {
+	type RealtimeEvent,
+	useRealtimeUpdates,
+} from "@/hooks/use-realtime-updates";
 import { cn } from "@/lib/utils";
-import { Bell, BellRing, CheckCircle, FileText, Info, Wifi, WifiOff } from "lucide-react";
+import {
+	Bell,
+	BellRing,
+	CheckCircle,
+	FileText,
+	Info,
+	Wifi,
+	WifiOff,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface NotificationBellProps {
@@ -75,27 +86,26 @@ export function NotificationBell({ className }: NotificationBellProps) {
 	const formatEventTime = (timestamp: string) => {
 		const date = new Date(timestamp);
 		const now = new Date();
-		const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+		const diffInMinutes = Math.floor(
+			(now.getTime() - date.getTime()) / (1000 * 60),
+		);
 
 		if (diffInMinutes < 1) return "Vừa xong";
 		if (diffInMinutes < 60) return `${diffInMinutes} phút trước`;
-		if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)} giờ trước`;
+		if (diffInMinutes < 1440)
+			return `${Math.floor(diffInMinutes / 60)} giờ trước`;
 		return date.toLocaleDateString("vi-VN", {
 			day: "2-digit",
 			month: "2-digit",
 			hour: "2-digit",
-			minute: "2-digit"
+			minute: "2-digit",
 		});
 	};
 
 	return (
 		<Sheet open={isOpen} onOpenChange={setIsOpen}>
 			<SheetTrigger asChild>
-				<Button
-					variant="ghost"
-					size="sm"
-					className={cn("relative", className)}
-				>
+				<Button variant="ghost" size="sm" className={cn("relative", className)}>
 					{unreadCount > 0 ? (
 						<BellRing className="h-5 w-5" />
 					) : (
@@ -182,7 +192,9 @@ export function NotificationBell({ className }: NotificationBellProps) {
 							<div className="text-center py-12 px-4 text-muted-foreground">
 								<Bell className="h-16 w-16 mx-auto mb-4 opacity-30" />
 								<p className="font-medium mb-2">Chưa có thông báo nào</p>
-								<p className="text-sm">Thông báo sẽ xuất hiện khi có cập nhật</p>
+								<p className="text-sm">
+									Thông báo sẽ xuất hiện khi có cập nhật
+								</p>
 							</div>
 						) : (
 							<div className="space-y-0">
@@ -217,7 +229,8 @@ export function NotificationBell({ className }: NotificationBellProps) {
 							<div className="text-xs text-muted-foreground text-center px-4 py-3 bg-muted/30 rounded-lg">
 								<div className="flex items-center justify-center gap-2">
 									<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-									<span className="font-medium">{recentEvents.length}</span> hoạt động trong 60 phút qua
+									<span className="font-medium">{recentEvents.length}</span>{" "}
+									hoạt động trong 60 phút qua
 								</div>
 								{connectionStatus.connection_count > 1 && (
 									<div className="mt-2 pt-2 border-t border-muted-foreground/20">

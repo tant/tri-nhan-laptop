@@ -9,6 +9,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 import {
 	Sidebar,
 	SidebarContent,
@@ -22,7 +23,6 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -175,7 +175,10 @@ const RootComponent = () => {
 							<SidebarContent className="p-2">
 								{navigationGroups.map((group, groupIndex) => {
 									// Filter groups based on role requirements
-									if (group.requiresRole && profile?.role !== group.requiresRole) {
+									if (
+										group.requiresRole &&
+										profile?.role !== group.requiresRole
+									) {
 										return null;
 									}
 
@@ -188,8 +191,10 @@ const RootComponent = () => {
 												<SidebarGroupContent>
 													<SidebarMenu>
 														{group.items.map((item) => {
-															const isActive = location.pathname === item.url ||
-																(item.url !== "/dashboard" && location.pathname.startsWith(item.url));
+															const isActive =
+																location.pathname === item.url ||
+																(item.url !== "/dashboard" &&
+																	location.pathname.startsWith(item.url));
 															return (
 																<SidebarMenuItem key={item.url}>
 																	<SidebarMenuButton
@@ -202,7 +207,10 @@ const RootComponent = () => {
 																			transition-all duration-200
 																		`}
 																	>
-																		<Link to={item.url} className="flex items-center gap-2 w-full">
+																		<Link
+																			to={item.url}
+																			className="flex items-center gap-2 w-full"
+																		>
 																			<item.icon className="size-4" />
 																			<span>{item.title}</span>
 																		</Link>
@@ -214,7 +222,12 @@ const RootComponent = () => {
 												</SidebarGroupContent>
 											</SidebarGroup>
 											{/* Add separator between groups, but not after the last one */}
-											{groupIndex < navigationGroups.filter(g => !g.requiresRole || profile?.role === g.requiresRole).length - 1 && (
+											{groupIndex <
+												navigationGroups.filter(
+													(g) =>
+														!g.requiresRole || profile?.role === g.requiresRole,
+												).length -
+													1 && (
 												<div className="px-2 py-2">
 													<Separator className="bg-[#299fce]/10" />
 												</div>

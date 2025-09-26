@@ -1,80 +1,21 @@
-import { Badge } from "@/components/ui/badge";
+import { StaffManagementTable } from "@/components/staff/StaffManagementTable";
 import { Button } from "@/components/ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
 	Database,
 	Download,
-	Edit,
-	Plus,
 	Settings,
 	Shield,
-	Trash2,
 	Upload,
 	Users,
 } from "lucide-react";
 import { useState } from "react";
 
 export function AdminPage() {
-	const [users] = useState([
-		{
-			id: 1,
-			name: "Nguyễn Văn Admin",
-			email: "admin@trinhanlaptop.vn",
-			role: "Admin",
-			status: "Hoạt động",
-			lastLogin: "2024-01-19 10:30",
-		},
-		{
-			id: 2,
-			name: "Trần Văn B",
-			email: "technician1@trinhanlaptop.vn",
-			role: "Kỹ thuật viên",
-			status: "Hoạt động",
-			lastLogin: "2024-01-19 09:15",
-		},
-		{
-			id: 3,
-			name: "Phạm Văn C",
-			email: "technician2@trinhanlaptop.vn",
-			role: "Kỹ thuật viên",
-			status: "Tạm khóa",
-			lastLogin: "2024-01-18 16:45",
-		},
-	]);
-
 	const [systemSettings] = useState({
 		shopName: "Trung tâm sửa chữa Laptop ABC",
 		address: "123 Đường ABC, Quận 1, TP.HCM",
@@ -85,30 +26,6 @@ export function AdminPage() {
 		smsNotifications: false,
 		maintenanceMode: false,
 	});
-
-	const getStatusBadge = (status: string) => {
-		switch (status) {
-			case "Hoạt động":
-				return <Badge variant="default">Hoạt động</Badge>;
-			case "Tạm khóa":
-				return <Badge variant="destructive">Tạm khóa</Badge>;
-			default:
-				return <Badge variant="secondary">{status}</Badge>;
-		}
-	};
-
-	const getRoleBadge = (role: string) => {
-		switch (role) {
-			case "Admin":
-				return <Badge variant="destructive">Admin</Badge>;
-			case "Kỹ thuật viên":
-				return <Badge variant="secondary">Kỹ thuật viên</Badge>;
-			case "Nhân viên":
-				return <Badge variant="outline">Nhân viên</Badge>;
-			default:
-				return <Badge>{role}</Badge>;
-		}
-	};
 
 	return (
 		<div className="p-6">
@@ -150,107 +67,7 @@ export function AdminPage() {
 				</TabsList>
 
 				<TabsContent value="users" className="space-y-6">
-					<div className="flex justify-between items-center">
-						<h2 className="text-2xl font-semibold">Quản lý người dùng</h2>
-						<Dialog>
-							<DialogTrigger asChild>
-								<Button>
-									<Plus className="mr-2 h-4 w-4" />
-									Thêm người dùng
-								</Button>
-							</DialogTrigger>
-							<DialogContent>
-								<DialogHeader>
-									<DialogTitle>Thêm người dùng mới</DialogTitle>
-									<DialogDescription>
-										Tạo tài khoản mới cho nhân viên
-									</DialogDescription>
-								</DialogHeader>
-								<div className="grid gap-4 py-4">
-									<div className="space-y-2">
-										<Label htmlFor="userName">Tên người dùng</Label>
-										<Input id="userName" placeholder="Nhập tên người dùng" />
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="userEmail">Email</Label>
-										<Input
-											id="userEmail"
-											type="email"
-											placeholder="Nhập email"
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="userRole">Vai trò</Label>
-										<Select>
-											<SelectTrigger>
-												<SelectValue placeholder="Chọn vai trò" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="admin">Admin</SelectItem>
-												<SelectItem value="technician">
-													Kỹ thuật viên
-												</SelectItem>
-												<SelectItem value="staff">Nhân viên</SelectItem>
-											</SelectContent>
-										</Select>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="userPassword">Mật khẩu tạm thời</Label>
-										<Input
-											id="userPassword"
-											type="password"
-											placeholder="Nhập mật khẩu"
-										/>
-									</div>
-									<Button className="w-full">Tạo tài khoản</Button>
-								</div>
-							</DialogContent>
-						</Dialog>
-					</div>
-
-					<Card>
-						<CardHeader>
-							<CardTitle>Danh sách người dùng</CardTitle>
-							<CardDescription>Quản lý tài khoản và quyền hạn</CardDescription>
-						</CardHeader>
-						<CardContent>
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>ID</TableHead>
-										<TableHead>Tên</TableHead>
-										<TableHead>Email</TableHead>
-										<TableHead>Vai trò</TableHead>
-										<TableHead>Trạng thái</TableHead>
-										<TableHead>Đăng nhập cuối</TableHead>
-										<TableHead>Thao tác</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{users.map((user) => (
-										<TableRow key={user.id}>
-											<TableCell>{user.id}</TableCell>
-											<TableCell className="font-medium">{user.name}</TableCell>
-											<TableCell>{user.email}</TableCell>
-											<TableCell>{getRoleBadge(user.role)}</TableCell>
-											<TableCell>{getStatusBadge(user.status)}</TableCell>
-											<TableCell>{user.lastLogin}</TableCell>
-											<TableCell>
-												<div className="flex gap-2">
-													<Button variant="outline" size="sm">
-														<Edit className="h-4 w-4" />
-													</Button>
-													<Button variant="outline" size="sm">
-														<Trash2 className="h-4 w-4" />
-													</Button>
-												</div>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</CardContent>
-					</Card>
+					<StaffManagementTable />
 				</TabsContent>
 
 				<TabsContent value="settings" className="space-y-6">

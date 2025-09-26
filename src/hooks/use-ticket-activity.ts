@@ -13,7 +13,7 @@ export function useTicketActivity(ticketId: string, timeWindowMinutes = 30) {
 		const recentEvents = getRecentEvents(timeWindowMinutes);
 
 		// Find events related to this specific ticket
-		const ticketEvents = recentEvents.filter(event => {
+		const ticketEvents = recentEvents.filter((event) => {
 			const eventData = event.data;
 			return (
 				eventData?.ticket_id === ticketId ||
@@ -30,43 +30,48 @@ export function useTicketActivity(ticketId: string, timeWindowMinutes = 30) {
 			hasRecentActivity,
 			lastActivity,
 			activityCount,
-			events: ticketEvents
+			events: ticketEvents,
 		};
 	}, [events, ticketId, timeWindowMinutes, getRecentEvents]);
 
 	return ticketActivity;
 }
 
-export function useMultipleTicketsActivity(ticketIds: string[], timeWindowMinutes = 30) {
+export function useMultipleTicketsActivity(
+	ticketIds: string[],
+	timeWindowMinutes = 30,
+) {
 	const { getRecentEvents } = useRealtimeUpdates();
 
 	const activitiesMap = useMemo(() => {
 		const recentEvents = getRecentEvents(timeWindowMinutes);
-		const activities: Record<string, {
-			hasRecentActivity: boolean;
-			lastActivity: any;
-			activityCount: number;
-		}> = {};
+		const activities: Record<
+			string,
+			{
+				hasRecentActivity: boolean;
+				lastActivity: any;
+				activityCount: number;
+			}
+		> = {};
 
 		// Initialize all tickets with no activity
-		ticketIds.forEach(id => {
+		ticketIds.forEach((id) => {
 			activities[id] = {
 				hasRecentActivity: false,
 				lastActivity: null,
-				activityCount: 0
+				activityCount: 0,
 			};
 		});
 
 		// Find events for each ticket
-		recentEvents.forEach(event => {
+		recentEvents.forEach((event) => {
 			const eventData = event.data;
 
-			ticketIds.forEach(ticketId => {
-				const isRelated = (
+			ticketIds.forEach((ticketId) => {
+				const isRelated =
 					eventData?.ticket_id === ticketId ||
 					eventData?.ticketCode?.includes(ticketId.slice(-6)) ||
-					event.message.includes(ticketId)
-				);
+					event.message.includes(ticketId);
 
 				if (isRelated) {
 					activities[ticketId].hasRecentActivity = true;
