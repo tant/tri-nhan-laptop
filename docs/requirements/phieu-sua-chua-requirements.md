@@ -366,6 +366,8 @@ repair_tickets (
   customer_phone text not null references customers(phone),
   device_info jsonb not null default '{}',
   issue_description text not null,
+  customer_description text not null,
+  priority repair_priority default 'normal' not null,
   status repair_status default 'device_received' not null,
   assigned_technician_id uuid references user_profiles(id),
   parts_used jsonb default '[]',

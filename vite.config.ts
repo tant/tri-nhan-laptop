@@ -11,6 +11,9 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
+  server: {
+    allowedHosts: ['vite.tantran.dev'],
+  },
   // @ts-ignore - Vitest config
   test: {
     globals: true,

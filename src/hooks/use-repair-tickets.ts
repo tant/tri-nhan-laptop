@@ -937,6 +937,35 @@ export function useRepairTickets() {
 		}
 	}, []);
 
+	/**
+	 * Update repair ticket
+	 */
+	const updateRepair = useCallback(async (ticketId: string, updates: Partial<Database["public"]["Tables"]["repair_tickets"]["Update"]>) => {
+		try {
+			setLoading(true);
+			setError(null);
+
+			const { data, error: updateError } = await supabase
+				.from("repair_tickets")
+				.update(updates)
+				.eq("id", ticketId)
+				.select()
+				.single();
+
+			if (updateError) {
+				throw new Error(`Không thể cập nhật phiếu sửa chữa: ${updateError.message}`);
+			}
+
+			return data;
+		} catch (err) {
+			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			setError(error);
+			throw error;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
 	return {
 		loading,
 		error,
@@ -953,6 +982,7 @@ export function useRepairTickets() {
 		getRepairTemplates,
 		getTechnicianWorkload,
 		previewNextTicketCode,
+		updateRepair, // Add the missing update method
 		// Template function with proper implementation
 		createTicketFromTemplate,
 	};

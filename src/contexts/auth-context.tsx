@@ -29,14 +29,51 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<User | null>(null);
 	const [profile, setProfile] = useState<UserProfile | null>(null);
+
+	// localStorage key for caching profile
+	const PROFILE_CACHE_KEY = 'user_profile_cache';
 	const [session, setSession] = useState<Session | null>(null);
 	const [loading, setLoading] = useState(true);
+
+	// Track to prevent redundant profile fetches
+	const [fetchingProfileFor, setFetchingProfileFor] = useState<string | null>(null);
+
+	// Cache profile to localStorage
+	const cacheProfile = (profile: UserProfile | null) => {
+		try {
+			if (profile) {
+				localStorage.setItem(PROFILE_CACHE_KEY, JSON.stringify(profile));
+			} else {
+				localStorage.removeItem(PROFILE_CACHE_KEY);
+			}
+		} catch (error) {
+			console.warn("Failed to cache profile:", error);
+		}
+	};
+
+	// Get cached profile from localStorage
+	const getCachedProfile = (): UserProfile | null => {
+		try {
+			const cached = localStorage.getItem(PROFILE_CACHE_KEY);
+			return cached ? JSON.parse(cached) : null;
+		} catch (error) {
+			console.warn("Failed to get cached profile:", error);
+			return null;
+		}
+	};
 
 	// Fetch user profile from database with better error handling
 	const fetchUserProfile = useCallback(
 		async (userId: string): Promise<UserProfile | null> => {
+			// First check if we already have this user cached
+			const cached = getCachedProfile();
+			if (cached && cached.id === userId) {
+				console.log("📋 Returning cached profile immediately for:", userId);
+				return cached;
+			}
+
 			try {
-				console.log("🔍 Fetching user profile for:", userId);
+				console.log("🔍 Fetching user profile from database for:", userId);
 
 				const { data, error } = await supabase
 					.from("user_profiles")
@@ -46,14 +83,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 				if (error) {
 					console.error("Error fetching user profile:", error);
+					// Return cached profile if available
+					const cached = getCachedProfile();
+					if (cached && cached.id === userId) {
+						console.log("📋 Using cached profile:", cached);
+						return cached;
+					}
 					// Don't throw - return null and let auth continue
 					return null;
 				}
 
 				console.log("✅ User profile fetched successfully:", data);
+				// Cache the successful result
+				cacheProfile(data);
 				return data;
 			} catch (error) {
 				console.error("Unexpected error fetching user profile:", error);
+				// Try cached profile as fallback
+				const cached = getCachedProfile();
+				if (cached && cached.id === userId) {
+					console.log("📋 Using cached profile as fallback:", cached);
+					return cached;
+				}
 				// Don't throw - return null and let auth continue
 				return null;
 			}
@@ -97,8 +148,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	// Check if user has specific role
 	const isRole = (role: UserProfile["role"]): boolean => {
-		if (!profile) return false;
-		return profile.role === role;
+		// First check current profile
+		if (profile && profile.role === role) return true;
+
+		// Fallback to cached profile if current profile is null/undefined
+		if (!profile) {
+			const cached = getCachedProfile();
+			if (cached && cached.role === role) {
+				console.log("🔄 Using cached profile for role check:", cached.role);
+				return true;
+			}
+		}
+
+		return false;
 	};
 
 	// Handle auth state changes with better error handling
@@ -113,11 +175,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			setUser(session?.user ?? null);
 
 			if (session?.user) {
+				// Check if we already have the profile for this user
+				const cached = getCachedProfile();
+				if (cached && cached.id === session.user.id) {
+					console.log("📋 Using existing cached profile, skipping DB fetch:", cached.role);
+					setProfile(cached);
+					setLoading(false);
+					return;
+				}
+
+				// Check if we're already fetching for this user
+				if (fetchingProfileFor === session.user.id) {
+					console.log("⏳ Already fetching profile for this user, skipping duplicate request");
+					return;
+				}
+
 				try {
-					// Add timeout to prevent hanging
+					console.log("🔍 Starting profile fetch for:", session.user.id);
+					setFetchingProfileFor(session.user.id);
+
+					// Add timeout to prevent hanging - increased timeout and retry logic
 					const profilePromise = fetchUserProfile(session.user.id);
 					const timeoutPromise = new Promise<null>((_, reject) =>
-						setTimeout(() => reject(new Error("Profile fetch timeout")), 5000),
+						setTimeout(() => reject(new Error("Profile fetch timeout")), 10000), // Increased to 10 seconds
 					);
 
 					const userProfile = await Promise.race([
@@ -125,10 +205,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 						timeoutPromise,
 					]);
 					setProfile(userProfile);
+					// Cache successful profile fetch
+					cacheProfile(userProfile);
 				} catch (error) {
 					console.error("Profile fetch failed or timed out:", error);
-					// Set profile to null but don't block auth
-					setProfile(null);
+					// Don't clear profile immediately on timeout - it might be a temporary network issue
+					// Only clear if we don't have an existing profile
+					if (!profile) {
+						setProfile(null);
+					}
+					// Retry once after a short delay
+					setTimeout(async () => {
+						try {
+							console.log("🔄 Retrying profile fetch...");
+							const userProfile = await fetchUserProfile(session.user.id);
+							setProfile(userProfile);
+							// Cache successful retry
+							if (userProfile) cacheProfile(userProfile);
+						} catch (retryError) {
+							console.error("Retry profile fetch failed:", retryError);
+							setProfile(null);
+						} finally {
+							setFetchingProfileFor(null);
+						}
+					}, 2000);
+				} finally {
+					// Clear the fetching state when done (success or failure)
+					setFetchingProfileFor(null);
 				}
 			} else {
 				// Clear profile when signed out
@@ -140,6 +243,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		},
 		[fetchUserProfile],
 	);
+
+	// Initialize with cached profile if available (for immediate role checks)
+	useEffect(() => {
+		const cached = getCachedProfile();
+		if (cached && !profile) {
+			console.log("🚀 Loading cached profile on initialization:", cached);
+			setProfile(cached);
+		}
+	}, []);
 
 	// Listen for auth state changes
 	useEffect(() => {

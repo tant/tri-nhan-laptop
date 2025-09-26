@@ -1,4 +1,4 @@
--- Vietnamese Laptop Repair Shop Seed Data
+-- Vietnamese Laptop Repair Shop Seed Data with customer_description
 
 -- Insert sample customers
 insert into customers (phone, full_name, address, notes) values
@@ -15,7 +15,7 @@ insert into parts (name, category, brand, model_compatibility, current_stock, un
 ('Màn hình laptop 15.6"', 'Display', 'BOE', '{"Dell Inspiron 15", "HP 15"}', 8, 2000000, 3500000, 3500000, 'Nhà cung cấp C - 0903333333'),
 ('Pin laptop Dell', 'Battery', 'Dell', '{"Dell Inspiron", "Dell Latitude"}', 12, 1200000, 1800000, 1800000, 'Nhà cung cấp D - 0904444444');
 
--- Insert sample repair tickets with customer_description field
+-- Insert sample repair tickets with customer_description
 insert into repair_tickets (
   customer_phone,
   device_info,

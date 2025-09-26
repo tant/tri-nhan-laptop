@@ -43,7 +43,7 @@ export function EditTicketForm({
 
 	// Form fields
 	const [issueDescription, setIssueDescription] = useState("");
-	const [initialDiagnosis, setInitialDiagnosis] = useState("");
+	const [customerDescription, setCustomerDescription] = useState("");
 	const [priority, setPriority] = useState("");
 	const [status, setStatus] = useState("");
 	const [estimatedCost, setEstimatedCost] = useState("");
@@ -58,11 +58,11 @@ export function EditTicketForm({
 
 				// Populate form fields
 				setIssueDescription(data.issue_description || "");
-				setInitialDiagnosis(data.initial_diagnosis || "");
-				setPriority(data.priority);
+				setCustomerDescription(data.customer_description || "");
+				setPriority(data.priority || "normal");
 				setStatus(data.status);
-				setEstimatedCost(data.estimated_cost?.toString() || "");
-				setNotes(data.notes || "");
+				setEstimatedCost(data.total_cost?.toString() || "");
+				setNotes(data.receipt_note || "");
 			} catch (err) {
 				setError(
 					err instanceof Error
@@ -86,12 +86,11 @@ export function EditTicketForm({
 
 			const updates = {
 				issue_description: issueDescription,
-				initial_diagnosis: initialDiagnosis,
+				customer_description: customerDescription,
 				priority,
 				status,
-				estimated_cost: estimatedCost ? Number(estimatedCost) : null,
-				notes,
-				updated_at: new Date().toISOString(),
+				total_cost: estimatedCost ? Number(estimatedCost) : null,
+				receipt_note: notes,
 			};
 
 			await updateRepair(ticketId, updates);
@@ -154,7 +153,7 @@ export function EditTicketForm({
 					</Button>
 					<div>
 						<h1 className="text-2xl font-bold">
-							Chỉnh sửa phiếu #{ticket?.ticket_number || ticketId.slice(0, 8)}
+							Chỉnh sửa phiếu #{ticket?.ticket_code || ticketId.slice(0, 8)}
 						</h1>
 						<p className="text-muted-foreground">
 							Khách hàng: {ticket?.customer.full_name}
@@ -194,13 +193,14 @@ export function EditTicketForm({
 							</div>
 
 							<div>
-								<Label htmlFor="initial_diagnosis">Chẩn đoán ban đầu</Label>
+								<Label htmlFor="customer_description">Mô tả của khách hàng</Label>
 								<Textarea
-									id="initial_diagnosis"
-									value={initialDiagnosis}
-									onChange={(e) => setInitialDiagnosis(e.target.value)}
-									placeholder="Chẩn đoán sơ bộ về nguyên nhân"
+									id="customer_description"
+									value={customerDescription}
+									onChange={(e) => setCustomerDescription(e.target.value)}
+									placeholder="Mô tả vấn đề theo lời khách hàng"
 									rows={3}
+									required
 								/>
 							</div>
 
@@ -278,9 +278,9 @@ export function EditTicketForm({
 							</div>
 
 							<div>
-								<Label htmlFor="estimated_cost">Chi phí ước tính (VND)</Label>
+								<Label htmlFor="total_cost">Chi phí tổng (VND)</Label>
 								<Input
-									id="estimated_cost"
+									id="total_cost"
 									type="number"
 									value={estimatedCost}
 									onChange={(e) => setEstimatedCost(e.target.value)}

@@ -80,6 +80,11 @@ pnpm run test              # Default: run unit tests only
 - **Protected Routes**: `src/components/protected-route.tsx` - Role validation wrapper
 - **User Roles**: `shop_owner` (admin) and `staff` - no permission granularity
 - **Admin Creation**: Environment-driven admin user creation scripts
+- **Performance Optimizations**:
+  - localStorage caching for user profiles (prevents redundant DB calls)
+  - Request deduplication (prevents concurrent duplicate profile fetches)
+  - Cache-first authentication (instant role validation)
+  - Fallback mechanisms (works during DB timeouts)
 
 #### Routing Structure
 - **File-based Routing**: TanStack Router with code splitting
@@ -98,8 +103,20 @@ pnpm run test              # Default: run unit tests only
 #### Core Business Tables
 - **customers**: Phone number as primary key, customer information
 - **repair_tickets**: Main business entity with complex status workflow (16 statuses)
+  - **CRITICAL**: Contains both `issue_description` (staff technical diagnosis) and `customer_description` (customer's original problem description)
+  - Both fields are required - do NOT create tickets without `customer_description`
+  - **Comprehensive fields**: labor costs, overhead, taxes, discounts, customer satisfaction, follow-up tracking, recurring issue detection
+  - **Relationships**: Links to devices, previous repairs, technicians, cost breakdowns
 - **parts**: Inventory management with compatibility metadata
 - **user_profiles**: Staff accounts linked to Supabase Auth
+
+#### Extended Database Schema Features
+- **Cost Management**: Detailed cost breakdown (labor, parts, overhead, taxes, discounts)
+- **Customer Experience**: Satisfaction ratings, feedback, follow-up requirements
+- **Service Intelligence**: Recurring issue tracking, complexity levels, repair categories
+- **Audit Trail**: Version tracking, status logs, cost change history
+- **Device Management**: Device registration and tracking across multiple repairs
+- **Financial Tracking**: Quote approvals, payment methods, receipt management
 
 #### Business Logic
 - **Ticket Codes**: Auto-generated format `LRP-YYYY-XXXXXX` via PostgreSQL functions
@@ -179,6 +196,30 @@ VITE_DEFAULT_LOCALE=vi-VN
 - Reset database: `pnpm run db:reset` (applies all migrations + seed data)
 - TypeScript types are manually maintained in `src/lib/supabase.ts`
 
+### CRITICAL Database Schema Requirements
+**repair_tickets Table Must Have Required Fields:**
+- `issue_description` (TEXT NOT NULL) - Staff technical diagnosis and analysis
+- `customer_description` (TEXT NOT NULL) - Customer's original problem description in their own words
+- `priority` (repair_priority NOT NULL DEFAULT 'normal') - Priority level: low, normal, high, urgent
+
+**When creating tickets, ALL required fields must be provided:**
+```sql
+INSERT INTO repair_tickets (..., issue_description, customer_description, priority, ...)
+VALUES (..., 'Technical diagnosis', 'Customer description', 'normal', ...);
+```
+
+**Frontend code expects all required fields - missing `customer_description` or `priority` will cause insert failures!**
+
+### Schema Validation Checklist
+Before making database changes, verify:
+1. ✅ TypeScript types in `src/lib/supabase.ts` match actual database schema
+2. ✅ All NOT NULL columns are included in Insert types as required fields
+3. ✅ Seed data includes all required columns with valid sample data
+4. ✅ Frontend forms collect data for all required fields
+5. ✅ API endpoints handle both `issue_description` and `customer_description`
+
+**To check current schema:** `docker exec supabase_db_try-vite psql -U postgres -d postgres -c "\d repair_tickets"`
+
 ### Troubleshooting Database Issues
 If database reset fails or public lookup returns empty results:
 1. **Manual seed data insertion**: Insert test data directly via Docker container
@@ -194,6 +235,7 @@ If database reset fails or public lookup returns empty results:
 - Use specific foreign key relationships: `user_profiles!repair_tickets_assigned_technician_id_fkey(*)`
 - Added missing `part_number` column to parts table
 - Fixed invalid Supabase queries using column-to-column comparisons (use client-side filtering instead)
+- **FIXED 2025-09-25**: Added missing `customer_description` column to `repair_tickets` table - was causing "Could not find the 'customer_description' column" errors on ticket creation
 
 **Query Pattern Fixes:**
 - ❌ Invalid: `.or("current_stock.lte.min_stock_level,current_stock.eq.0")`

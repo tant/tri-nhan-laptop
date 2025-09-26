@@ -88,7 +88,8 @@ export type Database = {
 						serial_number?: string;
 						initial_condition: string;
 					};
-					issue_description: string;
+					issue_description: string; // Staff technical diagnosis
+					customer_description: string; // Customer's original problem description
 					status:
 						| "device_received"
 						| "preliminary_inspection"
@@ -127,6 +128,26 @@ export type Database = {
 					repair_completed_at: string | null;
 					repair_completed_by: string | null;
 					paid_by: string | null;
+					// Additional fields from actual database schema
+					labor_cost: number | null;
+					labor_hours: number | null;
+					overhead_cost: number | null;
+					discount_amount: number | null;
+					tax_amount: number | null;
+					parts_cost_total: number | null;
+					quote_approved: boolean | null;
+					final_total_cost: number | null;
+					device_id: string | null;
+					repair_category: string | null;
+					complexity_level: string | null;
+					customer_satisfaction_rating: number | null;
+					customer_feedback: string | null;
+					follow_up_required: boolean | null;
+					follow_up_date: string | null;
+					recurring_issue: boolean | null;
+					previous_repair_reference: string | null;
+					version: number | null;
+					priority: "low" | "normal" | "high" | "urgent";
 				};
 				Insert: {
 					ticket_code?: string;
@@ -137,7 +158,8 @@ export type Database = {
 						serial_number?: string;
 						initial_condition: string;
 					};
-					issue_description: string;
+					issue_description: string; // Staff technical diagnosis
+					customer_description: string; // Customer's original problem description
 					status?:
 						| "device_received"
 						| "preliminary_inspection"
@@ -176,6 +198,25 @@ export type Database = {
 					repair_completed_at?: string | null;
 					repair_completed_by?: string | null;
 					paid_by?: string | null;
+					// Additional optional fields for comprehensive ticket management
+					labor_cost?: number | null;
+					labor_hours?: number | null;
+					overhead_cost?: number | null;
+					discount_amount?: number | null;
+					tax_amount?: number | null;
+					parts_cost_total?: number | null;
+					quote_approved?: boolean | null;
+					final_total_cost?: number | null;
+					device_id?: string | null;
+					repair_category?: string | null;
+					complexity_level?: string | null;
+					customer_satisfaction_rating?: number | null;
+					customer_feedback?: string | null;
+					follow_up_required?: boolean | null;
+					follow_up_date?: string | null;
+					recurring_issue?: boolean | null;
+					previous_repair_reference?: string | null;
+					priority?: "low" | "normal" | "high" | "urgent";
 				};
 				Update: {
 					customer_phone?: string;
@@ -185,7 +226,8 @@ export type Database = {
 						serial_number?: string;
 						initial_condition: string;
 					};
-					issue_description?: string;
+					issue_description?: string; // Staff technical diagnosis
+					customer_description?: string; // Customer's original problem description
 					status?:
 						| "device_received"
 						| "preliminary_inspection"
@@ -224,6 +266,7 @@ export type Database = {
 					repair_completed_at?: string | null;
 					repair_completed_by?: string | null;
 					paid_by?: string | null;
+					priority?: "low" | "normal" | "high" | "urgent";
 				};
 			};
 			parts: {
@@ -294,6 +337,7 @@ export type Database = {
 				| "abandoned";
 			payment_method: "cash" | "transfer" | "other";
 			user_role: "shop_owner" | "staff";
+			repair_priority: "low" | "normal" | "high" | "urgent";
 		};
 	};
 };
