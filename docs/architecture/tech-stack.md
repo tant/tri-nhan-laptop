@@ -22,7 +22,6 @@ The Vietnamese Laptop Repair Management System is built using modern web technol
 - **Radix UI Primitives**: Unstyled, accessible components for complex UI
 - **Lucide React 0.476.0**: Beautiful, customizable icon library
 - **class-variance-authority**: Type-safe variant API for component styling
-- **next-themes 0.4.6**: Theme switching support (dark/light mode)
 - **sonner 2.0.7**: Toast notification system
 - **tw-animate-css 1.3.6**: Enhanced CSS animations for Tailwind
 

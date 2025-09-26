@@ -176,7 +176,6 @@ pnpm run create-admin:bash  # Create admin user (Bash script)
 - **shadcn/ui**: High-quality, accessible component library
 - **Radix UI Primitives**: Unstyled, accessible components
 - **Lucide React 0.476.0**: Beautiful icon library
-- **next-themes 0.4.6**: Theme switching support (dark/light mode)
 - **sonner 2.0.7**: Toast notification system
 - **tw-animate-css 1.3.6**: Enhanced CSS animations
 

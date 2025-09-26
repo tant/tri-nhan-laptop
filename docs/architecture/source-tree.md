@@ -80,8 +80,7 @@ src/
 │   │   ├── textarea.tsx
 │   │   └── toaster.tsx
 │   ├── app-sidebar.tsx         # Main navigation sidebar
-│   ├── protected-route.tsx     # Authentication guards
-│   └── theme-provider.tsx      # Theme management component
+│   └── protected-route.tsx     # Authentication guards
 ```
 
 ### Business Logic & Utilities

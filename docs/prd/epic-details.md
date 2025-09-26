@@ -70,7 +70,7 @@
 - [ ] shadcn/ui components integrated with Vietnamese text support
 - [ ] Main dashboard layout with sidebar navigation
 - [ ] Loading states and error boundaries implemented
-- [ ] Dark/light theme support (optional but recommended)
+- [ ] Vietnamese business color branding (professional blue theme)
 
 **Technical Implementation**:
 - Set up TanStack Router with file-based route structure
