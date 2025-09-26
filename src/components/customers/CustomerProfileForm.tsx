@@ -1,8 +1,4 @@
 import {
-	VietnameseAddress,
-	type VietnameseAddressData,
-} from "@/components/address/VietnameseAddress";
-import {
 	type ContactInfo,
 	ContactManagement,
 } from "@/components/customers/ContactManagement";
@@ -21,7 +17,6 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
-	type AddressValidationResult,
 	type BusinessDataValidationResult,
 	type CustomerCategory,
 	type IDCardValidationResult,
@@ -61,7 +56,7 @@ export interface CustomerProfileData {
 	taxCode?: string;
 
 	// Address
-	address: VietnameseAddressData;
+	address: string;
 
 	// Contact
 	contactInfo: ContactInfo;
@@ -98,8 +93,6 @@ export function CustomerProfileForm({
 		isValid: false,
 		type: "invalid",
 	});
-	const [addressValidation, setAddressValidation] =
-		useState<AddressValidationResult>({ isValid: false });
 	const [idCardValidation, setIdCardValidation] =
 		useState<IDCardValidationResult>({ isValid: true, type: "invalid" });
 	const [dobValidation, setDobValidation] = useState<{
@@ -148,9 +141,8 @@ export function CustomerProfileForm({
 	);
 
 	const handleAddressChange = useCallback(
-		(address: VietnameseAddressData, validation: AddressValidationResult) => {
+		(address: string) => {
 			updateField("address", address);
-			setAddressValidation(validation);
 		},
 		[updateField],
 	);
@@ -542,14 +534,21 @@ export function CustomerProfileForm({
 				<CardHeader>
 					<CardTitle className="text-lg">Địa chỉ</CardTitle>
 				</CardHeader>
-				<CardContent>
-					<VietnameseAddress
-						value={value.address}
-						onChange={handleAddressChange}
-						disabled={disabled}
-						required
-						showValidation={showValidation}
-					/>
+				<CardContent className="space-y-4">
+					<div className="space-y-2">
+						<Label htmlFor="address" className="text-sm font-medium">
+							Địa chỉ đầy đủ
+						</Label>
+						<Textarea
+							id="address"
+							value={value.address || ""}
+							onChange={(e) => handleAddressChange(e.target.value)}
+							placeholder="Nhập địa chỉ đầy đủ (số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố)"
+							disabled={disabled}
+							rows={3}
+							className="resize-none"
+						/>
+					</div>
 				</CardContent>
 			</Card>
 
@@ -728,12 +727,7 @@ export function createDefaultCustomerProfile(): CustomerProfileData {
 		phone: "",
 		fullName: "",
 		category: "individual",
-		address: {
-			details: "",
-			ward: "",
-			district: "",
-			province: "",
-		},
+		address: "",
 		contactInfo: {
 			primaryPhone: "",
 			preferences: getDefaultContactPreferences(),

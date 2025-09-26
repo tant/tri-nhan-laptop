@@ -15,7 +15,6 @@ import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { NotificationCenter } from "@/components/notifications/notification-center";
-import { TeamSwitcher } from "@/components/team-switcher";
 import {
 	Sidebar,
 	SidebarContent,
@@ -31,13 +30,6 @@ function getNavigationData(
 	hasPermission: (permission: string) => boolean,
 	isRole: (role: string) => boolean,
 ) {
-	const shops = [
-		{
-			name: "Trí Nhân Laptop",
-			logo: Monitor,
-			plan: "Cửa hàng chính",
-		},
-	];
 
 	const navMain = [
 		{
@@ -183,7 +175,6 @@ function getNavigationData(
 			email: profile?.id || "user@example.com",
 			avatar: "/avatars/shadcn.jpg",
 		},
-		shops,
 		navMain,
 		projects,
 	};
@@ -199,7 +190,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 		<Sidebar collapsible="icon" {...props}>
 			<SidebarHeader>
 				<div className="flex items-center justify-between">
-					<TeamSwitcher shops={data.shops} />
+					<div className="flex items-center gap-2 px-2 py-1.5">
+						<div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+							<Monitor className="size-4" />
+						</div>
+						<div className="grid flex-1 text-left text-sm leading-tight">
+							<span className="truncate font-medium">Trí Nhân Laptop</span>
+							<span className="truncate text-xs text-sidebar-muted-foreground">Cửa hàng sửa chữa</span>
+						</div>
+					</div>
 					<NotificationCenter userId={profile?.id} className="mr-2" />
 				</div>
 			</SidebarHeader>

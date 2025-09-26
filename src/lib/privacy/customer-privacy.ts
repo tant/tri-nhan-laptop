@@ -253,9 +253,7 @@ export async function generateCustomerDataSummary(
 				phone: customer.phone,
 				fullName: customer.full_name,
 				email: customer.email,
-				address: customer.address_details
-					? `${customer.address_details}, ${customer.address_ward}, ${customer.address_district}, ${customer.address_province}`
-					: undefined,
+				address: customer.address || undefined,
 				category: customer.category,
 			},
 			businessInfo:

@@ -3,74 +3,6 @@
  * Handles validation for Vietnamese names, addresses, business data, and personal information
  */
 
-// Vietnamese address data
-export const VIETNAMESE_PROVINCES = [
-	"Hà Nội",
-	"TP. Hồ Chí Minh",
-	"Đà Nẵng",
-	"Hải Phòng",
-	"Cần Thơ",
-	"An Giang",
-	"Bà Rịa - Vũng Tàu",
-	"Bắc Giang",
-	"Bắc Kạn",
-	"Bạc Liêu",
-	"Bắc Ninh",
-	"Bến Tre",
-	"Bình Định",
-	"Bình Dương",
-	"Bình Phước",
-	"Bình Thuận",
-	"Cà Mau",
-	"Cao Bằng",
-	"Đắk Lắk",
-	"Đắk Nông",
-	"Điện Biên",
-	"Đồng Nai",
-	"Đồng Tháp",
-	"Gia Lai",
-	"Hà Giang",
-	"Hà Nam",
-	"Hà Tĩnh",
-	"Hải Dương",
-	"Hậu Giang",
-	"Hòa Bình",
-	"Hưng Yên",
-	"Khánh Hòa",
-	"Kiên Giang",
-	"Kon Tum",
-	"Lai Châu",
-	"Lâm Đồng",
-	"Lạng Sơn",
-	"Lào Cai",
-	"Long An",
-	"Nam Định",
-	"Nghệ An",
-	"Ninh Bình",
-	"Ninh Thuận",
-	"Phú Thọ",
-	"Phú Yên",
-	"Quảng Bình",
-	"Quảng Nam",
-	"Quảng Ngãi",
-	"Quảng Ninh",
-	"Quảng Trị",
-	"Sóc Trăng",
-	"Sơn La",
-	"Tây Ninh",
-	"Thái Bình",
-	"Thái Nguyên",
-	"Thanh Hóa",
-	"Thừa Thiên Huế",
-	"Tiền Giang",
-	"Trà Vinh",
-	"Tuyên Quang",
-	"Vĩnh Long",
-	"Vĩnh Phúc",
-	"Yên Bái",
-] as const;
-
-export type VietnameseProvince = (typeof VIETNAMESE_PROVINCES)[number];
 
 // Customer category types
 export type CustomerCategory = "individual" | "business";
@@ -91,17 +23,6 @@ export interface NameValidationResult {
 	type: "valid" | "invalid" | "suspicious";
 }
 
-export interface AddressValidationResult {
-	isValid: boolean;
-	error?: string;
-	formatted?: {
-		details: string;
-		ward: string;
-		district: string;
-		province: string;
-		full: string;
-	};
-}
 
 export interface EmailValidationResult {
 	isValid: boolean;
@@ -207,90 +128,6 @@ export function formatVietnameseName(name: string): string {
 		.join(" ");
 }
 
-/**
- * Validate Vietnamese address structure
- */
-export function validateVietnameseAddress(address: {
-	details?: string;
-	ward?: string;
-	district?: string;
-	province?: string;
-}): AddressValidationResult {
-	const { details, ward, district, province } = address;
-
-	// Province validation
-	if (!province?.trim()) {
-		return {
-			isValid: false,
-			error: "Tỉnh/Thành phố không được để trống",
-		};
-	}
-
-	if (!VIETNAMESE_PROVINCES.includes(province.trim() as VietnameseProvince)) {
-		return {
-			isValid: false,
-			error: "Tỉnh/Thành phố không hợp lệ",
-		};
-	}
-
-	// District validation
-	if (!district?.trim()) {
-		return {
-			isValid: false,
-			error: "Quận/Huyện không được để trống",
-		};
-	}
-
-	if (district.trim().length < 2) {
-		return {
-			isValid: false,
-			error: "Tên Quận/Huyện quá ngắn",
-		};
-	}
-
-	// Ward validation
-	if (!ward?.trim()) {
-		return {
-			isValid: false,
-			error: "Phường/Xã không được để trống",
-		};
-	}
-
-	if (ward.trim().length < 2) {
-		return {
-			isValid: false,
-			error: "Tên Phường/Xã quá ngắn",
-		};
-	}
-
-	// Address details validation
-	if (!details?.trim()) {
-		return {
-			isValid: false,
-			error: "Địa chỉ chi tiết không được để trống",
-		};
-	}
-
-	if (details.trim().length < 5) {
-		return {
-			isValid: false,
-			error: "Địa chỉ chi tiết quá ngắn",
-		};
-	}
-
-	const formatted = {
-		details: details.trim(),
-		ward: ward.trim(),
-		district: district.trim(),
-		province: province.trim(),
-		full: `${details.trim()}, ${ward.trim()}, ${district.trim()}, ${province.trim()}`,
-	};
-
-	return {
-		isValid: true,
-		formatted,
-	};
-}
 
 /**
  * Validate Vietnamese ID card number
@@ -541,61 +378,4 @@ export function getDefaultContactPreferences(): ContactPreferences {
 	};
 }
 
-/**
- * Format Vietnamese address for display
- */
-export function formatVietnameseAddressForDisplay(address: {
-	details?: string;
-	ward?: string;
-	district?: string;
-	province?: string;
-}): string {
-	const parts = [
-		address.details?.trim(),
-		address.ward?.trim(),
-		address.district?.trim(),
-		address.province?.trim(),
-	].filter(Boolean);
 
-	return parts.join(", ");
-}
-
-/**
- * Parse full address into components (best effort)
- */
-export function parseVietnameseAddress(fullAddress: string): {
-	details: string;
-	ward: string;
-	district: string;
-	province: string;
-} {
-	const parts = fullAddress
-		.split(",")
-		.map((part) => part.trim())
-		.filter(Boolean);
-
-	const result = {
-		details: "",
-		ward: "",
-		district: "",
-		province: "",
-	};
-
-	if (parts.length >= 4) {
-		result.details = parts[0];
-		result.ward = parts[1];
-		result.district = parts[2];
-		result.province = parts.slice(3).join(", ");
-	} else if (parts.length === 3) {
-		result.details = parts[0];
-		result.district = parts[1];
-		result.province = parts[2];
-	} else if (parts.length === 2) {
-		result.details = parts[0];
-		result.province = parts[1];
-	} else if (parts.length === 1) {
-		result.details = parts[0];
-	}
-
-	return result;
-}
