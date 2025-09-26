@@ -11,7 +11,7 @@ This system serves a small Vietnamese laptop repair shop (<10 employees) transit
 - Replace existing WordPress-based system with a modern, integrated repair shop management solution
 - Streamline repair workflow from device intake to completion with 16-state status tracking
 - Provide public repair status lookup system for customers without requiring authentication
-- Enable efficient staff management with role-based access (Admin/Staff)
+- Enable simple staff account management with 2-role system (Shop Owner/Staff)
 - Implement automated ticket code generation (LRP-YYYY-######) with proper sequencing
 - Support real-time status updates and internal communication between staff members
 - Create foundation for future features like inventory management and partner collaboration
@@ -39,15 +39,16 @@ This system serves a small Vietnamese laptop repair shop (<10 employees) transit
 - **REQ-012**: System SHALL monitor current inventory levels (foundation for future expansion)
 
 ### Staff Management & Authentication
-- **REQ-013**: System SHALL support role-based access with Shop Owner (admin) and Staff roles
+- **REQ-013**: System SHALL support exactly 2 roles: Shop Owner (admin, defined via .env) and Staff (managed accounts)
 - **REQ-014**: System SHALL integrate with Supabase Auth with Vietnamese error messages
-- **REQ-015**: System SHALL track staff assignments per repair ticket
-- **REQ-016**: System SHALL enforce Row Level Security policies for data access control
+- **REQ-015**: System SHALL provide Shop Owner with staff account management (create, modify, reset password, deactivate only)
+- **REQ-016**: System SHALL allow any authenticated user to modify inventory data
+- **REQ-017**: System SHALL restrict /admin routes to Shop Owner role only
 
 ### Business Analytics
-- **REQ-017**: System SHALL provide business metrics including revenue, repair counts, and popular devices
-- **REQ-018**: System SHALL display repair status distribution with visual breakdown
-- **REQ-019**: System SHALL track repair completion times and success rates
+- **REQ-018**: System SHALL provide business metrics including revenue, repair counts, and popular devices
+- **REQ-019**: System SHALL display repair status distribution with visual breakdown
+- **REQ-020**: System SHALL track repair completion times and success rates
 
 ---
 
@@ -117,7 +118,7 @@ This system serves a small Vietnamese laptop repair shop (<10 employees) transit
 
 #### Admin Workflows
 - **FLOW-007**: Business analytics dashboard - Key metrics, trends, and performance indicators
-- **FLOW-008**: Staff management - User accounts, permissions, and activity tracking
+- **FLOW-008**: Staff management - Basic account lifecycle (create, modify, reset password, deactivate)
 - **FLOW-009**: System configuration - Business settings, repair workflow customization
 
 ---

@@ -8,14 +8,14 @@
 ## 🎯 **Epic Overview**
 
 **As a** Vietnamese repair shop,
-**We need** secure authentication and role-based user management with Vietnamese localization,
-**So that** our staff can safely access the system with proper permissions and clear Vietnamese interface.
+**We need** simple authentication with 2-role system and Vietnamese localization,
+**So that** Shop Owner can manage staff accounts and everyone can access appropriate features.
 
 ### **Business Value**
-- **Secure Access Control**: Role-based authentication for shop operations
+- **Simple Access Control**: 2-role authentication (Shop Owner/Staff)
 - **Vietnamese User Experience**: Complete Vietnamese localization for all authentication flows
-- **Staff Management**: Proper role separation between shop owners and staff
-- **Professional Authentication**: Modern, secure authentication matching business needs
+- **Basic Staff Management**: Shop Owner manages staff account lifecycle (create, modify, reset, deactivate)
+- **Streamlined Authentication**: Simple, maintainable authentication for small shop operations
 
 ---
 
@@ -32,51 +32,51 @@
 - ✅ **Loading States**: Vietnamese loading messages during auth processes
 - ✅ **Error Handling**: Comprehensive network and auth failure handling
 
-### **Story 1.2.2: Role-Based Access Control** ✅
-**Focus**: Shop owner and staff permission system
+### **Story 1.2.2: Simple 2-Role Access Control** ✅
+**Focus**: Basic Shop Owner and Staff role separation
 
 **Key Achievements**:
-- ✅ **Role System**: shop_owner (admin) and staff roles implemented
-- ✅ **Permission Control**: Role-based access to system features
-- ✅ **Route Protection**: Authenticated routes with role validation
-- ✅ **Access Restrictions**: Proper feature access based on user role
-- ✅ **Vietnamese Permissions**: Role descriptions and messages in Vietnamese
-- ✅ **Security Enforcement**: Row Level Security policies aligned with roles
+- ✅ **Simple Role System**: shop_owner (admin) and staff roles only
+- ✅ **Admin Route Protection**: /admin restricted to Shop Owner
+- ✅ **Basic Access Control**: Authenticated routes for both roles
+- ✅ **Staff Account Management**: Shop Owner can manage staff accounts (CRUD except delete)
+- ✅ **Vietnamese Localization**: Role labels and messages in Vietnamese
+- ✅ **Inventory Access**: All authenticated users can modify inventory
 
-### **Story 1.2.3: User Profile Management** ✅
-**Focus**: User account and profile management system
+### **Story 1.2.3: Basic Staff Account Management** ✅
+**Focus**: Simple staff account lifecycle management
 
 **Key Achievements**:
-- ✅ **Profile Creation**: Automatic profile creation on user registration
-- ✅ **Profile Updates**: User information editing with Vietnamese validation
-- ✅ **Vietnamese Metadata**: User profiles with Vietnamese name and contact info
-- ✅ **Role Assignment**: Proper role management and assignment workflows
-- ✅ **Account Security**: Profile security and data protection
-- ✅ **Integration**: Seamless integration with repair ticket assignments
+- ✅ **Shop Owner Admin Setup**: Admin account defined via .env variables
+- ✅ **Staff Account Creation**: Shop Owner can create new staff accounts
+- ✅ **Account Modification**: Shop Owner can modify staff profile information
+- ✅ **Password Reset**: Shop Owner can reset staff passwords
+- ✅ **Account Deactivation**: Shop Owner can deactivate staff accounts (no deletion)
+- ✅ **Vietnamese Interface**: All account management in Vietnamese
 
 ---
 
 ## 🔧 **Technical Implementation**
 
-### **Authentication Architecture**
-- **Supabase Auth Integration**: Full authentication service integration
+### **Simple Authentication Architecture**
+- **Supabase Auth Integration**: Basic authentication service integration
 - **Vietnamese Localization**: Complete UI translation and error message localization
 - **Session Management**: Secure JWT-based sessions with automatic refresh
-- **Role-Based Access Control**: Database-driven role and permission system
-- **Route Protection**: Client-side route guards with role validation
+- **2-Role System**: Simple Shop Owner/Staff role separation
+- **Basic Route Protection**: /admin routes restricted to Shop Owner only
 
-### **Security Features**
-- **Row Level Security**: Database-level access control aligned with user roles
+### **Basic Security Features**
+- **Basic Access Control**: Shop Owner access to /admin routes only
 - **Session Security**: Secure token handling and storage
 - **Password Security**: Vietnamese-localized password requirements
-- **Email Verification**: Vietnamese email templates for account verification
+- **Email Templates**: Vietnamese email templates for account operations
 - **Account Recovery**: Vietnamese-localized password reset flow
 
-### **User Management System**
-- **Profile System**: User profiles linked to repair ticket assignments
-- **Role Management**: Hierarchical role system (shop_owner > staff)
+### **Simple Staff Management System**
+- **Admin Account**: Shop Owner account defined in .env file
+- **Staff Accounts**: Managed by Shop Owner (create, modify, reset, deactivate)
 - **Vietnamese Data**: Full Vietnamese character support for names and metadata
-- **Account Administration**: Admin tools for user and role management
+- **Basic Administration**: Simple staff account lifecycle management
 
 ---
 
@@ -134,15 +134,15 @@
 ## 🔗 **Integration with Business System**
 
 ### **Repair Workflow Integration**
-- **Staff Assignment**: User profiles linked to repair ticket assignments
-- **Permission-Based Features**: Admin vs staff feature access in repair management
-- **Vietnamese Role Display**: Role names and permissions in Vietnamese throughout UI
-- **Business Logic Integration**: Authentication roles drive business workflow permissions
+- **Basic Staff Assignment**: Staff accounts linked to repair ticket assignments
+- **Simple Feature Access**: /admin features restricted to Shop Owner only
+- **Vietnamese Role Display**: Role names in Vietnamese throughout UI
+- **Inventory Access**: All authenticated users can modify inventory data
 
 ### **Customer Management Integration**
-- **Data Access Control**: Role-based access to customer information
+- **Basic Data Access**: All authenticated users can access customer information
 - **Staff Tracking**: Repair assignments tracked to authenticated users
-- **Business Operations**: Authentication enables proper business operation tracking
+- **Business Operations**: Simple authentication enables business operation tracking
 
 ---
 

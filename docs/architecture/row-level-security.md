@@ -18,10 +18,10 @@ This document provides comprehensive documentation for the Row Level Security (R
 
 ### Core Principles
 1. **Authentication Required**: All data access requires authenticated users
-2. **Role-Based Permissions**: Two-tier role system (shop_owner vs staff)
-3. **User-Specific Access**: Users can manage their own profiles
-4. **Business Logic Enforcement**: Vietnamese repair shop specific rules
-5. **Defense in Depth**: Database-level security complementing application security
+2. **Simple Role System**: Basic Shop Owner vs Staff separation
+3. **Admin Route Protection**: /admin routes restricted to Shop Owner only
+4. **Open Inventory Access**: All authenticated users can modify inventory
+5. **Basic Security**: Simple, maintainable security for small shop operations
 
 ### Technology Stack
 - **Database**: PostgreSQL 15+ with Supabase
@@ -31,23 +31,23 @@ This document provides comprehensive documentation for the Row Level Security (R
 
 ## Role-Based Access Model
 
-### User Roles Hierarchy
+### Simple Role System
 ```
 shop_owner (Admin)
-├── Full system access
-├── User management capabilities
-├── Financial data access
+├── Access to /admin routes
+├── Staff account management (create, modify, reset, deactivate)
+├── All standard user capabilities
 └── System configuration
 
 staff (Standard User)
-├── Operational data access
 ├── Customer management
 ├── Repair ticket management
-└── Parts inventory (limited)
+├── Parts inventory (full access)
+└── All operational data access
 
 authenticated (Base Level)
-├── Read access to most operational data
-└── Update own profile only
+├── Access to all operational data
+└── No special restrictions (simplified model)
 ```
 
 ### Role Definitions
@@ -76,20 +76,16 @@ CREATE POLICY "Users can update customers" ON customers
 ```
 
 #### 2. user_profiles
-**RLS Status**: ✅ Enabled
+**RLS Status**: ✅ Enabled - Simplified
 ```sql
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
--- Basic access for authenticated users
-CREATE POLICY "Users can view all profiles" ON user_profiles
+-- All authenticated users can view profiles
+CREATE POLICY "Authenticated users can view profiles" ON user_profiles
   FOR SELECT USING (auth.role() = 'authenticated');
 
--- Users can update their own profile
-CREATE POLICY "Users can update own profile" ON user_profiles
-  FOR UPDATE USING (auth.uid() = id);
-
--- Shop owners have full management access
-CREATE POLICY "Shop owners can manage all profiles" ON user_profiles
+-- Shop owners can manage all staff accounts (create, modify, reset, deactivate)
+CREATE POLICY "Shop owners manage staff accounts" ON user_profiles
   FOR ALL USING (
     EXISTS (
       SELECT 1 FROM user_profiles
@@ -113,16 +109,13 @@ CREATE POLICY "Users can manage repair tickets" ON repair_tickets
   FOR ALL USING (auth.role() = 'authenticated');
 ```
 
-#### 4. parts
-**RLS Status**: ✅ Enabled
+#### 4. parts (Inventory)
+**RLS Status**: ✅ Enabled - Open Access
 ```sql
 ALTER TABLE parts ENABLE ROW LEVEL SECURITY;
 
--- Basic parts access
-CREATE POLICY "Users can view all parts" ON parts
-  FOR SELECT USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can manage parts" ON parts
+-- All authenticated users have full inventory access
+CREATE POLICY "Authenticated users can manage parts" ON parts
   FOR ALL USING (auth.role() = 'authenticated');
 ```
 
@@ -180,24 +173,17 @@ CREATE POLICY "Technicians can update own notes" ON service_notes
   );
 ```
 
-## Policy Patterns
+## Simplified Policy Patterns
 
-### 1. Standard Authenticated Access
-Most tables use this pattern for basic operations:
+### 1. Standard Authenticated Access (Most Tables)
+Default pattern for operational data:
 ```sql
 CREATE POLICY "policy_name" ON table_name
-  FOR operation USING (auth.role() = 'authenticated');
+  FOR ALL USING (auth.role() = 'authenticated');
 ```
 
-### 2. Self-Management Pattern
-For user-specific data:
-```sql
-CREATE POLICY "policy_name" ON table_name
-  FOR operation USING (user_id = auth.uid());
-```
-
-### 3. Role-Based Management
-For administrative functions:
+### 2. Shop Owner Management Pattern
+For admin-only operations (staff management):
 ```sql
 CREATE POLICY "policy_name" ON table_name
   FOR operation USING (
@@ -209,15 +195,9 @@ CREATE POLICY "policy_name" ON table_name
   );
 ```
 
-### 4. Business Logic Integration
-Combining role checks with business rules:
-```sql
-CREATE POLICY "policy_name" ON table_name
-  FOR operation USING (
-    auth.role() = 'authenticated' AND
-    -- Additional business logic here
-  );
-```
+**Note**: We use only 2 patterns for simplicity:
+- **Pattern 1**: Everyone authenticated can access (customers, parts, repair_tickets)
+- **Pattern 2**: Only Shop Owner can manage (user_profiles admin operations)
 
 ## Implementation Examples
 
@@ -260,44 +240,42 @@ SET request.jwt.claims TO '{"sub": "shop-owner-uuid", "role": "authenticated"}';
 -- Verify shop owner can access admin functions
 ```
 
-## Security Considerations
+## Simplified Security Approach
 
-### 1. Policy Recursion Prevention
-**Issue**: Policies referencing the same table can cause infinite recursion.
+### 1. Simple Policy Design
+**Principle**: Keep policies as simple as possible for small shop operations.
 
-**Example Problem**:
+**Our Approach**:
 ```sql
--- This can cause recursion
-CREATE POLICY "policy" ON user_profiles
-  FOR SELECT USING (
+-- Most tables: Simple authenticated access
+CREATE POLICY "policy" ON most_tables
+  FOR ALL USING (auth.role() = 'authenticated');
+
+-- Admin only: Shop Owner check for staff management
+CREATE POLICY "admin_policy" ON user_profiles
+  FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM user_profiles  -- References same table!
-      WHERE id = auth.uid()
+      SELECT 1 FROM user_profiles
+      WHERE user_profiles.id = auth.uid()
+      AND user_profiles.role = 'shop_owner'
     )
   );
 ```
 
-**Solution**: Use direct auth functions or external references:
-```sql
--- Better approach
-CREATE POLICY "policy" ON user_profiles
-  FOR SELECT USING (auth.role() = 'authenticated');
-```
-
 ### 2. Performance Considerations
-- **Index auth columns**: Ensure columns used in RLS policies are indexed
-- **Avoid complex subqueries**: Keep policies simple for performance
-- **Test with realistic data volumes**: RLS policies execute on every query
+- **Simple policies**: Fast execution with minimal database overhead
+- **Index auth columns**: Basic indexing on user_id columns
+- **No complex logic**: Avoid performance bottlenecks
 
-### 3. Vietnamese Business Logic
-- **Phone Number Validation**: Policies can enforce Vietnamese phone formats
-- **Character Encoding**: Ensure UTF-8 support for Vietnamese text
-- **Business Rules**: Integrate repair shop specific logic into policies
+### 3. Vietnamese Business Requirements
+- **Character Encoding**: Full UTF-8 support for Vietnamese text
+- **Simple Role Names**: Vietnamese role labels in UI only
+- **Basic Validation**: Standard phone/email validation
 
-### 4. Authentication Requirements
-- **JWT Token Validation**: All policies rely on valid JWT tokens
-- **Session Management**: Ensure auth state is properly maintained
-- **Role Synchronization**: Keep user_profiles.role in sync with auth
+### 4. Maintenance Benefits
+- **Easy to understand**: Simple 2-pattern system
+- **Easy to debug**: Minimal complexity reduces troubleshooting
+- **Easy to extend**: Clear patterns for future tables
 
 ## Troubleshooting
 

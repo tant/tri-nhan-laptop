@@ -171,26 +171,26 @@ pnpm run create-admin  # Create admin user from .env
 
 ### **Hệ thống tài khoản**
 - **Format:** Email + Password
-- **Phân loại:** 2 loại duy nhất (Admin/Nhân viên)
+- **Phân loại:** 2 role đơn giản (Shop Owner/Staff)
 - **Admin account:** Setup sẵn trong environment variables
 - **Self-signup:** Bị khóa (DISABLE_SIGNUP=true)
 - **Employee accounts:** Được tạo/quản lý bởi Admin
 
-### **Quyền hạn Admin**
-- Toàn quyền trên hệ thống
-- Tạo/sửa/deactivate tài khoản nhân viên
-- Quản lý thông tin khách hàng
+### **Quyền hạn Shop Owner (Admin)**
+- Truy cập /admin để quản lý staff accounts
+- Staff management: Create, modify, reset password, deactivate (không delete)
+- Tất cả quyền của Staff
 - Thiết lập hệ thống
 
-### **Quyền hạn Nhân viên**
-- **Phiếu sửa chữa:** Tạo, cập nhật tất cả phiếu (không giới hạn theo assignee)
-- **Linh kiện:** Cập nhật linh kiện cho phiếu sửa chữa
-- **Khách hàng:** Xem thông tin và lịch sử, không sửa trực tiếp (comment để yêu cầu Admin xử lý)
+### **Quyền hạn Staff**
+- **Tất cả operations:** CRUD tickets, customers, parts (đầy đủ quyền)
+- **Inventory:** Có thể modify tất cả parts (không giới hạn)
+- **Không truy cập:** /admin routes
 
-### **Chính sách Deactivation**
-- **Auto-reassign:** Khi deactivate nhân viên, tự động chuyển tất cả phiếu đang assign về Admin
-- **UI Filter:** Mặc định ẩn nhân viên đã deactivate
-- **Access:** Nhân viên bị deactivate không thể đăng nhập
+### **Simplified Account Management**
+- **Staff lifecycle:** Shop Owner quản lý (create, modify, reset password, deactivate)
+- **No deletion:** Accounts chỉ deactivate để giữ audit trail
+- **Basic access control:** Chỉ phân biệt /admin routes vs normal operations
 
 ---
 
@@ -203,13 +203,13 @@ pnpm run create-admin  # Create admin user from .env
 - **Giao tiếp:** Qua điện thoại, không quản lý trên hệ thống
 
 ### **Row Level Security (RLS)**
-#### **Nhân viên & Admin:**
+#### **Tất cả authenticated users:**
 - **Xem:** Đầy đủ thông tin (tên, phone, địa chỉ, ghi chú) + lịch sử giao dịch
-- **Sửa:** Admin có thể tạo/cập nhật; Nhân viên chỉ comment yêu cầu
+- **Sửa:** Cả Shop Owner và Staff đều có thể tạo/cập nhật
 
 #### **Công khai (Tra cứu):**
 - **Xem:** Giới hạn (trạng thái phiếu, cập nhật gần nhất)
-- **Không thấy:** Ảnh, ghi chú, chi phí, nhân viên phụ trách
+- **Không thấy:** Ảnh, ghi chú, chi phí, staff assignment
 
 ---
 
@@ -344,7 +344,7 @@ pnpm run create-admin  # Create admin user from .env
 │   └── /cua-hang/{id-san-pham}
 ├── /ton-kho (Quản lý kho)
 └── /admin
-    ├── /admin/nhan-vien (Quản lý nhân viên)
+    ├── /admin/staff (Basic staff account management)
     └── /admin/thiet-lap (Cài đặt hệ thống)
 ```
 
@@ -490,7 +490,7 @@ tests/
 ### **Security & Authentication Testing** ✅
 - **Supabase Auth**: Complete authentication workflows tested
 - **Row Level Security**: Database policy enforcement validated
-- **Role Hierarchy**: shop_owner > staff > customer permissions
+- **Simple Role System**: shop_owner (admin access) vs staff (standard access)
 - **Route Protection**: Navigation guards with Vietnamese messages
 - **Session Management**: Security and timeout handling
 
@@ -574,7 +574,7 @@ tests/phase-2/
 - **Business Rule Enforcement**: Customer approval, payment, and validation logic
 - **State Transition History**: Full audit trail with Vietnamese transition reasons
 - **Notification Integration**: Customer notifications at key workflow milestones
-- **Staff Assignment**: Technician workload tracking and assignment system
+- **Basic Staff Assignment**: Simple staff assignment to repair tickets
 
 #### **✅ Advanced Business Features**
 - **Draft System**: Save and restore incomplete repair tickets
