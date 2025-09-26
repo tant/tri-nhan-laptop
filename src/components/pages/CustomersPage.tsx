@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useOptimisticList } from "@/hooks/use-optimistic-mutation";
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { Customer } from "@/lib/database-types";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
 	ArrowUpDown,
@@ -30,8 +30,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-// Database types
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
 
 // Customer with repair count
 type CustomerWithStats = Customer & {

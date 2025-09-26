@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { REPAIR_STATES, type RepairState } from "@/lib/workflow/repair-states";
+import { getRepairStatusLabel, type RepairStatus } from "@/lib/repair-status";
 import { useCallback, useEffect, useState } from "react";
 
 export interface TicketInfo {
@@ -12,7 +12,7 @@ export interface TicketInfo {
 	ticket_code: string;
 	customer_phone: string;
 	device_info: string;
-	current_state: RepairState;
+	current_state: RepairStatus;
 	created_at: string;
 	updated_at: string;
 	metadata?: Record<string, any>;
@@ -250,7 +250,7 @@ export function useTicketStatus() {
 				addStatusMessage({
 					type: "success",
 					title: statusMessageTemplates.status_updated,
-					message: `${currentTicket.ticket_code}: ${REPAIR_STATES[currentTicket.current_state].label} → ${REPAIR_STATES[newState].label}`,
+					message: `${currentTicket.ticket_code}: ${getRepairStatusLabel(currentTicket.current_state)} → ${getRepairStatusLabel(newState)}`,
 					ticket_code: currentTicket.ticket_code,
 				});
 

@@ -7,7 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRepairTickets } from "@/hooks/use-repair-tickets";
 import { formatVND } from "@/lib/currency";
-import type { Database } from "@/lib/supabase";
+import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
 import { useNavigate } from "@tanstack/react-router";
 import {
 	ArrowLeft,
@@ -22,10 +22,6 @@ import {
 	User,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-
-type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
-type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
 interface RepairWithDetails extends RepairTicket {
 	customer: Customer;

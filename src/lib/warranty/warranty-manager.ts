@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase-types";
+import type { Database } from "@/lib/supabase";
 
 // Database types
 type WarrantyRecord = Database["public"]["Tables"]["warranty_records"]["Row"];

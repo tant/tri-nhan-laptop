@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase-types";
+import type { Database } from "@/lib/supabase";
 import { useCallback, useState } from "react";
 
 // Database types

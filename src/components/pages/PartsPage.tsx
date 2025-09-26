@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/select";
 import { usePartsManagement } from "@/hooks/use-parts-management";
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { Part } from "@/lib/database-types";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
 	AlertTriangle,
@@ -45,8 +45,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-// Database types
-type Part = Database["public"]["Tables"]["parts"]["Row"];
 
 export function PartsPage() {
 	const [parts, setParts] = useState<Part[]>([]);

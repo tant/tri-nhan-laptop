@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePartsManagement } from "@/hooks/use-parts-management";
 import { formatVND } from "@/lib/currency";
 import type { Database } from "@/lib/supabase";
+import type { Part } from "@/lib/database-types";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	ArrowLeft,

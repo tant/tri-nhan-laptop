@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import { REPAIR_STATES } from "@/lib/workflow/repair-states";
+import { getRepairStatusLabel } from "@/lib/repair-status";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface RealtimeEvent {
@@ -137,12 +137,8 @@ export function useRealtimeUpdates() {
 						addEvent("status_changed", {
 							ticket_id: updatedTicket.id,
 							ticket_code: updatedTicket.ticket_code,
-							from_state:
-								REPAIR_STATES[oldTicket.current_state]?.label ||
-								oldTicket.current_state,
-							to_state:
-								REPAIR_STATES[updatedTicket.current_state]?.label ||
-								updatedTicket.current_state,
+							from_state: getRepairStatusLabel(oldTicket.current_state),
+							to_state: getRepairStatusLabel(updatedTicket.current_state),
 							current_state: updatedTicket.current_state,
 						});
 					} else {
@@ -208,12 +204,8 @@ export function useRealtimeUpdates() {
 					const statusChange = payload.new;
 					addEvent("status_changed", {
 						ticket_id: statusChange.ticket_id,
-						from_state:
-							REPAIR_STATES[statusChange.from_state]?.label ||
-							statusChange.from_state,
-						to_state:
-							REPAIR_STATES[statusChange.to_state]?.label ||
-							statusChange.to_state,
+						from_state: getRepairStatusLabel(statusChange.from_state),
+						to_state: getRepairStatusLabel(statusChange.to_state),
 						changed_by: statusChange.changed_by,
 						reason: statusChange.reason,
 						customer_notified: statusChange.customer_notified,

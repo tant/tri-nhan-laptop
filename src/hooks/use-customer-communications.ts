@@ -4,13 +4,13 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { RepairState } from "@/lib/workflow/repair-states";
+import type { RepairStatus } from "@/lib/repair-status";
 import { useCallback, useState } from "react";
 
 export interface NotificationTemplate {
 	id: string;
 	name: string;
-	trigger_state: RepairState;
+	trigger_state: RepairStatus;
 	subject_template: string;
 	message_template: string;
 	is_active: boolean;

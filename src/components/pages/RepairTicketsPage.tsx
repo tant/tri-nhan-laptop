@@ -9,17 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { useMultipleTicketsActivity } from "@/hooks/use-ticket-activity";
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, Eye, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 // Workflow components temporarily disabled for Phase 3 development
-
-// Database types
-type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
-type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
 // Combined type for repair with related data
 type RepairWithDetails = RepairTicket & {
