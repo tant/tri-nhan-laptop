@@ -2,11 +2,23 @@ import { createClient } from "@supabase/supabase-js";
 
 // Environment variables for Supabase connection
 // ✅ CORRECT: App connects to local Supabase development environment
-const supabaseUrl =
-	import.meta.env.VITE_SUPABASE_URL || "http://127.0.0.1:54321";
+const getSupabaseUrl = () => {
+	// If running on a domain (not localhost), use the proxy path
+	if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+		return `${window.location.origin}/supabase`;
+	}
+	// Otherwise use the direct local URL
+	return import.meta.env.VITE_SUPABASE_URL || "http://127.0.0.1:54321";
+};
+
+const supabaseUrl = getSupabaseUrl();
 const supabaseAnonKey =
 	import.meta.env.VITE_SUPABASE_ANON_KEY ||
 	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
+
+// Debug logging
+console.log('🔗 Supabase URL:', supabaseUrl);
+console.log('🌐 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server');
 
 // Create Supabase client with Vietnamese repair shop configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -378,7 +390,7 @@ export const testSupabaseConnection = async (): Promise<boolean> => {
 			return false;
 		}
 
-		console.log("✅ Supabase connection successful");
+
 		return true;
 	} catch (error) {
 		console.error("Supabase connection test error:", error);

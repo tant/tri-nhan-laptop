@@ -128,7 +128,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 							}
 						}}
 						className={cn(
-							"border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
+							"bg-white text-gray-900 placeholder:text-gray-500 border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
 							validationErrors.email &&
 								"border-red-500 focus:border-red-500 focus:ring-red-500",
 						)}
@@ -169,7 +169,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 							}
 						}}
 						className={cn(
-							"border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
+							"bg-white text-gray-900 placeholder:text-gray-500 border-gray-300 focus:border-[#299fce] focus:ring-[#299fce]",
 							validationErrors.password &&
 								"border-red-500 focus:border-red-500 focus:ring-red-500",
 						)}

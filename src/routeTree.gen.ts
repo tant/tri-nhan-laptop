@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ClearCacheRouteImport } from './routes/clear-cache'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -45,6 +46,11 @@ const LoginRoute = LoginRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClearCacheRoute = ClearCacheRouteImport.update({
+  id: '/clear-cache',
+  path: '/clear-cache',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -147,6 +153,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
+  '/clear-cache': typeof ClearCacheRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
+  '/clear-cache': typeof ClearCacheRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
@@ -196,6 +204,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/analytics': typeof AnalyticsRoute
+  '/clear-cache': typeof ClearCacheRoute
   '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/setup': typeof SetupRoute
@@ -222,6 +231,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/analytics'
+    | '/clear-cache'
     | '/dashboard'
     | '/login'
     | '/setup'
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/analytics'
+    | '/clear-cache'
     | '/dashboard'
     | '/login'
     | '/setup'
@@ -270,6 +281,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/analytics'
+    | '/clear-cache'
     | '/dashboard'
     | '/login'
     | '/setup'
@@ -295,6 +307,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  ClearCacheRoute: typeof ClearCacheRoute
   DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   SetupRoute: typeof SetupRoute
@@ -334,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clear-cache': {
+      id: '/clear-cache'
+      path: '/clear-cache'
+      fullPath: '/clear-cache'
+      preLoaderRoute: typeof ClearCacheRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -512,6 +532,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AnalyticsRoute: AnalyticsRoute,
+  ClearCacheRoute: ClearCacheRoute,
   DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   SetupRoute: SetupRoute,

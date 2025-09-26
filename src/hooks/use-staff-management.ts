@@ -79,57 +79,50 @@ export function useStaffManagement() {
 		}
 	}, []);
 
-	// Create new staff account
+	// Create new staff account using Edge Function
 	const createStaff = useCallback(
 		async (staffData: CreateStaffData) => {
 			try {
 				setLoading(true);
 				setError(null);
 
-				// First create the auth user
-				const { data: authData, error: authError } =
-					await supabase.auth.admin.createUser({
-						email: staffData.email,
-						password: staffData.password,
-						email_confirm: true,
-						user_metadata: {
+				// Get current user's session for authentication
+				const { data: { session } } = await supabase.auth.getSession();
+				
+				if (!session) {
+					throw new Error("Phiên đăng nhập đã hết hạn");
+				}
+
+				// Call the Edge Function
+				const { data, error } = await supabase.functions.invoke(
+					'admin-user-management',
+					{
+						body: {
+							email: staffData.email,
+							password: staffData.password,
 							full_name: staffData.full_name,
 							role: staffData.role,
-						},
-					});
-
-				if (authError) {
-					throw authError;
-				}
-
-				if (!authData.user) {
-					throw new Error("Không thể tạo tài khoản xác thực");
-				}
-
-				// The user profile will be created automatically by the trigger,
-				// but we need to update it with additional info if provided
-				if (staffData.phone) {
-					const { error: updateError } = await supabase
-						.from("user_profiles")
-						.update({
 							phone: staffData.phone,
-							full_name: staffData.full_name,
-							role: staffData.role,
-						})
-						.eq("id", authData.user.id);
-
-					if (updateError) {
-						console.warn(
-							"Warning: Could not update profile with phone:",
-							updateError,
-						);
+						},
+						headers: {
+							Authorization: `Bearer ${session.access_token}`,
+						},
 					}
+				);
+
+				if (error) {
+					console.error("Edge Function error:", error);
+					throw new Error(error.message || "Không thể tạo tài khoản");
+				}
+
+				if (!data || !data.success) {
+					throw new Error(data?.error || "Không thể tạo tài khoản");
 				}
 
 				// Reload staff list
 				await loadStaff();
 
-				return { success: true, user: authData.user };
+				return { success: true, user: data.user };
 			} catch (err) {
 				console.error("Error creating staff:", err);
 				setError({
@@ -141,7 +134,7 @@ export function useStaffManagement() {
 				setLoading(false);
 			}
 		},
-		[loadStaff],
+		[loadStaff, getVietnameseError],
 	);
 
 	// Update staff account
@@ -184,27 +177,51 @@ export function useStaffManagement() {
 		[],
 	);
 
-	// Reset staff password
+	// Reset staff password using Edge Function
 	const resetStaffPassword = useCallback(
 		async (email: string, newPassword: string) => {
 			try {
 				setLoading(true);
 				setError(null);
 
-				// Use Supabase admin API to reset password
-				const { error: resetError } = await supabase.auth.admin.updateUserById(
-					(
-						await supabase
-							.from("user_profiles")
-							.select("id")
-							.eq("email", email)
-							.single()
-					).data?.id || "",
-					{ password: newPassword },
+				// Get user ID from email
+				const { data: userProfile } = await supabase
+					.from("user_profiles")
+					.select("id")
+					.eq("email", email)
+					.single();
+
+				if (!userProfile) {
+					throw new Error("Không tìm thấy tài khoản với email này");
+				}
+
+				// Get current session for authentication
+				const { data: { session } } = await supabase.auth.getSession();
+				
+				if (!session) {
+					throw new Error("Phiên đăng nhập đã hết hạn");
+				}
+
+				// Call the Edge Function
+				const { data, error } = await supabase.functions.invoke(
+					'admin-user-management/reset-password',
+					{
+						body: {
+							user_id: userProfile.id,
+							new_password: newPassword,
+						},
+						headers: {
+							Authorization: `Bearer ${session.access_token}`,
+						},
+					}
 				);
 
-				if (resetError) {
-					throw resetError;
+				if (error) {
+					throw new Error(error.message || "Không thể đặt lại mật khẩu");
+				}
+
+				if (!data || !data.success) {
+					throw new Error(data?.error || "Không thể đặt lại mật khẩu");
 				}
 
 				return { success: true };
@@ -219,7 +236,7 @@ export function useStaffManagement() {
 				setLoading(false);
 			}
 		},
-		[],
+		[getVietnameseError],
 	);
 
 	// Deactivate staff account (instead of deleting)

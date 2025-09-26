@@ -75,8 +75,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			}
 
 			try {
-				console.log("🔍 Fetching user profile from database for:", userId);
-
 				const { data, error } = await supabase
 					.from("user_profiles")
 					.select("*")
@@ -95,7 +93,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 					return null;
 				}
 
-				console.log("✅ User profile fetched successfully:", data);
 				// Cache the successful result
 				cacheProfile(data);
 				return data;
@@ -114,23 +111,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		[],
 	);
 
+	// Clear all auth data
+	const clearAuthData = () => {
+		console.log("🧹 Clearing all auth data...");
+		setUser(null);
+		setProfile(null);
+		setSession(null);
+		cacheProfile(null);
+
+		// Clear any additional auth storage
+		try {
+			localStorage.removeItem(PROFILE_CACHE_KEY);
+			localStorage.removeItem("sb-127.0.0.1:54321-auth-token");
+			localStorage.removeItem("supabase.auth.token");
+		} catch (error) {
+			console.warn("Failed to clear auth storage:", error);
+		}
+	};
+
 	// Sign in function
 	const signIn = async (email: string, password: string) => {
 		try {
+			// First, clear any stale auth data
+			clearAuthData();
+			
 			const { error } = await supabase.auth.signInWithPassword({
 				email,
 				password,
 			});
 
 			if (error) {
-				console.error("Sign in error:", error);
 				return { error };
 			}
-
 			// Profile will be loaded in the auth state change listener
 			return {};
 		} catch (error) {
-			console.error("Sign in error:", error);
+			console.error("💥 Sign in error:", error);
 			return { error: error as Error };
 		}
 	};
@@ -138,11 +154,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	// Sign out function
 	const signOut = async () => {
 		try {
+			console.log("🚪 Signing out...");
+			clearAuthData();
+
 			const { error } = await supabase.auth.signOut();
 			if (error) {
 				console.error("Sign out error:", error);
 			}
-			// State will be cleared in the auth state change listener
+			console.log("✅ Sign out complete");
 		} catch (error) {
 			console.error("Sign out error:", error);
 		}
@@ -150,19 +169,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 	// Check if user has specific role
 	const isRole = (role: UserProfile["role"]): boolean => {
-		// First check current profile
-		if (profile && profile.role === role) return true;
-
-		// Fallback to cached profile if current profile is null/undefined
-		if (!profile) {
-			const cached = getCachedProfile();
-			if (cached && cached.role === role) {
-				console.log("🔄 Using cached profile for role check:", cached.role);
-				return true;
-			}
-		}
-
-		return false;
+		// Only check current profile (cached profile is validated during initialization)
+		return Boolean(profile && profile.role === role);
 	};
 
 	// Handle auth state changes with better error handling
@@ -255,13 +263,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		[fetchUserProfile],
 	);
 
-	// Initialize with cached profile if available (for immediate role checks)
+	// Initialize with cached profile only if there's a valid session
 	useEffect(() => {
-		const cached = getCachedProfile();
-		if (cached && !profile) {
-			console.log("🚀 Loading cached profile on initialization:", cached);
-			setProfile(cached);
-		}
+		const checkCachedProfile = async () => {
+			const cached = getCachedProfile();
+			if (cached && !profile) {
+				console.log("🔍 Found cached profile, checking session validity...");
+
+				// Check if there's a current session
+				const {
+					data: { session },
+				} = await supabase.auth.getSession();
+
+				if (session && session.user.id === cached.id) {
+					console.log("✅ Cached profile matches current session, loading...");
+					setProfile(cached);
+				} else {
+					console.log("❌ Cached profile doesn't match session, clearing...");
+					cacheProfile(null);
+				}
+			}
+		};
+
+		checkCachedProfile();
 	}, []);
 
 	// Listen for auth state changes

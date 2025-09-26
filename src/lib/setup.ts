@@ -105,7 +105,7 @@ export const createAdminUser = async (config: AdminUserConfig) => {
 			throw new Error("No user data returned from auth creation");
 		}
 
-		console.log("✅ Auth user created:", authData.user.id);
+
 
 		// Create user profile
 		const { error: profileError } = await adminClient
@@ -128,7 +128,7 @@ export const createAdminUser = async (config: AdminUserConfig) => {
 			);
 			// Don't throw here - user can still login even without profile table
 		} else {
-			console.log("✅ User profile created");
+
 		}
 
 		return {

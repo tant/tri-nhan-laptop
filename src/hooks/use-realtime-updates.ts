@@ -457,7 +457,7 @@ export function useRealtimeUpdates() {
 			clearInterval(healthCheck);
 			unsubscribeFromAll();
 		};
-	}, [subscribeToAll, checkConnection, unsubscribeFromAll]);
+	}, []); // Empty dependency array - only run on mount/unmount
 
 	return {
 		// Data
