@@ -1,7 +1,10 @@
-import {
-	type CustomerProfileData,
-	CustomerProfileForm,
-} from "@/components/customers/CustomerProfileForm";
+import { type CustomerProfileData } from "@/components/customers/CustomerProfileForm";
+import { lazy, Suspense } from "react";
+
+// Lazy load the heavy form component
+const CustomerProfileForm = lazy(() =>
+	import("@/components/customers/CustomerProfileForm").then(m => ({ default: m.CustomerProfileForm }))
+);
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -171,13 +174,15 @@ function ProtectedCustomerEdit() {
 
 				<Card>
 					<CardContent className="p-6">
-						<CustomerProfileForm
-							value={customerData}
-							onChange={setCustomerData}
-							onSave={handleSave}
-							disabled={saving}
-							mode="edit"
-						/>
+						<Suspense fallback={<div className="h-96 animate-pulse bg-gray-100 rounded" />}>
+							<CustomerProfileForm
+								value={customerData}
+								onChange={setCustomerData}
+								onSave={handleSave}
+								disabled={saving}
+								mode="edit"
+							/>
+						</Suspense>
 					</CardContent>
 				</Card>
 			</div>

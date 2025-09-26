@@ -1,10 +1,21 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { BulkImportModal } from "@/components/parts/BulkImportModal";
-import { ExportPartsModal } from "@/components/parts/ExportPartsModal";
-import { PartsFormModal } from "@/components/parts/PartsFormModal";
 import { PartsSearch } from "@/components/parts/PartsSearch";
-import { StockAdjustmentModal } from "@/components/parts/StockAdjustmentModal";
 import { StockStatusBadge } from "@/components/parts/StockStatusBadge";
+import { lazy, Suspense } from "react";
+
+// Lazy load modals to reduce initial bundle size
+const BulkImportModal = lazy(() =>
+	import("@/components/parts/BulkImportModal").then(m => ({ default: m.BulkImportModal }))
+);
+const ExportPartsModal = lazy(() =>
+	import("@/components/parts/ExportPartsModal").then(m => ({ default: m.ExportPartsModal }))
+);
+const PartsFormModal = lazy(() =>
+	import("@/components/parts/PartsFormModal").then(m => ({ default: m.PartsFormModal }))
+);
+const StockAdjustmentModal = lazy(() =>
+	import("@/components/parts/StockAdjustmentModal").then(m => ({ default: m.StockAdjustmentModal }))
+);
 import { PartsInventorySkeleton } from "@/components/skeleton-loaders";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -530,32 +541,42 @@ export function PartsPage() {
 				</CardContent>
 			</Card>
 
-			{/* Modals */}
-			<StockAdjustmentModal
-				part={selectedPart}
-				isOpen={isStockAdjustmentOpen}
-				onClose={closeStockAdjustment}
-				onSuccess={handleStockAdjustmentSuccess}
-			/>
+			{/* Modals - Lazy Loaded */}
+			<Suspense fallback={null}>
+				{isStockAdjustmentOpen && (
+					<StockAdjustmentModal
+						part={selectedPart}
+						isOpen={isStockAdjustmentOpen}
+						onClose={closeStockAdjustment}
+						onSuccess={handleStockAdjustmentSuccess}
+					/>
+				)}
 
-			<PartsFormModal
-				part={editingPart}
-				isOpen={isPartsFormOpen}
-				onClose={closePartsForm}
-				onSuccess={handlePartsFormSuccess}
-			/>
+				{isPartsFormOpen && (
+					<PartsFormModal
+						part={editingPart}
+						isOpen={isPartsFormOpen}
+						onClose={closePartsForm}
+						onSuccess={handlePartsFormSuccess}
+					/>
+				)}
 
-			<BulkImportModal
-				isOpen={isBulkImportOpen}
-				onClose={() => setIsBulkImportOpen(false)}
-				onSuccess={handlePartsFormSuccess}
-			/>
+				{isBulkImportOpen && (
+					<BulkImportModal
+						isOpen={isBulkImportOpen}
+						onClose={() => setIsBulkImportOpen(false)}
+						onSuccess={handlePartsFormSuccess}
+					/>
+				)}
 
-			<ExportPartsModal
-				isOpen={isExportOpen}
-				onClose={() => setIsExportOpen(false)}
-				parts={parts}
-			/>
+				{isExportOpen && (
+					<ExportPartsModal
+						isOpen={isExportOpen}
+						onClose={() => setIsExportOpen(false)}
+						parts={parts}
+					/>
+				)}
+			</Suspense>
 		</div>
 	);
 }

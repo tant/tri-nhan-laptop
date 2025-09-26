@@ -11,6 +11,63 @@ export default defineConfig({
     viteReact(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Vendor chunks for large libraries
+          if (id.includes('node_modules')) {
+            // React ecosystem
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor-react';
+            }
+
+            // TanStack ecosystem
+            if (id.includes('@tanstack')) {
+              return 'vendor-tanstack';
+            }
+
+            // Forms and validation
+            if (id.includes('react-hook-form') || id.includes('zod')) {
+              return 'vendor-forms';
+            }
+
+            // RadixUI components (group related ones)
+            if (id.includes('@radix-ui')) {
+              if (id.includes('dialog') || id.includes('sheet') || id.includes('popover')) {
+                return 'vendor-radix-overlays';
+              }
+              if (id.includes('select') || id.includes('dropdown') || id.includes('navigation')) {
+                return 'vendor-radix-inputs';
+              }
+              return 'vendor-radix-ui';
+            }
+
+            // Utilities and icons
+            if (id.includes('lucide-react') || id.includes('clsx') || id.includes('class-variance-authority') || id.includes('tailwind-merge')) {
+              return 'vendor-utils';
+            }
+
+            // Other large vendors
+            return 'vendor-misc';
+          }
+
+          // App chunks for heavy files
+          if (id.includes('/src/hooks/use-repair-tickets') ||
+              id.includes('/src/hooks/use-customers') ||
+              id.includes('/src/hooks/use-parts-management') ||
+              id.includes('/src/hooks/use-analytics')) {
+            return 'hooks-heavy';
+          }
+
+          if (id.includes('/src/components/pages/')) {
+            return 'pages';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000, // Increase warning limit since we're managing chunks manually
+  },
   server: {
     allowedHosts: ['vite.tantran.dev'],
     proxy: {
