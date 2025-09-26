@@ -36,34 +36,52 @@ try-vite/
 
 ```
 src/
+├── api/                        # API layer components
+│   └── public/                 # Public API endpoints
 ├── components/
-│   ├── analytics/              # Business analytics components
-│   │   └── analytics-dashboard.tsx
-│   ├── customer-portal/        # Public-facing customer components
-│   │   ├── service-history-display.tsx
-│   │   └── feedback-dialog.tsx
+│   ├── customers/              # Customer management components
+│   │   ├── CustomerPrivacyManager.tsx
+│   │   ├── ContactManagement.tsx
+│   │   ├── CustomerProfileForm.tsx
+│   │   └── PhoneInput.tsx
 │   ├── notifications/          # Notification system components
+│   │   └── NotificationBell.tsx
 │   ├── pages/                  # Main page components
-│   │   ├── DashboardPage.tsx
-│   │   ├── LoginPage.tsx
+│   │   ├── AdminPage.tsx
 │   │   ├── CustomersPage.tsx
+│   │   ├── DashboardPage.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── LoginPage.tsx
 │   │   ├── PartsPage.tsx
 │   │   ├── RepairTicketsPage.tsx
-│   │   └── HomePage.tsx
-│   ├── repair-workflow/        # Repair process components
+│   │   └── SetupPage.tsx
+│   ├── parts/                  # Parts management components
+│   │   └── PartsInventoryManager.tsx
+│   ├── tickets/                # Repair ticket components
+│   │   ├── CreateTicketForm.tsx
+│   │   ├── EditTicketForm.tsx
+│   │   └── TicketDetailView.tsx
 │   ├── ui/                     # Reusable UI components (shadcn/ui)
+│   │   ├── alert-dialog.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
 │   │   ├── button.tsx
 │   │   ├── card.tsx
+│   │   ├── data-table.tsx
 │   │   ├── dialog.tsx
-│   │   ├── form.tsx
 │   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── progress.tsx
+│   │   ├── sidebar.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── switch.tsx
 │   │   ├── table.tsx
-│   │   └── sidebar.tsx
+│   │   ├── textarea.tsx
+│   │   └── toaster.tsx
 │   ├── app-sidebar.tsx         # Main navigation sidebar
-│   ├── error-boundary.tsx     # Error handling components
-│   ├── network-status.tsx     # Network connectivity status
-│   ├── protected-route.tsx    # Authentication guards
-│   └── skeleton-loaders.tsx   # Loading state components
+│   ├── protected-route.tsx     # Authentication guards
+│   └── theme-provider.tsx      # Theme management component
 ```
 
 ### Business Logic & Utilities
@@ -73,18 +91,31 @@ src/
 ├── contexts/
 │   └── auth-context.tsx        # Authentication context provider
 ├── hooks/                      # Custom React hooks
-│   ├── use-analytics.ts        # Business analytics hooks
-│   ├── use-customer-portal.ts  # Customer-facing functionality
+│   ├── use-customer-history.ts # Customer history management
+│   ├── use-customers.ts        # Customer data management
+│   ├── use-mobile.ts           # Mobile responsiveness
 │   ├── use-notifications.ts    # Notification management
-│   ├── use-parts-management.ts # Parts inventory hooks
-│   ├── use-repair-workflow.ts  # Repair process hooks
-│   └── use-optimistic-mutation.ts # Optimistic UI updates
+│   ├── use-parts.ts            # Parts inventory hooks
+│   ├── use-repair-tickets.ts   # Repair ticket management
+│   ├── use-sync-manager.ts     # Data synchronization
+│   ├── use-ticket-activity.ts  # Ticket activity tracking
+│   └── use-toast.ts            # Toast notifications
 ├── lib/                        # Core utilities and configurations
+│   ├── analytics/              # Business analytics utilities
+│   ├── audit/                  # Audit trail functionality
+│   ├── devices/                # Device management utilities
+│   │   └── vietnamese-brands.ts # Vietnamese laptop brands
+│   ├── financial/              # Financial calculations
+│   ├── privacy/                # Privacy and data protection
+│   ├── problem-analysis/       # Issue analysis utilities
+│   ├── security/               # Security utilities
+│   ├── translation/            # Localization utilities
+│   ├── validation/             # Data validation
+│   ├── warranty/               # Warranty management
+│   ├── workflow/               # Repair workflow logic
 │   ├── supabase.ts            # Supabase client and type definitions
 │   ├── utils.ts               # General utility functions
-│   ├── types.ts               # Global TypeScript types
-│   ├── setup.ts               # Application setup utilities
-│   └── repair-workflow.ts     # Repair workflow business logic
+│   └── types.ts               # Global TypeScript types
 ```
 
 ### Routing Structure

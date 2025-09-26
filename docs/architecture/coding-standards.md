@@ -24,9 +24,28 @@ This document defines the coding standards for the Vietnamese Laptop Repair Mana
 {
   "suspicious/noArrayIndexKey": "off", // Array indices as React keys allowed for skeleton loaders
   "suspicious/noExplicitAny": "off", // Explicit any types permitted where needed
-  "a11y/*": "off", // Accessibility warnings disabled for faster development
+  "a11y/useKeyWithClickEvents": "off", // Click events without keyboard support allowed
+  "a11y/useFocusableInteractive": "off", // Interactive elements without focus allowed
+  "a11y/noLabelWithoutControl": "off", // Labels without form controls allowed
   "correctness/useExhaustiveDependencies": "warn", // Hook dependency suggestions only
-  "correctness/noUnusedVariables": "warn" // Unused variables as warnings only
+  "correctness/noUnusedVariables": "warn", // Unused variables as warnings only
+  "correctness/noUnusedImports": "warn", // Unused imports as warnings only
+  "style/noNonNullAssertion": "off" // Non-null assertions allowed where needed
+}
+```
+
+#### File Exclusions
+```json
+{
+  "ignore": [
+    "src/routeTree.gen.ts", // Auto-generated TanStack Router file
+    "tests/**/*", // All test files excluded from linting
+    "**/*.test.*", // Test files with any extension
+    "**/*.spec.*", // Spec files
+    "**/setupTests.*", // Test setup files
+    "**/vitest.config.*", // Vitest configuration files
+    "**/test-setup.*" // Additional test setup files
+  ]
 }
 ```
 

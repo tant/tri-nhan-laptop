@@ -17,10 +17,14 @@ The Vietnamese Laptop Repair Management System is built using modern web technol
 
 ### UI Framework & Styling
 - **Tailwind CSS 4.0.6**: Utility-first CSS framework with new features
+- **@tailwindcss/vite 4.0.6**: Vite plugin integration for Tailwind CSS
 - **shadcn/ui**: High-quality, accessible component library built on Radix UI
 - **Radix UI Primitives**: Unstyled, accessible components for complex UI
-- **Lucide React**: Beautiful, customizable icon library
+- **Lucide React 0.476.0**: Beautiful, customizable icon library
 - **class-variance-authority**: Type-safe variant API for component styling
+- **next-themes 0.4.6**: Theme switching support (dark/light mode)
+- **sonner 2.0.7**: Toast notification system
+- **tw-animate-css 1.3.6**: Enhanced CSS animations for Tailwind
 
 ### Form Handling & Validation
 - **React Hook Form 7.62.0**: Performant forms with minimal re-renders
@@ -48,6 +52,12 @@ The Vietnamese Laptop Repair Management System is built using modern web technol
 - **Multiple Foreign Keys**: Complex table relationships with explicit foreign key naming for Supabase queries
 - **Client-side Filtering**: Complex database queries handled via JavaScript filtering for Supabase REST API compatibility
 
+### Performance Optimizations
+- **Authentication Caching**: localStorage-based user profile caching for reduced database calls
+- **Request Deduplication**: Prevention of concurrent redundant profile fetches
+- **Optimistic Updates**: Immediate UI feedback with rollback capability
+- **Real-time Optimization**: Efficient WebSocket subscription management
+
 ## Development Tools
 
 ### Code Quality
@@ -66,6 +76,13 @@ The Vietnamese Laptop Repair Management System is built using modern web technol
 - **TanStack React Devtools**: State inspection and debugging
 - **Vite HMR**: Hot module replacement for fast development
 - **TypeScript Path Mapping**: `@/*` aliases for clean imports
+
+### Development Scripts & Automation
+- **Database Management**: `pnpm run db:start|stop|reset|status` for Supabase control
+- **Admin Creation**: `pnpm run create-admin` for automated admin user setup
+- **Code Quality**: `pnpm run lint|format|check` for Biome-based quality control
+- **Testing**: `pnpm run test:unit|test:all|test:ui` for comprehensive testing
+- **Build Process**: `pnpm run build` with TypeScript compilation
 
 ## Build & Deployment
 
@@ -132,6 +149,14 @@ The Vietnamese Laptop Repair Management System is built using modern web technol
 - **Real-time Updates**: Supabase subscriptions for live data
 - **Optimistic Updates**: Immediate UI feedback with rollback capability
 - **Error Boundaries**: Graceful error handling and recovery
+
+### Authentication Architecture
+- **Context-Based State**: React Context for authentication state management
+- **JWT Integration**: Supabase Auth with automatic token refresh
+- **Profile Caching**: localStorage-based user profile caching for performance
+- **Request Deduplication**: Prevention of concurrent authentication requests
+- **Fallback Mechanisms**: Graceful handling of database timeouts and errors
+- **Role-Based Access**: Dynamic role checking with cached fallbacks
 
 ### Database Patterns
 - **Repository Pattern**: Data access layer abstraction
