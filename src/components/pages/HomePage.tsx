@@ -161,17 +161,16 @@ export function HomePage() {
 	return (
 		<div className="min-h-screen bg-white">
 			{/* Header */}
-			<header className="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+			<header className="sticky top-0 z-50 bg-[#1E282A] shadow-lg border-b border-gray-700">
 				<div className="container mx-auto px-4 py-4 flex justify-between items-center">
-					<div className="flex items-center gap-3">
-						<div className="p-2 bg-[#299fce] rounded-lg">
-							<Laptop className="h-6 w-6 text-white" />
-						</div>
-						<h1 className="text-xl font-bold text-[#1E282A]">
-							Trí Nhân Laptop
-						</h1>
+					<div className="flex items-center">
+						<img
+							src="/trinhan_logo.svg"
+							alt="Trí Nhân Laptop"
+							className="h-10 w-auto"
+						/>
 					</div>
-					<div className="flex items-center gap-2 text-[#299fce] font-medium">
+					<div className="flex items-center gap-2 text-white font-medium">
 						<Phone className="h-4 w-4" />
 						<span>0988 661 875</span>
 					</div>
@@ -232,7 +231,7 @@ export function HomePage() {
 						{/* Right Side - Lookup Form */}
 						<div className="lg:col-span-2">
 							<Card className="shadow-xl border-[#299fce]/20">
-								<CardHeader className="bg-[#299fce]/10">
+								<CardHeader className="bg-[#299fce]/10 my-4">
 									<CardTitle className="flex items-center gap-2 text-[#1E282A]">
 										<Search className="h-6 w-6 text-[#299fce]" />
 										Tra Cứu Tình Trạng Sửa Chữa

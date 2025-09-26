@@ -12,6 +12,9 @@ import {
 import {
 	Sidebar,
 	SidebarContent,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuButton,
@@ -19,6 +22,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -89,6 +93,7 @@ function UserMenu() {
 
 const RootComponent = () => {
 	const location = useLocation();
+	const { profile } = useAuth();
 
 	// Define which routes should have sidebar
 	const authenticatedRoutes = [
@@ -103,36 +108,52 @@ const RootComponent = () => {
 		location.pathname.startsWith(route),
 	);
 
-	const sidebarItems = [
+	const navigationGroups = [
 		{
-			title: "Dashboard",
-			url: "/dashboard",
-			icon: LayoutDashboardIcon,
+			label: "Hoạt động hàng ngày",
+			items: [
+				{
+					title: "Dashboard",
+					url: "/dashboard",
+					icon: LayoutDashboardIcon,
+				},
+				{
+					title: "Phiếu sửa chữa",
+					url: "/phieu-sua-chua",
+					icon: WrenchIcon,
+				},
+			],
 		},
 		{
-			title: "Phiếu sửa chữa",
-			url: "/phieu-sua-chua",
-			icon: WrenchIcon,
+			label: "Quản lý chung",
+			items: [
+				{
+					title: "Khách hàng",
+					url: "/khach-hang",
+					icon: UsersIcon,
+				},
+				{
+					title: "Tồn kho",
+					url: "/ton-kho",
+					icon: PackageIcon,
+				},
+				{
+					title: "Cửa hàng",
+					url: "/cua-hang",
+					icon: Store,
+				},
+			],
 		},
 		{
-			title: "Khách hàng",
-			url: "/khach-hang",
-			icon: UsersIcon,
-		},
-		{
-			title: "Cửa hàng",
-			url: "/cua-hang",
-			icon: Store,
-		},
-		{
-			title: "Tồn kho",
-			url: "/ton-kho",
-			icon: PackageIcon,
-		},
-		{
-			title: "Quản trị",
-			url: "/admin",
-			icon: SettingsIcon,
+			label: "Hệ thống",
+			items: [
+				{
+					title: "Quản trị",
+					url: "/admin",
+					icon: SettingsIcon,
+				},
+			],
+			requiresRole: "shop_owner", // Only show to shop owners
 		},
 	];
 
@@ -141,34 +162,74 @@ const RootComponent = () => {
 			<ErrorBoundary>
 				<SidebarProvider>
 					<div className="flex h-screen w-full">
-						<Sidebar>
-							<SidebarHeader>
-								<div className="flex items-center gap-2 px-4 py-2">
-									<WrenchIcon className="size-6" />
-									<span className="font-semibold">Laptop Repair</span>
+						<Sidebar className="border-r border-[#299fce]/20">
+							<SidebarHeader className="border-b border-[#299fce]/10">
+								<div className="flex items-center justify-center px-4 py-4 bg-gradient-to-r from-[#299fce]/5 to-transparent">
+									<img
+										src="/trinhan_logo.svg"
+										alt="Trí Nhân Laptop"
+										className="h-8 w-auto"
+									/>
 								</div>
 							</SidebarHeader>
-							<SidebarContent>
-								<SidebarMenu>
-									{sidebarItems.map((item) => (
-										<SidebarMenuItem key={item.url}>
-											<SidebarMenuButton asChild>
-												<Link to={item.url} className="flex items-center gap-2">
-													<item.icon className="size-4" />
-													<span>{item.title}</span>
-												</Link>
-											</SidebarMenuButton>
-										</SidebarMenuItem>
-									))}
-								</SidebarMenu>
+							<SidebarContent className="p-2">
+								{navigationGroups.map((group, groupIndex) => {
+									// Filter groups based on role requirements
+									if (group.requiresRole && profile?.role !== group.requiresRole) {
+										return null;
+									}
+
+									return (
+										<div key={group.label}>
+											<SidebarGroup>
+												<SidebarGroupLabel className="text-[#299fce]/70 font-medium text-xs uppercase tracking-wider mb-2">
+													{group.label}
+												</SidebarGroupLabel>
+												<SidebarGroupContent>
+													<SidebarMenu>
+														{group.items.map((item) => {
+															const isActive = location.pathname === item.url ||
+																(item.url !== "/dashboard" && location.pathname.startsWith(item.url));
+															return (
+																<SidebarMenuItem key={item.url}>
+																	<SidebarMenuButton
+																		asChild
+																		isActive={isActive}
+																		className={`
+																			hover:bg-[#299fce]/10 hover:text-[#299fce] hover:border-l-2 hover:border-[#299fce]/20
+																			data-[active=true]:bg-[#299fce]/10 data-[active=true]:text-[#299fce]
+																			data-[active=true]:border-l-2 data-[active=true]:border-[#299fce]
+																			transition-all duration-200
+																		`}
+																	>
+																		<Link to={item.url} className="flex items-center gap-2 w-full">
+																			<item.icon className="size-4" />
+																			<span>{item.title}</span>
+																		</Link>
+																	</SidebarMenuButton>
+																</SidebarMenuItem>
+															);
+														})}
+													</SidebarMenu>
+												</SidebarGroupContent>
+											</SidebarGroup>
+											{/* Add separator between groups, but not after the last one */}
+											{groupIndex < navigationGroups.filter(g => !g.requiresRole || profile?.role === g.requiresRole).length - 1 && (
+												<div className="px-2 py-2">
+													<Separator className="bg-[#299fce]/10" />
+												</div>
+											)}
+										</div>
+									);
+								})}
 							</SidebarContent>
 						</Sidebar>
 						<div className="flex-1 flex flex-col overflow-hidden">
-							<header className="border-b bg-background p-4">
+							<header className="border-b bg-[#1E282A] text-white p-4 shadow-lg">
 								<div className="flex items-center gap-4 justify-between">
 									<div className="flex items-center gap-4">
 										<SidebarTrigger />
-										<h1 className="font-semibold">
+										<h1 className="font-semibold text-white">
 											Hệ thống quản lý sửa chữa laptop
 										</h1>
 									</div>

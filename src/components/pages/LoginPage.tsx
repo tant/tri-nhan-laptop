@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getSuccessMessage, getValidationMessage } from "@/lib/auth-errors";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "@tanstack/react-router";
-import { Laptop, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useState } from "react";
 
 function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
@@ -86,13 +86,17 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 			onSubmit={handleLogin}
 		>
 			<div className="flex flex-col items-center gap-2 text-center">
-				<div className="p-3 bg-[#299fce]/10 rounded-full mb-2">
-					<Laptop className="h-8 w-8 text-[#299fce]" />
+				<div className="mb-4">
+					<img
+						src="/trinhan_logo.svg"
+						alt="Trí Nhân Laptop"
+						className="h-16 w-auto"
+					/>
 				</div>
-				<h1 className="text-2xl font-bold text-[#1E282A]">
+				<h1 className="text-2xl font-bold text-white">
 					Đăng nhập hệ thống
 				</h1>
-				<p className="text-muted-foreground text-sm text-balance text-[#6c757d]">
+				<p className="text-gray-300 text-sm text-balance">
 					Nhập thông tin đăng nhập để truy cập hệ thống quản lý tiệm sửa laptop
 				</p>
 			</div>
@@ -110,7 +114,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 			)}
 			<div className="grid gap-6">
 				<div className="grid gap-3">
-					<Label htmlFor="email">Email</Label>
+					<Label htmlFor="email" className="text-white">Email</Label>
 					<Input
 						id="email"
 						type="email"
@@ -138,7 +142,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 				</div>
 				<div className="grid gap-3">
 					<div className="flex items-center">
-						<Label htmlFor="password">Mật khẩu</Label>
+						<Label htmlFor="password" className="text-white">Mật khẩu</Label>
 						<button
 							type="button"
 							className="ml-auto text-sm text-[#299fce] underline-offset-4 hover:underline bg-transparent border-none cursor-pointer"
@@ -193,9 +197,9 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 					)}
 				</Button>
 			</div>
-			<div className="text-center text-sm text-[#6c757d]">
+			<div className="text-center text-sm text-gray-300">
 				Bạn là khách hàng?{" "}
-				<a href="/" className="text-[#299fce] underline underline-offset-4">
+				<a href="/" className="text-[#299fce] underline underline-offset-4 hover:text-[#299fce]/80">
 					Tra cứu phiếu sửa chữa
 				</a>
 			</div>
@@ -206,7 +210,7 @@ function LoginForm({ className, ...props }: React.ComponentProps<"form">) {
 export function LoginPage() {
 	return (
 		<div className="grid min-h-svh lg:grid-cols-2">
-			<div className="flex flex-col p-6 md:p-10">
+			<div className="flex flex-col p-6 md:p-10 bg-[#1E282A]">
 				<div className="flex flex-1 items-center justify-center">
 					<div className="w-full max-w-xs">
 						<LoginForm />
