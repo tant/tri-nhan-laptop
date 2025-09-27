@@ -32,6 +32,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/auth-context";
 import {
 	type CostBreakdown,
 	type CostTrendAnalysis,
@@ -54,7 +55,6 @@ import {
 	Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { useAuth } from "@/contexts/auth-context";
 
 interface FinancialTrackerProps {
 	repairTicketId?: string;

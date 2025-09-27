@@ -15,8 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useOptimisticList } from "@/hooks/use-optimistic-mutation";
-import { supabase } from "@/lib/supabase";
 import type { Customer } from "@/lib/database-types";
+import { supabase } from "@/lib/supabase";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
 	ArrowUpDown,
@@ -28,8 +28,7 @@ import {
 	Plus,
 	RefreshCw,
 } from "lucide-react";
-import { useCallback, useEffect, useState, useMemo } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Customer with repair count
 type CustomerWithStats = Customer & {
@@ -69,7 +68,7 @@ export function CustomersPage() {
 					.order("created_at", { ascending: false }),
 				supabase
 					.from("repair_tickets")
-					.select("customer_phone, created_at, status")
+					.select("customer_phone, created_at, status"),
 			]);
 
 			if (customersResult.error) {
@@ -84,33 +83,49 @@ export function CustomersPage() {
 			const allRepairs = repairsResult.data || [];
 
 			// Group repairs by customer phone for efficient lookup
-			const repairsByCustomer = allRepairs.reduce((acc, repair) => {
-				if (!acc[repair.customer_phone]) {
-					acc[repair.customer_phone] = [];
-				}
-				acc[repair.customer_phone].push(repair);
-				return acc;
-			}, {} as Record<string, Array<{customer_phone: string, created_at: string, status: string}>>);
+			const repairsByCustomer = allRepairs.reduce(
+				(acc, repair) => {
+					if (!acc[repair.customer_phone]) {
+						acc[repair.customer_phone] = [];
+					}
+					acc[repair.customer_phone].push(repair);
+					return acc;
+				},
+				{} as Record<
+					string,
+					Array<{ customer_phone: string; created_at: string; status: string }>
+				>,
+			);
 
 			// Process statistics client-side (much faster than N database calls)
-			const customersWithStats: CustomerWithStats[] = customersData.map(customer => {
-				const repairs = repairsByCustomer[customer.phone] || [];
-				const totalRepairs = repairs.length;
-				const activeRepairs = repairs.filter(r =>
-					!["completed", "cancelled_by_customer", "abandoned"].includes(r.status)
-				).length;
-				const lastRepairDate = repairs.length > 0
-					? repairs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.created_at || null
-					: null;
+			const customersWithStats: CustomerWithStats[] = customersData.map(
+				(customer) => {
+					const repairs = repairsByCustomer[customer.phone] || [];
+					const totalRepairs = repairs.length;
+					const activeRepairs = repairs.filter(
+						(r) =>
+							!["completed", "cancelled_by_customer", "abandoned"].includes(
+								r.status,
+							),
+					).length;
+					const lastRepairDate =
+						repairs.length > 0
+							? repairs.sort(
+									(a, b) =>
+										new Date(b.created_at).getTime() -
+										new Date(a.created_at).getTime(),
+								)[0]?.created_at || null
+							: null;
 
-				return {
-					...customer,
-					id: customer.phone,
-					totalRepairs,
-					lastRepairDate,
-					activeRepairs,
-				};
-			});
+					return {
+						...customer,
+						id: customer.phone,
+						totalRepairs,
+						lastRepairDate,
+						activeRepairs,
+					};
+				},
+			);
 
 			setCustomers(customersWithStats);
 		} catch (err) {
@@ -153,14 +168,18 @@ export function CustomersPage() {
 						setCustomers([newCustomer, ...customers]);
 					} else if (payload.eventType === "UPDATE" && payload.new) {
 						// For customer updates, preserve existing stats but update customer data
-						setCustomers(prev => prev.map(customer =>
-							customer.phone === payload.new.phone
-								? { ...customer, ...payload.new }
-								: customer
-						));
+						setCustomers((prev) =>
+							prev.map((customer) =>
+								customer.phone === payload.new.phone
+									? { ...customer, ...payload.new }
+									: customer,
+							),
+						);
 					} else if (payload.eventType === "DELETE" && payload.old) {
 						// Remove deleted customer
-						setCustomers(prev => prev.filter(customer => customer.phone !== payload.old.phone));
+						setCustomers((prev) =>
+							prev.filter((customer) => customer.phone !== payload.old.phone),
+						);
 					} else {
 						// Fallback to full refetch for complex changes
 						fetchCustomers();
@@ -400,17 +419,17 @@ export function CustomersPage() {
 	// Memoized customer statistics to avoid expensive filtering on each render
 	const newCustomers = useMemo(
 		() => customers.filter((c) => c.totalRepairs === 0).length,
-		[customers]
+		[customers],
 	);
 
 	const activeRepairsCustomers = useMemo(
 		() => customers.filter((c) => c.activeRepairs > 0).length,
-		[customers]
+		[customers],
 	);
 
 	const loyalCustomers = useMemo(
 		() => customers.filter((c) => c.totalRepairs >= 5).length,
-		[customers]
+		[customers],
 	);
 
 	// Loading state
@@ -543,9 +562,7 @@ export function CustomersPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
-							{newCustomers}
-						</div>
+						<div className="text-2xl font-bold">{newCustomers}</div>
 					</CardContent>
 				</Card>
 				<Card>
@@ -553,9 +570,7 @@ export function CustomersPage() {
 						<CardTitle className="text-sm font-medium">Đang sửa chữa</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
-							{activeRepairsCustomers}
-						</div>
+						<div className="text-2xl font-bold">{activeRepairsCustomers}</div>
 					</CardContent>
 				</Card>
 				<Card>
@@ -565,9 +580,7 @@ export function CustomersPage() {
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="text-2xl font-bold">
-							{loyalCustomers}
-						</div>
+						<div className="text-2xl font-bold">{loyalCustomers}</div>
 					</CardContent>
 				</Card>
 			</div>

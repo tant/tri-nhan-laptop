@@ -3,9 +3,9 @@
  * Handles Vietnamese notification templates and delivery tracking for customers
  */
 
-import { supabase } from "@/lib/supabase";
 import { Currency } from "@/lib/formatting";
 import type { RepairStatus } from "@/lib/repair-status";
+import { supabase } from "@/lib/supabase";
 import { useCallback, useState } from "react";
 
 export interface NotificationTemplate {
@@ -119,11 +119,7 @@ export function useCustomerCommunications() {
 			message:
 				"Cảm ơn bạn đã sử dụng dịch vụ. Thiết bị {device_info} (Mã: {ticket_code}) đã được giao thành công.",
 		},
-		payment_pending: {
-			subject: "Chờ thanh toán",
-			message:
-				"Thiết bị {device_info} (Mã: {ticket_code}) đã giao. Vui lòng thanh toán số tiền còn lại: {remaining_amount}.",
-		},
+		// payment_pending template removed - no payment management
 		completed: {
 			subject: "Hoàn thành dịch vụ",
 			message:

@@ -3,9 +3,9 @@
  * Focused search and filtering functionality for customers
  */
 
-import { supabase } from "@/lib/supabase";
 import type { Customer } from "@/lib/database-types";
 import { normalizePhone, validatePhone } from "@/lib/phone-utils";
+import { supabase } from "@/lib/supabase";
 import { useCallback, useState } from "react";
 
 export interface CustomerWithStats extends Customer {
@@ -51,7 +51,11 @@ export function useCustomerSearch() {
 				.eq("customer_phone", customerPhone);
 
 			if (repairError) {
-				console.error("Error fetching repair stats for customer:", customerPhone, repairError);
+				console.error(
+					"Error fetching repair stats for customer:",
+					customerPhone,
+					repairError,
+				);
 				return {
 					totalRepairs: 0,
 					lastRepairDate: null,
@@ -60,15 +64,22 @@ export function useCustomerSearch() {
 			}
 
 			const totalRepairs = repairStats?.length || 0;
-			const activeRepairs = repairStats?.filter(
-				(r) => !["completed", "cancelled_by_customer", "abandoned"].includes(r.status),
-			).length || 0;
+			const activeRepairs =
+				repairStats?.filter(
+					(r) =>
+						!["completed", "cancelled_by_customer", "abandoned"].includes(
+							r.status,
+						),
+				).length || 0;
 
-			const lastRepairDate = repairStats && repairStats.length > 0
-				? repairStats.sort(
-					(a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-				)[0].created_at
-				: null;
+			const lastRepairDate =
+				repairStats && repairStats.length > 0
+					? repairStats.sort(
+							(a, b) =>
+								new Date(b.created_at).getTime() -
+								new Date(a.created_at).getTime(),
+						)[0].created_at
+					: null;
 
 			return {
 				totalRepairs,
@@ -89,7 +100,9 @@ export function useCustomerSearch() {
 	 * Search customers with advanced filtering and statistics
 	 */
 	const searchCustomers = useCallback(
-		async (options: CustomerSearchOptions = {}): Promise<CustomerWithStats[]> => {
+		async (
+			options: CustomerSearchOptions = {},
+		): Promise<CustomerWithStats[]> => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -152,9 +165,10 @@ export function useCustomerSearch() {
 
 				return customersWithStats;
 			} catch (err) {
-				const error = err instanceof Error
-					? err
-					: new Error("Lỗi không xác định khi tìm kiếm khách hàng");
+				const error =
+					err instanceof Error
+						? err
+						: new Error("Lỗi không xác định khi tìm kiếm khách hàng");
 				console.error("Error searching customers:", error);
 				setError(error);
 				return [];
@@ -210,9 +224,10 @@ export function useCustomerSearch() {
 
 				return customerWithStats;
 			} catch (err) {
-				const error = err instanceof Error
-					? err
-					: new Error("Lỗi không xác định khi tìm khách hàng");
+				const error =
+					err instanceof Error
+						? err
+						: new Error("Lỗi không xác định khi tìm khách hàng");
 				console.error("Error finding customer by phone:", error);
 				setError(error);
 				return null;
@@ -227,7 +242,7 @@ export function useCustomerSearch() {
 	 * Quick search customers by text query (phone or name)
 	 */
 	const quickSearch = useCallback(
-		async (query: string, limit: number = 10): Promise<CustomerWithStats[]> => {
+		async (query: string, limit = 10): Promise<CustomerWithStats[]> => {
 			if (!query || query.length < 2) {
 				return [];
 			}
@@ -235,7 +250,7 @@ export function useCustomerSearch() {
 			return searchCustomers({
 				query,
 				limit,
-				includeStats: false // Quick search without heavy stats for performance
+				includeStats: false, // Quick search without heavy stats for performance
 			});
 		},
 		[searchCustomers],
@@ -274,7 +289,7 @@ export function useCustomerSearch() {
 							...customer,
 							...stats,
 						};
-					})
+					}),
 				);
 			} catch (err) {
 				console.error("Error getting customer suggestions:", err);
@@ -287,7 +302,9 @@ export function useCustomerSearch() {
 	/**
 	 * Search customers with active repairs
 	 */
-	const searchActiveCustomers = useCallback(async (): Promise<CustomerWithStats[]> => {
+	const searchActiveCustomers = useCallback(async (): Promise<
+		CustomerWithStats[]
+	> => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -299,7 +316,9 @@ export function useCustomerSearch() {
 				.not("status", "in", "(completed,cancelled_by_customer,abandoned)");
 
 			if (repairsError) {
-				throw new Error(`Không thể tìm khách hàng có phiếu đang sửa: ${repairsError.message}`);
+				throw new Error(
+					`Không thể tìm khách hàng có phiếu đang sửa: ${repairsError.message}`,
+				);
 			}
 
 			if (!activeRepairs || activeRepairs.length === 0) {
@@ -307,7 +326,9 @@ export function useCustomerSearch() {
 			}
 
 			// Get unique customer phones
-			const uniquePhones = [...new Set(activeRepairs.map(r => r.customer_phone))];
+			const uniquePhones = [
+				...new Set(activeRepairs.map((r) => r.customer_phone)),
+			];
 
 			// Get customer details
 			const { data: customers, error: customersError } = await supabase
@@ -316,7 +337,9 @@ export function useCustomerSearch() {
 				.in("phone", uniquePhones);
 
 			if (customersError) {
-				throw new Error(`Không thể tải thông tin khách hàng: ${customersError.message}`);
+				throw new Error(
+					`Không thể tải thông tin khách hàng: ${customersError.message}`,
+				);
 			}
 
 			if (!customers) return [];
@@ -331,14 +354,17 @@ export function useCustomerSearch() {
 						createdAt: customer.created_at,
 						...stats,
 					};
-				})
+				}),
 			);
 
 			return customersWithStats;
 		} catch (err) {
-			const error = err instanceof Error
-				? err
-				: new Error("Lỗi không xác định khi tìm khách hàng có phiếu đang sửa");
+			const error =
+				err instanceof Error
+					? err
+					: new Error(
+							"Lỗi không xác định khi tìm khách hàng có phiếu đang sửa",
+						);
 			console.error("Error searching active customers:", error);
 			setError(error);
 			return [];

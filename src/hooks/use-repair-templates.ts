@@ -39,7 +39,7 @@ const globalTemplates: GlobalTemplate[] = [
 		priority: "normal",
 		estimatedRepairTime: 120, // minutes
 		estimatedCost: 2000000, // VND
-		symptoms: ["Màn hình bị vỡ", "Không hiển thị", "Có vệt sáng"]
+		symptoms: ["Màn hình bị vỡ", "Không hiển thị", "Có vệt sáng"],
 	},
 	{
 		id: "2",
@@ -49,7 +49,7 @@ const globalTemplates: GlobalTemplate[] = [
 		priority: "normal",
 		estimatedRepairTime: 90,
 		estimatedCost: 800000,
-		symptoms: ["Phím không hoạt động", "Phím bị dính", "Bàn phím bị nước vào"]
+		symptoms: ["Phím không hoạt động", "Phím bị dính", "Bàn phím bị nước vào"],
 	},
 	{
 		id: "3",
@@ -59,7 +59,7 @@ const globalTemplates: GlobalTemplate[] = [
 		priority: "normal",
 		estimatedRepairTime: 60,
 		estimatedCost: 1500000,
-		symptoms: ["Pin không sạc", "Pin tụt nhanh", "Laptop không khởi động"]
+		symptoms: ["Pin không sạc", "Pin tụt nhanh", "Laptop không khởi động"],
 	},
 	{
 		id: "4",
@@ -69,7 +69,7 @@ const globalTemplates: GlobalTemplate[] = [
 		priority: "normal",
 		estimatedRepairTime: 180,
 		estimatedCost: 500000,
-		symptoms: ["Máy nóng", "Quạt kêu to", "Tắt máy đột ngột"]
+		symptoms: ["Máy nóng", "Quạt kêu to", "Tắt máy đột ngột"],
 	},
 	{
 		id: "5",
@@ -79,8 +79,8 @@ const globalTemplates: GlobalTemplate[] = [
 		priority: "low",
 		estimatedRepairTime: 120,
 		estimatedCost: 600000,
-		symptoms: ["Không có âm thanh", "Âm thanh bị méo", "Loa kêu rè"]
-	}
+		symptoms: ["Không có âm thanh", "Âm thanh bị méo", "Loa kêu rè"],
+	},
 ];
 
 /**
@@ -91,7 +91,7 @@ export function useRepairTemplates() {
 	 * Get all available repair templates
 	 */
 	const getTemplates = (): RepairTemplate[] => {
-		return globalTemplates.map(template => ({
+		return globalTemplates.map((template) => ({
 			...template,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
@@ -102,25 +102,29 @@ export function useRepairTemplates() {
 	 * Get templates by category
 	 */
 	const getTemplatesByCategory = (category: string): RepairTemplate[] => {
-		return getTemplates().filter(template => template.category === category);
+		return getTemplates().filter((template) => template.category === category);
 	};
 
 	/**
 	 * Get template by ID
 	 */
 	const getTemplateById = (id: string): RepairTemplate | null => {
-		const template = globalTemplates.find(t => t.id === id);
-		return template ? {
-			...template,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		} : null;
+		const template = globalTemplates.find((t) => t.id === id);
+		return template
+			? {
+					...template,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+				}
+			: null;
 	};
 
 	/**
 	 * Create a new repair template
 	 */
-	const createTemplate = (templateData: Omit<RepairTemplate, 'id' | 'createdAt' | 'updatedAt'>): RepairTemplate => {
+	const createTemplate = (
+		templateData: Omit<RepairTemplate, "id" | "createdAt" | "updatedAt">,
+	): RepairTemplate => {
 		const newTemplate: GlobalTemplate = {
 			...templateData,
 			id: Date.now().toString(), // Simple ID generation for now
@@ -138,8 +142,11 @@ export function useRepairTemplates() {
 	/**
 	 * Update an existing template
 	 */
-	const updateTemplate = (id: string, updates: Partial<RepairTemplate>): RepairTemplate | null => {
-		const templateIndex = globalTemplates.findIndex(t => t.id === id);
+	const updateTemplate = (
+		id: string,
+		updates: Partial<RepairTemplate>,
+	): RepairTemplate | null => {
+		const templateIndex = globalTemplates.findIndex((t) => t.id === id);
 
 		if (templateIndex === -1) {
 			return null;
@@ -162,7 +169,7 @@ export function useRepairTemplates() {
 	 * Delete a template
 	 */
 	const deleteTemplate = (id: string): boolean => {
-		const templateIndex = globalTemplates.findIndex(t => t.id === id);
+		const templateIndex = globalTemplates.findIndex((t) => t.id === id);
 
 		if (templateIndex === -1) {
 			return false;
@@ -179,7 +186,7 @@ export function useRepairTemplates() {
 		low: "Thấp",
 		normal: "Bình thường",
 		high: "Cao",
-		urgent: "Khẩn cấp"
+		urgent: "Khẩn cấp",
 	});
 
 	/**
@@ -194,13 +201,15 @@ export function useRepairTemplates() {
 		network: "Kết nối",
 		storage: "Lưu trữ",
 		memory: "Bộ nhớ",
-		other: "Khác"
+		other: "Khác",
 	});
 
 	/**
 	 * Categorize problem based on issue description
 	 */
-	const categorizeProblem = (issueDescription: string): {
+	const categorizeProblem = (
+		issueDescription: string,
+	): {
 		category: string;
 		suggestedTemplates: RepairTemplate[];
 		confidence: number;
@@ -211,14 +220,24 @@ export function useRepairTemplates() {
 
 		// Scoring system for category detection
 		const categoryKeywords = {
-			display: ["màn hình", "hiển thị", "screen", "lcd", "led", "vỡ", "nứt", "tối", "sáng"],
+			display: [
+				"màn hình",
+				"hiển thị",
+				"screen",
+				"lcd",
+				"led",
+				"vỡ",
+				"nứt",
+				"tối",
+				"sáng",
+			],
 			keyboard: ["bàn phím", "keyboard", "phím", "gõ", "key"],
 			battery: ["pin", "battery", "sạc", "charge", "điện", "tắt đột ngột"],
 			cooling: ["quạt", "fan", "nóng", "nhiệt", "thermal", "cooling"],
 			audio: ["âm thanh", "loa", "sound", "audio", "speaker", "mic"],
 			network: ["wifi", "mạng", "internet", "kết nối", "network"],
 			storage: ["ổ cứng", "ssd", "hdd", "storage", "hard drive", "dữ liệu"],
-			memory: ["ram", "memory", "bộ nhớ", "lag", "chậm"]
+			memory: ["ram", "memory", "bộ nhớ", "lag", "chậm"],
 		};
 
 		let bestMatch = { category: "other", score: 0 };
@@ -241,7 +260,7 @@ export function useRepairTemplates() {
 		return {
 			category,
 			suggestedTemplates,
-			confidence
+			confidence,
 		};
 	};
 

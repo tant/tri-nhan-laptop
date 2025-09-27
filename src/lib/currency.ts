@@ -142,7 +142,6 @@ export function parseVND(vndString: string): number {
 	return Number.isNaN(parsed) ? 0 : parsed;
 }
 
-
 /**
  * Vietnamese number input formatter (for form inputs)
  */

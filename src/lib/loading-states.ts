@@ -4,7 +4,7 @@
  */
 
 import { useCallback, useState } from "react";
-import { processError, type ErrorInfo } from "./error-handling";
+import { type ErrorInfo, processError } from "./error-handling";
 
 export interface LoadingState {
 	isLoading: boolean;
@@ -35,7 +35,7 @@ export function useLoadingState(initialLoading = false): [
 		setError: (error: unknown) => void;
 		clearError: () => void;
 		withLoading: <T>(operation: () => Promise<T>) => Promise<T>;
-	}
+	},
 ] {
 	const [state, setState] = useState<LoadingState>({
 		isLoading: initialLoading,
@@ -44,7 +44,7 @@ export function useLoadingState(initialLoading = false): [
 	});
 
 	const setLoading = useCallback((loading: boolean) => {
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			isLoading: loading,
 			lastUpdated: new Date(),
@@ -53,7 +53,7 @@ export function useLoadingState(initialLoading = false): [
 
 	const setError = useCallback((error: unknown) => {
 		const processedError = processError(error);
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			isLoading: false,
 			error: processedError.error,
@@ -62,25 +62,28 @@ export function useLoadingState(initialLoading = false): [
 	}, []);
 
 	const clearError = useCallback(() => {
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			error: null,
 			lastUpdated: new Date(),
 		}));
 	}, []);
 
-	const withLoading = useCallback(async <T>(operation: () => Promise<T>): Promise<T> => {
-		try {
-			setLoading(true);
-			clearError();
-			const result = await operation();
-			setLoading(false);
-			return result;
-		} catch (error) {
-			setError(error);
-			throw error;
-		}
-	}, [setLoading, setError, clearError]);
+	const withLoading = useCallback(
+		async <T>(operation: () => Promise<T>): Promise<T> => {
+			try {
+				setLoading(true);
+				clearError();
+				const result = await operation();
+				setLoading(false);
+				return result;
+			} catch (error) {
+				setError(error);
+				throw error;
+			}
+		},
+		[setLoading, setError, clearError],
+	);
 
 	return [
 		state,
@@ -89,16 +92,14 @@ export function useLoadingState(initialLoading = false): [
 			setError,
 			clearError,
 			withLoading,
-		}
+		},
 	];
 }
 
 /**
  * Hook for managing data fetching with loading states
  */
-export function useAsyncData<T>(
-	initialData: T | null = null
-): [
+export function useAsyncData<T>(initialData: T | null = null): [
 	AsyncOperationState<T>,
 	{
 		setData: (data: T | null) => void;
@@ -107,7 +108,7 @@ export function useAsyncData<T>(
 		clearError: () => void;
 		refresh: (operation: () => Promise<T>) => Promise<void>;
 		mutate: (operation: () => Promise<T>) => Promise<void>;
-	}
+	},
 ] {
 	const [state, setState] = useState<AsyncOperationState<T>>({
 		data: initialData,
@@ -117,7 +118,7 @@ export function useAsyncData<T>(
 	});
 
 	const setData = useCallback((data: T | null) => {
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			data,
 			error: null,
@@ -126,7 +127,7 @@ export function useAsyncData<T>(
 	}, []);
 
 	const setLoading = useCallback((loading: boolean) => {
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			isLoading: loading,
 			lastUpdated: new Date(),
@@ -135,7 +136,7 @@ export function useAsyncData<T>(
 
 	const setError = useCallback((error: unknown) => {
 		const processedError = processError(error);
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			isLoading: false,
 			error: processedError.error,
@@ -144,37 +145,43 @@ export function useAsyncData<T>(
 	}, []);
 
 	const clearError = useCallback(() => {
-		setState(prev => ({
+		setState((prev) => ({
 			...prev,
 			error: null,
 			lastUpdated: new Date(),
 		}));
 	}, []);
 
-	const refresh = useCallback(async (operation: () => Promise<T>) => {
-		try {
-			setLoading(true);
-			clearError();
-			const result = await operation();
-			setData(result);
-			setLoading(false);
-		} catch (error) {
-			setError(error);
-		}
-	}, [setLoading, setData, setError, clearError]);
+	const refresh = useCallback(
+		async (operation: () => Promise<T>) => {
+			try {
+				setLoading(true);
+				clearError();
+				const result = await operation();
+				setData(result);
+				setLoading(false);
+			} catch (error) {
+				setError(error);
+			}
+		},
+		[setLoading, setData, setError, clearError],
+	);
 
-	const mutate = useCallback(async (operation: () => Promise<T>) => {
-		try {
-			setLoading(true);
-			clearError();
-			const result = await operation();
-			setData(result);
-			setLoading(false);
-		} catch (error) {
-			setError(error);
-			throw error; // Re-throw for caller handling
-		}
-	}, [setLoading, setData, setError, clearError]);
+	const mutate = useCallback(
+		async (operation: () => Promise<T>) => {
+			try {
+				setLoading(true);
+				clearError();
+				const result = await operation();
+				setData(result);
+				setLoading(false);
+			} catch (error) {
+				setError(error);
+				throw error; // Re-throw for caller handling
+			}
+		},
+		[setLoading, setData, setError, clearError],
+	);
 
 	return [
 		state,
@@ -185,7 +192,7 @@ export function useAsyncData<T>(
 			clearError,
 			refresh,
 			mutate,
-		}
+		},
 	];
 }
 
@@ -194,7 +201,7 @@ export function useAsyncData<T>(
  */
 export function useAsyncOperation<T>(
 	operation: () => Promise<T>,
-	dependencies: unknown[] = []
+	dependencies: unknown[] = [],
 ): AsyncOperation<T> {
 	const [state, setState] = useState<AsyncOperationState<T>>({
 		data: null,
@@ -205,7 +212,7 @@ export function useAsyncOperation<T>(
 
 	const execute = useCallback(async (): Promise<T> => {
 		try {
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				isLoading: true,
 				error: null,
@@ -214,7 +221,7 @@ export function useAsyncOperation<T>(
 
 			const result = await operation();
 
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				data: result,
 				isLoading: false,
@@ -224,7 +231,7 @@ export function useAsyncOperation<T>(
 			return result;
 		} catch (error) {
 			const processedError = processError(error);
-			setState(prev => ({
+			setState((prev) => ({
 				...prev,
 				isLoading: false,
 				error: processedError.error,
@@ -261,7 +268,7 @@ export function useAsyncOperation<T>(
  * Hook for managing multiple concurrent loading states
  */
 export function useMultipleLoadingStates<T extends Record<string, unknown>>(
-	keys: (keyof T)[]
+	keys: (keyof T)[],
 ): [
 	Record<keyof T, boolean>,
 	{
@@ -269,31 +276,40 @@ export function useMultipleLoadingStates<T extends Record<string, unknown>>(
 		setAllLoading: (loading: boolean) => void;
 		isAnyLoading: () => boolean;
 		isAllLoading: () => boolean;
-	}
+	},
 ] {
 	const [loadingStates, setLoadingStates] = useState<Record<keyof T, boolean>>(
-		keys.reduce((acc, key) => ({ ...acc, [key]: false }), {} as Record<keyof T, boolean>)
+		keys.reduce(
+			(acc, key) => ({ ...acc, [key]: false }),
+			{} as Record<keyof T, boolean>,
+		),
 	);
 
 	const setLoading = useCallback((key: keyof T, loading: boolean) => {
-		setLoadingStates(prev => ({
+		setLoadingStates((prev) => ({
 			...prev,
 			[key]: loading,
 		}));
 	}, []);
 
-	const setAllLoading = useCallback((loading: boolean) => {
-		setLoadingStates(prev =>
-			keys.reduce((acc, key) => ({ ...acc, [key]: loading }), {} as Record<keyof T, boolean>)
-		);
-	}, [keys]);
+	const setAllLoading = useCallback(
+		(loading: boolean) => {
+			setLoadingStates((prev) =>
+				keys.reduce(
+					(acc, key) => ({ ...acc, [key]: loading }),
+					{} as Record<keyof T, boolean>,
+				),
+			);
+		},
+		[keys],
+	);
 
 	const isAnyLoading = useCallback(() => {
-		return Object.values(loadingStates).some(loading => loading);
+		return Object.values(loadingStates).some((loading) => loading);
 	}, [loadingStates]);
 
 	const isAllLoading = useCallback(() => {
-		return Object.values(loadingStates).every(loading => loading);
+		return Object.values(loadingStates).every((loading) => loading);
 	}, [loadingStates]);
 
 	return [
@@ -303,7 +319,7 @@ export function useMultipleLoadingStates<T extends Record<string, unknown>>(
 			setAllLoading,
 			isAnyLoading,
 			isAllLoading,
-		}
+		},
 	];
 }
 
@@ -312,8 +328,8 @@ export function useMultipleLoadingStates<T extends Record<string, unknown>>(
  */
 export function useDebouncedAsyncOperation<T>(
 	operation: () => Promise<T>,
-	delay: number = 300,
-	dependencies: unknown[] = []
+	delay = 300,
+	dependencies: unknown[] = [],
 ): {
 	execute: () => void;
 	loading: boolean;
@@ -333,7 +349,7 @@ export function useDebouncedAsyncOperation<T>(
 		if (timeoutId) {
 			clearTimeout(timeoutId);
 			setTimeoutId(null);
-			setState(prev => ({ ...prev, isLoading: false }));
+			setState((prev) => ({ ...prev, isLoading: false }));
 		}
 	}, [timeoutId]);
 
@@ -342,20 +358,20 @@ export function useDebouncedAsyncOperation<T>(
 		cancel();
 
 		// Set loading immediately
-		setState(prev => ({ ...prev, isLoading: true, error: null }));
+		setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
 		// Set new timeout
 		const newTimeoutId = setTimeout(async () => {
 			try {
 				const result = await operation();
-				setState(prev => ({
+				setState((prev) => ({
 					...prev,
 					data: result,
 					isLoading: false,
 				}));
 			} catch (error) {
 				const processedError = processError(error);
-				setState(prev => ({
+				setState((prev) => ({
 					...prev,
 					isLoading: false,
 					error: processedError.error,
@@ -390,9 +406,11 @@ export function useDebouncedAsyncOperation<T>(
  */
 export function createAsyncWrapper<TArgs extends unknown[], TReturn>(
 	fn: (...args: TArgs) => Promise<TReturn>,
-	context?: string
+	context?: string,
 ) {
-	return async (...args: TArgs): Promise<{ data?: TReturn; error?: ErrorInfo }> => {
+	return async (
+		...args: TArgs
+	): Promise<{ data?: TReturn; error?: ErrorInfo }> => {
 		try {
 			const data = await fn(...args);
 			return { data };
@@ -445,7 +463,7 @@ export const LoadingUtils = {
 	/**
 	 * Check if operation should show loading indicator based on duration
 	 */
-	shouldShowLoading: (startTime: Date, minDuration: number = 200): boolean => {
+	shouldShowLoading: (startTime: Date, minDuration = 200): boolean => {
 		return Date.now() - startTime.getTime() > minDuration;
 	},
 };

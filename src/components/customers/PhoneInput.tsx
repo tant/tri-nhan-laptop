@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { validatePhone, type SimplePhoneValidation } from "@/lib/phone-utils";
+import { type SimplePhoneValidation, validatePhone } from "@/lib/phone-utils";
 import { AlertCircle, Check } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -74,7 +74,10 @@ export function PhoneInput({
 			</div>
 
 			{showValidation && value && !validation.isValid && validation.error && (
-				<div id="phone-validation" className="flex items-center gap-2 text-sm text-red-700">
+				<div
+					id="phone-validation"
+					className="flex items-center gap-2 text-sm text-red-700"
+				>
 					<AlertCircle className="h-3 w-3" />
 					<span>{validation.error}</span>
 				</div>

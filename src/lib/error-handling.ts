@@ -3,7 +3,7 @@
  * Standardized error handling patterns for the Vietnamese Laptop Repair Shop system
  */
 
-import { PostgrestError } from "@supabase/supabase-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 export interface ErrorInfo {
 	message: string;
@@ -23,14 +23,14 @@ export interface ErrorResult {
  */
 const SUPABASE_ERROR_MAP: Record<string, string> = {
 	// Authentication errors
-	"invalid_credentials": "Thông tin đăng nhập không chính xác",
-	"email_not_confirmed": "Email chưa được xác nhận",
-	"user_not_found": "Không tìm thấy người dùng",
-	"invalid_grant": "Phiên đăng nhập đã hết hạn",
-	"signup_disabled": "Đăng ký tài khoản đã bị tắt",
+	invalid_credentials: "Thông tin đăng nhập không chính xác",
+	email_not_confirmed: "Email chưa được xác nhận",
+	user_not_found: "Không tìm thấy người dùng",
+	invalid_grant: "Phiên đăng nhập đã hết hạn",
+	signup_disabled: "Đăng ký tài khoản đã bị tắt",
 
 	// Database errors
-	"PGRST116": "Không tìm thấy dữ liệu",
+	PGRST116: "Không tìm thấy dữ liệu",
 	"23505": "Dữ liệu đã tồn tại trong hệ thống",
 	"23503": "Không thể xóa do có dữ liệu liên quan",
 	"23502": "Thiếu thông tin bắt buộc",
@@ -39,15 +39,15 @@ const SUPABASE_ERROR_MAP: Record<string, string> = {
 	"42703": "Trường dữ liệu không tồn tại",
 
 	// Network errors
-	"network_error": "Lỗi kết nối mạng",
-	"timeout": "Hết thời gian chờ",
-	"fetch_error": "Không thể tải dữ liệu",
+	network_error: "Lỗi kết nối mạng",
+	timeout: "Hết thời gian chờ",
+	fetch_error: "Không thể tải dữ liệu",
 
 	// Business logic errors
-	"insufficient_permissions": "Không có quyền thực hiện thao tác này",
-	"resource_not_found": "Không tìm thấy tài nguyên",
-	"validation_failed": "Dữ liệu không hợp lệ",
-	"operation_failed": "Thao tác không thành công",
+	insufficient_permissions: "Không có quyền thực hiện thao tác này",
+	resource_not_found: "Không tìm thấy tài nguyên",
+	validation_failed: "Dữ liệu không hợp lệ",
+	operation_failed: "Thao tác không thành công",
 };
 
 /**
@@ -121,7 +121,10 @@ export function processError(error: unknown, context?: string): ErrorResult {
 /**
  * Process Supabase PostgrestError
  */
-function processPostgrestError(error: PostgrestError, context?: string): ErrorResult {
+function processPostgrestError(
+	error: PostgrestError,
+	context?: string,
+): ErrorResult {
 	const code = error.code;
 	const message = SUPABASE_ERROR_MAP[code] || error.message;
 
@@ -142,7 +145,8 @@ function processPostgrestError(error: PostgrestError, context?: string): ErrorRe
  */
 function processJavaScriptError(error: Error, context?: string): ErrorResult {
 	// Check for business logic errors first
-	const businessError = BUSINESS_ERRORS[error.message as keyof typeof BUSINESS_ERRORS];
+	const businessError =
+		BUSINESS_ERRORS[error.message as keyof typeof BUSINESS_ERRORS];
 	if (businessError) {
 		return {
 			error: {
@@ -247,10 +251,12 @@ function isPostgrestError(error: unknown): error is PostgrestError {
  */
 export const createError = {
 	notFound: (resource: string) => new Error(`${resource}_not_found`),
-	validation: (field: string, reason: string) => new Error(`Trường ${field}: ${reason}`),
+	validation: (field: string, reason: string) =>
+		new Error(`Trường ${field}: ${reason}`),
 	permission: (action: string) => new Error(`Không có quyền ${action}`),
 	business: (code: keyof typeof BUSINESS_ERRORS) => new Error(code),
-	network: (details?: string) => new Error(`Lỗi kết nối${details ? `: ${details}` : ""}`),
+	network: (details?: string) =>
+		new Error(`Lỗi kết nối${details ? `: ${details}` : ""}`),
 };
 
 /**
@@ -262,25 +268,12 @@ export function getErrorMessage(error: unknown, context?: string): string {
 }
 
 /**
- * Check if error should be logged to console/monitoring
- */
-export function shouldLogError(error: unknown): boolean {
-	const result = processError(error);
-	return result.shouldLog;
-}
-
-/**
- * Check if error should trigger user notification
- */
-export function shouldNotifyError(error: unknown): boolean {
-	const result = processError(error);
-	return result.shouldNotify;
-}
-
-/**
  * Format error for logging (with technical details)
  */
-export function formatErrorForLogging(error: unknown, context?: string): string {
+export function formatErrorForLogging(
+	error: unknown,
+	context?: string,
+): string {
 	const result = processError(error, context);
 	const { message, code, details } = result.error;
 

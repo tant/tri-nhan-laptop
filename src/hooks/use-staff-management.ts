@@ -87,15 +87,17 @@ export function useStaffManagement() {
 				setError(null);
 
 				// Get current user's session for authentication
-				const { data: { session } } = await supabase.auth.getSession();
-				
+				const {
+					data: { session },
+				} = await supabase.auth.getSession();
+
 				if (!session) {
 					throw new Error("Phiên đăng nhập đã hết hạn");
 				}
 
 				// Call the Edge Function
 				const { data, error } = await supabase.functions.invoke(
-					'admin-user-management',
+					"admin-user-management",
 					{
 						body: {
 							email: staffData.email,
@@ -107,7 +109,7 @@ export function useStaffManagement() {
 						headers: {
 							Authorization: `Bearer ${session.access_token}`,
 						},
-					}
+					},
 				);
 
 				if (error) {
@@ -196,15 +198,17 @@ export function useStaffManagement() {
 				}
 
 				// Get current session for authentication
-				const { data: { session } } = await supabase.auth.getSession();
-				
+				const {
+					data: { session },
+				} = await supabase.auth.getSession();
+
 				if (!session) {
 					throw new Error("Phiên đăng nhập đã hết hạn");
 				}
 
 				// Call the Edge Function
 				const { data, error } = await supabase.functions.invoke(
-					'admin-user-management/reset-password',
+					"admin-user-management/reset-password",
 					{
 						body: {
 							user_id: userProfile.id,
@@ -213,7 +217,7 @@ export function useStaffManagement() {
 						headers: {
 							Authorization: `Bearer ${session.access_token}`,
 						},
-					}
+					},
 				);
 
 				if (error) {

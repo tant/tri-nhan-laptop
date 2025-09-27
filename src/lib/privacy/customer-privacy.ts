@@ -1,6 +1,7 @@
 /**
- * Customer Privacy and Data Management Utilities
+ * Simplified Customer Privacy and Data Management Utilities
  * Handles customer data privacy controls and consent management
+ * Updated for simplified customer structure: phone, full_name, address only
  */
 
 import { maskPhoneNumber } from "@/lib/security/phone-privacy";
@@ -9,8 +10,6 @@ import { supabase } from "@/lib/supabase";
 export interface CustomerPrivacySettings {
 	customerId: string;
 	dataProcessingConsent: boolean;
-	marketingConsent: boolean;
-	dataRetentionConsent: boolean;
 	consentDate: string;
 	lastUpdated: string;
 	updatedBy?: string;
@@ -22,7 +21,6 @@ export interface DataExportRequest {
 	exportType: "full" | "personal_only" | "contact_only" | "history_only";
 	format: "json" | "csv" | "pdf";
 	includeHistory: boolean;
-	includeSensitiveData: boolean;
 	requestDate: string;
 	status: "pending" | "processing" | "completed" | "failed";
 }
@@ -31,508 +29,294 @@ export interface CustomerDataSummary {
 	personalInfo: {
 		phone: string;
 		fullName: string;
-		email?: string;
 		address?: string;
-		category: "individual" | "business";
-	};
-	businessInfo?: {
-		businessName?: string;
-		taxCode?: string;
 	};
 	contactHistory: {
 		totalContacts: number;
 		lastContact?: string;
-		contactMethods: string[];
 	};
 	repairHistory: {
 		totalRepairs: number;
 		activeRepairs: number;
 		lastRepair?: string;
 	};
-	dataUsage: {
-		createdAt: string;
-		lastUpdated: string;
-		accessCount: number;
-		lastAccessed?: string;
+	dataProcessing: {
+		consentGiven: boolean;
+		consentDate?: string;
+		dataRetentionPeriod: string;
+	};
+	exportHistory: {
+		totalExports: number;
+		lastExport?: string;
 	};
 }
 
 /**
- * Check if customer has given required privacy consents
+ * Get customer data summary for privacy dashboard
  */
-export async function validateCustomerConsent(customerPhone: string): Promise<{
-	hasValidConsent: boolean;
-	missingConsents: string[];
-	consentDate?: string;
-}> {
-	try {
-		const { data: customer, error } = await supabase
-			.from("customers")
-			.select("privacy_consent, data_consent_date, contact_preferences")
-			.eq("phone", customerPhone)
-			.single();
-
-		if (error) {
-			throw new Error(`Error fetching customer consent: ${error.message}`);
-		}
-
-		const missingConsents: string[] = [];
-
-		if (!customer.privacy_consent) {
-			missingConsents.push("data_processing");
-		}
-
-		// Check contact preferences for marketing consent
-		const contactPrefs = customer.contact_preferences as Record<
-			string,
-			unknown
-		>;
-		if (contactPrefs?.allowMarketing === undefined) {
-			missingConsents.push("marketing_preferences");
-		}
-
-		return {
-			hasValidConsent: missingConsents.length === 0,
-			missingConsents,
-			consentDate: customer.data_consent_date,
-		};
-	} catch (error) {
-		console.error("Error validating customer consent:", error);
-		return {
-			hasValidConsent: false,
-			missingConsents: ["validation_error"],
-		};
-	}
-}
-
-/**
- * Update customer privacy consent
- */
-export async function updateCustomerConsent(
-	customerPhone: string,
-	consents: {
-		dataProcessing: boolean;
-		marketing: boolean;
-	},
-	updatedBy?: string,
-): Promise<{ success: boolean; error?: string }> {
-	try {
-		// Update main privacy consent
-		const { error: updateError } = await supabase
-			.from("customers")
-			.update({
-				privacy_consent: consents.dataProcessing,
-				data_consent_date: new Date().toISOString(),
-				contact_preferences: {
-					allowMarketing: consents.marketing,
-					preferredMethod: "phone",
-					preferredTime: "any",
-					language: "vi",
-				},
-			})
-			.eq("phone", customerPhone);
-
-		if (updateError) {
-			throw updateError;
-		}
-
-		// Log consent change
-		await logPrivacyAction(
-			customerPhone,
-			"consent_update",
-			{
-				dataProcessing: consents.dataProcessing,
-				marketing: consents.marketing,
-			},
-			updatedBy,
-		);
-
-		return { success: true };
-	} catch (error) {
-		console.error("Error updating customer consent:", error);
-		return {
-			success: false,
-			error: error instanceof Error ? error.message : "Unknown error",
-		};
-	}
-}
-
-/**
- * Log privacy-related actions
- */
-export async function logPrivacyAction(
-	customerPhone: string,
-	action: string,
-	details: Record<string, unknown>,
-	performedBy?: string,
-): Promise<void> {
-	try {
-		// In a real implementation, this would go to a privacy audit table
-		// For now, we'll log to console in development
-		if (process.env.NODE_ENV === "development") {
-			console.log(`[PRIVACY AUDIT] ${action} for customer ${customerPhone}:`, {
-				details,
-				performedBy,
-				timestamp: new Date().toISOString(),
-			});
-		}
-
-		// Privacy audit logging is currently console-based for development
-		// Production version would require implementing privacy_audit_log table
-	} catch (error) {
-		console.error("Error logging privacy action:", error);
-	}
-}
-
-/**
- * Generate customer data summary for export/review
- */
-export async function generateCustomerDataSummary(
+export async function getCustomerDataSummary(
 	customerPhone: string,
 ): Promise<CustomerDataSummary | null> {
 	try {
 		// Get customer basic info
 		const { data: customer, error: customerError } = await supabase
 			.from("customers")
-			.select("*")
+			.select("phone, full_name, address, created_at")
 			.eq("phone", customerPhone)
 			.single();
 
-		if (customerError) {
-			throw customerError;
+		if (customerError || !customer) {
+			console.error("Error fetching customer:", customerError);
+			return null;
 		}
 
-		// Get contact history count
-		const { count: contactCount } = await supabase
-			.from("customer_contact_history")
-			.select("*", { count: "exact", head: true })
-			.eq("customer_phone", customerPhone);
-
 		// Get repair history
-		const { data: repairData, count: repairCount } = await supabase
+		const { data: repairs, error: repairsError } = await supabase
 			.from("repair_tickets")
-			.select("status, created_at", { count: "exact" })
+			.select("id, status, created_at")
 			.eq("customer_phone", customerPhone);
 
+		if (repairsError) {
+			console.error("Error fetching repairs:", repairsError);
+		}
+
+		const totalRepairs = repairs?.length || 0;
 		const activeRepairs =
-			repairData?.filter(
+			repairs?.filter(
 				(r) =>
 					!["completed", "cancelled_by_customer", "abandoned"].includes(
 						r.status,
 					),
 			).length || 0;
-
-		const lastRepair =
-			repairData && repairData.length > 0
-				? repairData.sort(
-						(a, b) =>
-							new Date(b.created_at).getTime() -
-							new Date(a.created_at).getTime(),
-					)[0].created_at
-				: undefined;
-
-		// Get latest contact
-		const { data: latestContact } = await supabase
-			.from("customer_contact_history")
-			.select("contact_date, contact_type")
-			.eq("customer_phone", customerPhone)
-			.order("contact_date", { ascending: false })
-			.limit(1)
-			.single();
+		const lastRepair = repairs?.length
+			? Math.max(...repairs.map((r) => new Date(r.created_at).getTime()))
+			: undefined;
 
 		return {
 			personalInfo: {
 				phone: customer.phone,
 				fullName: customer.full_name,
-				email: customer.email,
-				address: customer.address || undefined,
-				category: customer.category,
+				address: customer.address,
 			},
-			businessInfo:
-				customer.category === "business"
-					? {
-							businessName: customer.business_name,
-							taxCode: customer.tax_code,
-						}
-					: undefined,
 			contactHistory: {
-				totalContacts: contactCount || 0,
-				lastContact: latestContact?.contact_date,
-				contactMethods: latestContact ? [latestContact.contact_type] : [],
+				totalContacts: 0, // Simplified - no contact tracking
+				lastContact: undefined,
 			},
 			repairHistory: {
-				totalRepairs: repairCount || 0,
+				totalRepairs,
 				activeRepairs,
-				lastRepair,
+				lastRepair: lastRepair ? new Date(lastRepair).toISOString() : undefined,
 			},
-			dataUsage: {
-				createdAt: customer.created_at,
-				lastUpdated: customer.updated_at,
-				accessCount: await getCustomerAccessCount(customerPhone),
-				lastAccessed: undefined,
+			dataProcessing: {
+				consentGiven: true, // Simplified - assume consent for existing customers
+				consentDate: customer.created_at,
+				dataRetentionPeriod: "5 years", // Standard retention
+			},
+			exportHistory: {
+				totalExports: 0, // Simplified - no export tracking
+				lastExport: undefined,
 			},
 		};
 	} catch (error) {
-		console.error("Error generating customer data summary:", error);
+		console.error("Error getting customer data summary:", error);
 		return null;
 	}
 }
 
 /**
- * Export customer data in specified format
+ * Export customer data for privacy compliance
  */
 export async function exportCustomerData(
 	customerPhone: string,
-	exportType: DataExportRequest["exportType"] = "full",
-	format: DataExportRequest["format"] = "json",
-	requestedBy?: string,
-): Promise<{
-	success: boolean;
-	data?: Record<string, unknown>;
-	downloadUrl?: string;
-	error?: string;
-}> {
+	exportType:
+		| "full"
+		| "personal_only"
+		| "contact_only"
+		| "history_only" = "full",
+): Promise<any> {
 	try {
-		// Validate consent first
-		const consentCheck = await validateCustomerConsent(customerPhone);
-		if (!consentCheck.hasValidConsent) {
-			return {
-				success: false,
-				error: "Customer has not provided required data processing consent",
-			};
+		const result: any = {};
+
+		if (exportType === "full" || exportType === "personal_only") {
+			// Get customer basic info
+			const { data: customer, error: customerError } = await supabase
+				.from("customers")
+				.select("*")
+				.eq("phone", customerPhone)
+				.single();
+
+			if (!customerError && customer) {
+				result.personalInfo = {
+					phone: customer.phone,
+					fullName: customer.full_name,
+					address: customer.address,
+					createdAt: customer.created_at,
+					updatedAt: customer.updated_at,
+				};
+			}
 		}
 
-		// Generate data summary
-		const dataSummary = await generateCustomerDataSummary(customerPhone);
-		if (!dataSummary) {
-			return {
-				success: false,
-				error: "Failed to generate customer data summary",
-			};
+		if (exportType === "full" || exportType === "history_only") {
+			// Get repair history
+			const { data: repairs, error: repairsError } = await supabase
+				.from("repair_tickets")
+				.select(`
+					id, ticket_code, status, device_info,
+					issue_description, customer_description,
+					total_cost, created_at, updated_at
+				`)
+				.eq("customer_phone", customerPhone);
+
+			if (!repairsError && repairs) {
+				result.repairHistory = repairs.map((repair) => ({
+					ticketCode: repair.ticket_code,
+					status: repair.status,
+					deviceInfo: repair.device_info,
+					issueDescription: repair.issue_description,
+					customerDescription: repair.customer_description,
+					totalCost: repair.total_cost,
+					createdAt: repair.created_at,
+					updatedAt: repair.updated_at,
+				}));
+			}
 		}
 
-		// Filter data based on export type
-		let exportData: Record<string, unknown> = {};
-
-		switch (exportType) {
-			case "personal_only":
-				exportData = {
-					personalInfo: dataSummary.personalInfo,
-					businessInfo: dataSummary.businessInfo,
-				} as Record<string, unknown>;
-				break;
-			case "contact_only":
-				exportData = {
-					personalInfo: {
-						phone: dataSummary.personalInfo.phone,
-						fullName: dataSummary.personalInfo.fullName,
-						email: dataSummary.personalInfo.email,
-					},
-					contactHistory: dataSummary.contactHistory,
-				} as Record<string, unknown>;
-				break;
-			case "history_only":
-				exportData = {
-					repairHistory: dataSummary.repairHistory,
-					contactHistory: dataSummary.contactHistory,
-				} as Record<string, unknown>;
-				break;
-			default:
-				exportData = dataSummary as unknown as Record<string, unknown>;
-		}
-
-		// Add export metadata
-		exportData._metadata = {
+		return {
 			exportDate: new Date().toISOString(),
 			exportType,
-			requestedBy,
-			customerPhone,
+			customerPhone: maskPhoneNumber(customerPhone), // Mask in export
+			data: result,
 		};
-
-		// Log export action
-		await logPrivacyAction(
-			customerPhone,
-			"data_export",
-			{ exportType, format },
-			requestedBy,
-		);
-
-		// Format data based on requested format
-		switch (format) {
-			case "json":
-				return {
-					success: true,
-					data: exportData,
-				};
-			case "csv":
-				// Data export functionality removed from Phase 2 requirements
-				return {
-					success: false,
-					error:
-						"CSV export functionality not implemented - removed from Phase 2",
-				};
-			case "pdf":
-				// Data export functionality removed from Phase 2 requirements
-				return {
-					success: false,
-					error:
-						"PDF export functionality not implemented - removed from Phase 2",
-				};
-			default:
-				return {
-					success: true,
-					data: exportData,
-				};
-		}
 	} catch (error) {
 		console.error("Error exporting customer data:", error);
-		return {
-			success: false,
-			error: error instanceof Error ? error.message : "Export failed",
-		};
+		throw error;
 	}
 }
 
 /**
- * Request customer data deletion (GDPR right to be forgotten)
+ * Delete customer data for privacy compliance
+ * Note: This only removes the customer record, not repair history (business requirement)
  */
-export async function requestDataDeletion(
+export async function deleteCustomerData(
 	customerPhone: string,
-	requestedBy?: string,
-	reason?: string,
-): Promise<{ success: boolean; error?: string }> {
+	requestedBy: string,
+): Promise<{ success: boolean; message: string }> {
 	try {
-		// Check if customer has active repair tickets
-		const { data: activeRepairs, error: repairError } = await supabase
+		// Check if customer has active repairs
+		const { data: activeRepairs, error: repairsError } = await supabase
 			.from("repair_tickets")
-			.select("id, status")
+			.select("id")
 			.eq("customer_phone", customerPhone)
-			.not("status", "in", '("completed","cancelled_by_customer","abandoned")');
+			.not("status", "in", ["completed", "cancelled_by_customer", "abandoned"]);
 
-		if (repairError) {
-			throw repairError;
+		if (repairsError) {
+			console.error("Error checking active repairs:", repairsError);
+			return { success: false, message: "Error checking active repairs" };
 		}
 
 		if (activeRepairs && activeRepairs.length > 0) {
 			return {
 				success: false,
-				error:
-					"Cannot delete customer data while there are active repair tickets",
+				message: "Cannot delete customer with active repair tickets",
 			};
 		}
 
-		// Log deletion request
-		await logPrivacyAction(
-			customerPhone,
-			"deletion_request",
-			{ reason },
-			requestedBy,
-		);
+		// Delete customer record
+		const { error: deleteError } = await supabase
+			.from("customers")
+			.delete()
+			.eq("phone", customerPhone);
 
-		// In a real implementation, this would mark data for deletion
-		// rather than immediately deleting it
-		console.log(
-			`[PRIVACY] Data deletion requested for customer ${customerPhone}`,
-		);
+		if (deleteError) {
+			console.error("Error deleting customer:", deleteError);
+			return { success: false, message: "Error deleting customer data" };
+		}
 
-		return { success: true };
-	} catch (error) {
-		console.error("Error requesting data deletion:", error);
 		return {
-			success: false,
-			error: error instanceof Error ? error.message : "Deletion request failed",
+			success: true,
+			message: "Customer data deleted successfully",
 		};
+	} catch (error) {
+		console.error("Error in deleteCustomerData:", error);
+		return { success: false, message: "Unexpected error occurred" };
 	}
 }
 
 /**
- * Simple CSV conversion utility
+ * Anonymize customer data (replace with generic values)
  */
-function convertToCSV(data: Record<string, unknown>): string {
-	// This is a simplified CSV converter
-	// In a real implementation, you'd use a proper CSV library
-	const headers = Object.keys(data);
-	const values = Object.values(data).map((v) =>
-		typeof v === "object" ? JSON.stringify(v) : String(v),
-	);
-
-	return [headers.join(","), values.join(",")].join("\n");
-}
-
-/**
- * Check customer data retention period
- */
-export async function checkDataRetention(customerPhone: string): Promise<{
-	shouldRetain: boolean;
-	retentionReason?: string;
-	canDelete: boolean;
-	nextReviewDate?: string;
-}> {
+export async function anonymizeCustomerData(
+	customerPhone: string,
+): Promise<{ success: boolean; message: string }> {
 	try {
-		const dataSummary = await generateCustomerDataSummary(customerPhone);
-		if (!dataSummary) {
-			return { shouldRetain: false, canDelete: true };
-		}
-
-		// Check if customer has recent activity
-		const lastActivity = dataSummary.repairHistory.lastRepair;
-		if (lastActivity) {
-			const lastActivityDate = new Date(lastActivity);
-			const threeYearsAgo = new Date();
-			threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
-
-			if (lastActivityDate > threeYearsAgo) {
-				return {
-					shouldRetain: true,
-					retentionReason: "Recent repair activity within 3 years",
-					canDelete: false,
-					nextReviewDate: new Date(
-						lastActivityDate.getFullYear() + 3,
-						lastActivityDate.getMonth(),
-						lastActivityDate.getDate(),
-					).toISOString(),
-				};
-			}
-		}
-
-		// Check if customer has active repairs
-		if (dataSummary.repairHistory.activeRepairs > 0) {
-			return {
-				shouldRetain: true,
-				retentionReason: "Active repair tickets",
-				canDelete: false,
-			};
-		}
-
-		return {
-			shouldRetain: false,
-			canDelete: true,
+		const anonymizedData = {
+			full_name: "Khách hàng đã xóa",
+			address: null,
 		};
-	} catch (error) {
-		console.error("Error checking data retention:", error);
-		return { shouldRetain: true, canDelete: false };
-	}
-}
 
-/**
- * Get customer access count from audit logs
- */
-async function getCustomerAccessCount(customerPhone: string): Promise<number> {
-	try {
-		const maskedPhone = maskPhoneNumber(customerPhone);
-		const { count, error } = await supabase
-			.from("customer_access_logs")
-			.select("*", { count: "exact", head: true })
-			.eq("customer_phone_masked", maskedPhone);
+		const { error } = await supabase
+			.from("customers")
+			.update(anonymizedData)
+			.eq("phone", customerPhone);
 
 		if (error) {
-			console.error("Error getting customer access count:", error);
-			return 0;
+			console.error("Error anonymizing customer:", error);
+			return { success: false, message: "Error anonymizing customer data" };
 		}
 
-		return count || 0;
+		return {
+			success: true,
+			message: "Customer data anonymized successfully",
+		};
 	} catch (error) {
-		console.error("Error getting customer access count:", error);
-		return 0;
+		console.error("Error in anonymizeCustomerData:", error);
+		return { success: false, message: "Unexpected error occurred" };
 	}
+}
+
+/**
+ * Check if customer phone number should be masked for display
+ */
+export function shouldMaskPhoneNumber(
+	viewerRole: string,
+	customerPhone: string,
+	viewerPhone?: string,
+): boolean {
+	// Admin and staff can see all phone numbers
+	if (viewerRole === "shop_owner" || viewerRole === "staff") {
+		return false;
+	}
+
+	// Customer can see their own phone number
+	if (viewerPhone === customerPhone) {
+		return false;
+	}
+
+	// Everyone else gets masked phone
+	return true;
+}
+
+/**
+ * Get privacy-compliant customer display data
+ */
+export function getDisplayCustomerData(
+	customer: any,
+	viewerRole: string,
+	viewerPhone?: string,
+): {
+	phone: string;
+	fullName: string;
+	address?: string;
+} {
+	const shouldMask = shouldMaskPhoneNumber(
+		viewerRole,
+		customer.phone,
+		viewerPhone,
+	);
+
+	return {
+		phone: shouldMask ? maskPhoneNumber(customer.phone) : customer.phone,
+		fullName: customer.full_name,
+		address: viewerRole === "public" ? undefined : customer.address,
+	};
 }

@@ -165,7 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		try {
 			// First, clear any stale auth data
 			clearAuthData();
-			
+
 			const { error } = await supabase.auth.signInWithPassword({
 				email,
 				password,

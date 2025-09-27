@@ -35,9 +35,7 @@ export interface CustomerTableProps {
 export function getCustomerStatusBadge(customer: CustomerWithStats) {
 	if (customer.activeRepairs > 0) {
 		return (
-			<Badge variant="default">
-				Đang sửa chữa ({customer.activeRepairs})
-			</Badge>
+			<Badge variant="default">Đang sửa chữa ({customer.activeRepairs})</Badge>
 		);
 	}
 	if (customer.totalRepairs > 0) {
@@ -52,7 +50,7 @@ export function getCustomerStatusBadge(customer: CustomerWithStats) {
 export function createCustomerColumns({
 	onViewCustomer,
 	onEditCustomer,
-	isOptimistic = () => false
+	isOptimistic = () => false,
 }: {
 	onViewCustomer?: (customer: CustomerWithStats) => void;
 	onEditCustomer?: (customer: CustomerWithStats) => void;
@@ -89,8 +87,8 @@ export function createCustomerColumns({
 									</Badge>
 								)}
 							</div>
-							<div className="text-sm text-muted-foreground truncate max-w-xs">
-								{customer.notes || "Không có ghi chú"}
+							<div className="text-sm text-muted-foreground">
+								Khách hàng {customer.totalRepairs > 0 ? "cũ" : "mới"}
 							</div>
 						</div>
 					</div>
@@ -208,17 +206,21 @@ export function createCustomerColumns({
 /**
  * Customer statistics cards
  */
-export function CustomerStatisticsCards({ customers }: { customers: CustomerWithStats[] }) {
+export function CustomerStatisticsCards({
+	customers,
+}: { customers: CustomerWithStats[] }) {
 	const stats = useMemo(() => {
-		const newCustomers = customers.filter(c => c.totalRepairs === 0).length;
-		const activeRepairsCustomers = customers.filter(c => c.activeRepairs > 0).length;
-		const loyalCustomers = customers.filter(c => c.totalRepairs >= 5).length;
+		const newCustomers = customers.filter((c) => c.totalRepairs === 0).length;
+		const activeRepairsCustomers = customers.filter(
+			(c) => c.activeRepairs > 0,
+		).length;
+		const loyalCustomers = customers.filter((c) => c.totalRepairs >= 5).length;
 
 		return {
 			total: customers.length,
 			newCustomers,
 			activeRepairsCustomers,
-			loyalCustomers
+			loyalCustomers,
 		};
 	}, [customers]);
 
@@ -226,9 +228,7 @@ export function CustomerStatisticsCards({ customers }: { customers: CustomerWith
 		<div className="grid gap-4 md:grid-cols-4">
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">
-						Tổng khách hàng
-					</CardTitle>
+					<CardTitle className="text-sm font-medium">Tổng khách hàng</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="text-2xl font-bold">{stats.total}</div>
@@ -236,9 +236,7 @@ export function CustomerStatisticsCards({ customers }: { customers: CustomerWith
 			</Card>
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">
-						Khách hàng mới
-					</CardTitle>
+					<CardTitle className="text-sm font-medium">Khách hàng mới</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<div className="text-2xl font-bold">{stats.newCustomers}</div>
@@ -249,7 +247,9 @@ export function CustomerStatisticsCards({ customers }: { customers: CustomerWith
 					<CardTitle className="text-sm font-medium">Đang sửa chữa</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<div className="text-2xl font-bold">{stats.activeRepairsCustomers}</div>
+					<div className="text-2xl font-bold">
+						{stats.activeRepairsCustomers}
+					</div>
 				</CardContent>
 			</Card>
 			<Card>
@@ -273,11 +273,12 @@ export function CustomerTable({
 	customers,
 	onViewCustomer,
 	onEditCustomer,
-	isOptimistic = () => false
+	isOptimistic = () => false,
 }: CustomerTableProps) {
-	const columns = useMemo(() =>
-		createCustomerColumns({ onViewCustomer, onEditCustomer, isOptimistic }),
-		[onViewCustomer, onEditCustomer, isOptimistic]
+	const columns = useMemo(
+		() =>
+			createCustomerColumns({ onViewCustomer, onEditCustomer, isOptimistic }),
+		[onViewCustomer, onEditCustomer, isOptimistic],
 	);
 
 	return (
@@ -317,7 +318,7 @@ export function CustomerInfo({
 	showStats = true,
 	showActions = true,
 	onView,
-	onEdit
+	onEdit,
 }: {
 	customer: CustomerWithStats;
 	showStats?: boolean;

@@ -4,7 +4,12 @@
  */
 
 import type { PostgrestError } from "@supabase/supabase-js";
-import type { Customer, RepairTicket, Part, UserProfile } from "./database-types";
+import type {
+	Customer,
+	Part,
+	RepairTicket,
+	UserProfile,
+} from "./database-types";
 
 /**
  * Generic Supabase query result type

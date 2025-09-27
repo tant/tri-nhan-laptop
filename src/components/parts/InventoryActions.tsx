@@ -23,7 +23,7 @@ export const InventoryActions = memo(function InventoryActions({
 	onAddPart,
 	onBulkImport,
 	onExport,
-	loading = false
+	loading = false,
 }: InventoryActionsProps) {
 	return (
 		<div className="flex gap-2">
@@ -33,7 +33,9 @@ export const InventoryActions = memo(function InventoryActions({
 				disabled={loading}
 				title="Làm mới dữ liệu"
 			>
-				<RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
+				<RefreshCw
+					className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+				/>
 				Làm mới
 			</Button>
 			<Button
@@ -52,10 +54,7 @@ export const InventoryActions = memo(function InventoryActions({
 				<Upload className="h-4 w-4 mr-2" />
 				Nhập CSV
 			</Button>
-			<Button
-				onClick={onAddPart}
-				title="Thêm linh kiện mới"
-			>
+			<Button onClick={onAddPart} title="Thêm linh kiện mới">
 				<Plus className="mr-2 h-4 w-4" />
 				Thêm linh kiện
 			</Button>
@@ -69,7 +68,7 @@ export const InventoryActions = memo(function InventoryActions({
 export const CompactInventoryActions = memo(function CompactInventoryActions({
 	onRefresh,
 	onAddPart,
-	loading = false
+	loading = false,
 }: Pick<InventoryActionsProps, "onRefresh" | "onAddPart" | "loading">) {
 	return (
 		<div className="flex gap-2">
@@ -95,7 +94,7 @@ export function BulkOperationActions({
 	selectedCount,
 	onBulkStockAdjustment,
 	onBulkDelete,
-	onBulkExport
+	onBulkExport,
 }: {
 	selectedCount: number;
 	onBulkStockAdjustment?: () => void;
@@ -138,7 +137,7 @@ export function PartQuickActions({
 	onStockAdjustment,
 	onEdit,
 	onDelete,
-	disabled = false
+	disabled = false,
 }: {
 	onStockAdjustment: () => void;
 	onEdit: () => void;
@@ -187,7 +186,7 @@ export function PartQuickActions({
 export function InventoryPageHeader({
 	title = "Quản lý linh kiện",
 	description = "Theo dõi kho linh kiện và phụ kiện laptop",
-	actions
+	actions,
 }: {
 	title?: string;
 	description?: string;
@@ -212,7 +211,7 @@ export function InventoryFiltersActions({
 	onSortByName,
 	onSortByStock,
 	onSortByValue,
-	currentSort
+	currentSort,
 }: {
 	onClearFilters: () => void;
 	onSortByName: () => void;
@@ -222,7 +221,9 @@ export function InventoryFiltersActions({
 }) {
 	return (
 		<div className="flex items-center gap-2">
-			<span className="text-sm font-medium text-muted-foreground">Sắp xếp:</span>
+			<span className="text-sm font-medium text-muted-foreground">
+				Sắp xếp:
+			</span>
 			<div className="flex gap-1">
 				<Button
 					variant={currentSort === "name" ? "default" : "outline"}

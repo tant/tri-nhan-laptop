@@ -64,7 +64,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 	selectedCategory,
 	showSelectButton = false,
 }) => {
-	const { getTemplates } = useRepairTemplates();
+	const { getTemplates: _getTemplates } = useRepairTemplates();
 
 	const [templates, setTemplates] = useState<RepairTemplate[]>([]);
 	const [filteredTemplates, setFilteredTemplates] = useState<RepairTemplate[]>(

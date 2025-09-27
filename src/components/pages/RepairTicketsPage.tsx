@@ -1,8 +1,11 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { StatusBadge, PriorityBadge } from "@/components/repairs/StatusBadgeComponents";
-import { PrimaryStatisticsCards } from "@/components/repairs/TicketStatisticsCards";
+import {
+	PriorityBadge,
+	StatusBadge,
+} from "@/components/repairs/StatusBadgeComponents";
 import { TicketActivityIndicator } from "@/components/repairs/TicketActivityIndicator";
+import { PrimaryStatisticsCards } from "@/components/repairs/TicketStatisticsCards";
 import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
 import { AssignTechnicianDropdown } from "@/components/tickets/AssignTechnicianDropdown";
 import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown";
@@ -10,9 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { useMultipleTicketsActivity } from "@/hooks/use-ticket-activity";
+import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
 import { Currency } from "@/lib/formatting";
 import { supabase } from "@/lib/supabase";
-import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, Eye, Plus, RefreshCw } from "lucide-react";
@@ -93,15 +96,21 @@ export function RepairTicketsPage() {
 					// Handle individual record changes instead of full refetch
 					if (payload.eventType === "INSERT" && payload.new) {
 						// Add new repair ticket to list
-						setRepairs(prev => [payload.new as RepairWithDetails, ...prev]);
+						setRepairs((prev) => [payload.new as RepairWithDetails, ...prev]);
 					} else if (payload.eventType === "UPDATE" && payload.new) {
 						// Update existing repair ticket
-						setRepairs(prev => prev.map(repair =>
-							repair.id === payload.new.id ? { ...repair, ...payload.new } : repair
-						));
+						setRepairs((prev) =>
+							prev.map((repair) =>
+								repair.id === payload.new.id
+									? { ...repair, ...payload.new }
+									: repair,
+							),
+						);
 					} else if (payload.eventType === "DELETE" && payload.old) {
 						// Remove deleted repair ticket
-						setRepairs(prev => prev.filter(repair => repair.id !== payload.old.id));
+						setRepairs((prev) =>
+							prev.filter((repair) => repair.id !== payload.old.id),
+						);
 					} else {
 						// Fallback to full refetch for complex changes
 						fetchRepairs();
@@ -114,9 +123,6 @@ export function RepairTicketsPage() {
 			supabase.removeChannel(channel);
 		};
 	}, [fetchRepairs]);
-
-
-
 
 	// Handle status transition success - temporarily disabled
 	// const handleStatusTransitionSuccess = (updatedRepair: Repair) => {

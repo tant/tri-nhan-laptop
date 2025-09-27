@@ -3,12 +3,9 @@
  * Focused Create, Read, Update, Delete operations for customers
  */
 
+import type { NewCustomer, UpdateCustomer } from "@/lib/database-types";
+import { normalizePhone, validatePhone } from "@/lib/phone-utils";
 import { supabase } from "@/lib/supabase";
-import type { Customer, NewCustomer, UpdateCustomer } from "@/lib/database-types";
-import {
-	normalizePhone,
-	validatePhone,
-} from "@/lib/phone-utils";
 import { useCallback, useState } from "react";
 import { useCustomerSearch } from "./use-customer-search";
 import type { CustomerWithStats } from "./use-customer-search";
@@ -121,7 +118,6 @@ export function useCustomerCrud() {
 					phone,
 					full_name: fullName,
 					address: null,
-					notes: "Tự động tạo từ phiếu sửa chữa",
 				});
 			} catch (err) {
 				const error =
@@ -255,7 +251,9 @@ export function useCustomerCrud() {
 					.not("status", "in", "(completed,cancelled_by_customer,abandoned)");
 
 				if (repairsError) {
-					throw new Error(`Không thể kiểm tra phiếu sửa chữa: ${repairsError.message}`);
+					throw new Error(
+						`Không thể kiểm tra phiếu sửa chữa: ${repairsError.message}`,
+					);
 				}
 
 				if (activeRepairs && activeRepairs.length > 0) {

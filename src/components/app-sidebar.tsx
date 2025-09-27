@@ -30,7 +30,6 @@ function getNavigationData(
 	hasPermission: (permission: string) => boolean,
 	isRole: (role: string) => boolean,
 ) {
-
 	const navMain = [
 		{
 			title: "Quản lý",
@@ -196,7 +195,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						</div>
 						<div className="grid flex-1 text-left text-sm leading-tight">
 							<span className="truncate font-medium">Trí Nhân Laptop</span>
-							<span className="truncate text-xs text-sidebar-muted-foreground">Cửa hàng sửa chữa</span>
+							<span className="truncate text-xs text-sidebar-muted-foreground">
+								Cửa hàng sửa chữa
+							</span>
 						</div>
 					</div>
 					<NotificationCenter userId={profile?.id} className="mr-2" />

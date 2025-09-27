@@ -41,7 +41,11 @@ export function usePartsUsage() {
 	 * Add parts to a repair
 	 */
 	const addPartsToRepair = useCallback(
-		async (repairId: string, parts: PartUsage[], userId: string): Promise<boolean> => {
+		async (
+			repairId: string,
+			parts: PartUsage[],
+			userId: string,
+		): Promise<boolean> => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -59,7 +63,9 @@ export function usePartsUsage() {
 						.single();
 
 					if (fetchError) {
-						throw new Error(`Không thể tải thông tin linh kiện: ${fetchError.message}`);
+						throw new Error(
+							`Không thể tải thông tin linh kiện: ${fetchError.message}`,
+						);
 					}
 
 					// Check if sufficient stock available
@@ -70,7 +76,8 @@ export function usePartsUsage() {
 					}
 
 					// Calculate new stock quantity
-					const newStockQuantity = currentPart.current_stock - partUsage.quantity_used;
+					const newStockQuantity =
+						currentPart.current_stock - partUsage.quantity_used;
 
 					// Prepare stock update
 					partUpdates.push({
@@ -103,7 +110,9 @@ export function usePartsUsage() {
 						.eq("id", update.id);
 
 					if (updateError) {
-						throw new Error(`Không thể cập nhật tồn kho: ${updateError.message}`);
+						throw new Error(
+							`Không thể cập nhật tồn kho: ${updateError.message}`,
+						);
 					}
 				}
 
@@ -113,7 +122,9 @@ export function usePartsUsage() {
 					.insert(usageRecords);
 
 				if (usageError) {
-					throw new Error(`Không thể ghi nhận sử dụng linh kiện: ${usageError.message}`);
+					throw new Error(
+						`Không thể ghi nhận sử dụng linh kiện: ${usageError.message}`,
+					);
 				}
 
 				// Log activity
@@ -121,7 +132,8 @@ export function usePartsUsage() {
 
 				return true;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -134,59 +146,71 @@ export function usePartsUsage() {
 	/**
 	 * Get parts used in a repair
 	 */
-	const getRepairParts = useCallback(async (repairId: string): Promise<RepairPart[]> => {
-		try {
-			setLoading(true);
-			setError(null);
+	const getRepairParts = useCallback(
+		async (repairId: string): Promise<RepairPart[]> => {
+			try {
+				setLoading(true);
+				setError(null);
 
-			const { data, error: queryError } = await supabase
-				.from("repair_parts")
-				.select(`
+				const { data, error: queryError } = await supabase
+					.from("repair_parts")
+					.select(`
 					*,
 					part:parts(*)
 				`)
-				.eq("repair_id", repairId)
-				.order("used_at", { ascending: false });
+					.eq("repair_id", repairId)
+					.order("used_at", { ascending: false });
 
-			if (queryError) {
-				throw new Error(`Không thể tải danh sách linh kiện đã sử dụng: ${queryError.message}`);
+				if (queryError) {
+					throw new Error(
+						`Không thể tải danh sách linh kiện đã sử dụng: ${queryError.message}`,
+					);
+				}
+
+				return data || [];
+			} catch (err) {
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
+				setError(error);
+				throw error;
+			} finally {
+				setLoading(false);
 			}
-
-			return data || [];
-		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
-			setError(error);
-			throw error;
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+		},
+		[],
+	);
 
 	/**
 	 * Calculate total parts cost for a repair
 	 */
-	const calculateRepairPartsCost = useCallback(async (repairId: string): Promise<number> => {
-		try {
-			const { data, error: queryError } = await supabase
-				.from("repair_parts")
-				.select("total_cost")
-				.eq("repair_id", repairId);
+	const calculateRepairPartsCost = useCallback(
+		async (repairId: string): Promise<number> => {
+			try {
+				const { data, error: queryError } = await supabase
+					.from("repair_parts")
+					.select("total_cost")
+					.eq("repair_id", repairId);
 
-			if (queryError) {
-				throw new Error(`Không thể tính tổng chi phí linh kiện: ${queryError.message}`);
+				if (queryError) {
+					throw new Error(
+						`Không thể tính tổng chi phí linh kiện: ${queryError.message}`,
+					);
+				}
+
+				const totalCost = (data || []).reduce(
+					(sum, item) => sum + (item.total_cost || 0),
+					0,
+				);
+
+				return totalCost;
+			} catch (err) {
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
+				throw error;
 			}
-
-			const totalCost = (data || []).reduce(
-				(sum, item) => sum + (item.total_cost || 0),
-				0,
-			);
-
-			return totalCost;
-		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
-			throw error;
-		}
-	}, []);
+		},
+		[],
+	);
 
 	/**
 	 * Remove/return parts from a repair (for corrections)
@@ -205,7 +229,9 @@ export function usePartsUsage() {
 					.single();
 
 				if (fetchError) {
-					throw new Error(`Không thể tải thông tin linh kiện: ${fetchError.message}`);
+					throw new Error(
+						`Không thể tải thông tin linh kiện: ${fetchError.message}`,
+					);
 				}
 
 				// Get current part stock
@@ -216,11 +242,14 @@ export function usePartsUsage() {
 					.single();
 
 				if (partFetchError) {
-					throw new Error(`Không thể tải thông tin tồn kho: ${partFetchError.message}`);
+					throw new Error(
+						`Không thể tải thông tin tồn kho: ${partFetchError.message}`,
+					);
 				}
 
 				// Return parts to stock
-				const newStockQuantity = currentPart.current_stock + repairPart.quantity_used;
+				const newStockQuantity =
+					currentPart.current_stock + repairPart.quantity_used;
 
 				const { error: updateError } = await supabase
 					.from("parts")
@@ -241,7 +270,9 @@ export function usePartsUsage() {
 					.eq("id", repairPartId);
 
 				if (deleteError) {
-					throw new Error(`Không thể xóa bản ghi sử dụng linh kiện: ${deleteError.message}`);
+					throw new Error(
+						`Không thể xóa bản ghi sử dụng linh kiện: ${deleteError.message}`,
+					);
 				}
 
 				// Log the return
@@ -249,7 +280,8 @@ export function usePartsUsage() {
 
 				return true;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -282,11 +314,14 @@ export function usePartsUsage() {
 					.single();
 
 				if (fetchError) {
-					throw new Error(`Không thể tải thông tin linh kiện: ${fetchError.message}`);
+					throw new Error(
+						`Không thể tải thông tin linh kiện: ${fetchError.message}`,
+					);
 				}
 
 				// Calculate quantity difference
-				const quantityDifference = newQuantity - currentRepairPart.quantity_used;
+				const quantityDifference =
+					newQuantity - currentRepairPart.quantity_used;
 
 				if (quantityDifference !== 0) {
 					// Get current part stock
@@ -297,18 +332,24 @@ export function usePartsUsage() {
 						.single();
 
 					if (partFetchError) {
-						throw new Error(`Không thể tải thông tin tồn kho: ${partFetchError.message}`);
+						throw new Error(
+							`Không thể tải thông tin tồn kho: ${partFetchError.message}`,
+						);
 					}
 
 					// Check if sufficient stock for increase
-					if (quantityDifference > 0 && currentPart.current_stock < quantityDifference) {
+					if (
+						quantityDifference > 0 &&
+						currentPart.current_stock < quantityDifference
+					) {
 						throw new Error(
 							`Không đủ tồn kho để tăng số lượng. Tồn kho hiện tại: ${currentPart.current_stock}`,
 						);
 					}
 
 					// Update part stock
-					const newStockQuantity = currentPart.current_stock - quantityDifference;
+					const newStockQuantity =
+						currentPart.current_stock - quantityDifference;
 
 					const { error: updateStockError } = await supabase
 						.from("parts")
@@ -319,7 +360,9 @@ export function usePartsUsage() {
 						.eq("id", currentRepairPart.part_id);
 
 					if (updateStockError) {
-						throw new Error(`Không thể cập nhật tồn kho: ${updateStockError.message}`);
+						throw new Error(
+							`Không thể cập nhật tồn kho: ${updateStockError.message}`,
+						);
 					}
 				}
 
@@ -338,7 +381,9 @@ export function usePartsUsage() {
 					.single();
 
 				if (updateError) {
-					throw new Error(`Không thể cập nhật thông tin sử dụng linh kiện: ${updateError.message}`);
+					throw new Error(
+						`Không thể cập nhật thông tin sử dụng linh kiện: ${updateError.message}`,
+					);
 				}
 
 				// Log the update
@@ -346,7 +391,8 @@ export function usePartsUsage() {
 
 				return updatedRepairPart;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -359,46 +405,49 @@ export function usePartsUsage() {
 	/**
 	 * Get parts usage summary for a repair
 	 */
-	const getRepairPartsSummary = useCallback(
-		async (repairId: string) => {
-			try {
-				const { data, error: queryError } = await supabase
-					.from("repair_parts")
-					.select(`
+	const getRepairPartsSummary = useCallback(async (repairId: string) => {
+		try {
+			const { data, error: queryError } = await supabase
+				.from("repair_parts")
+				.select(`
 						quantity_used,
 						total_cost,
 						part:parts(name, category)
 					`)
-					.eq("repair_id", repairId);
+				.eq("repair_id", repairId);
 
-				if (queryError) {
-					throw new Error(`Không thể tải tóm tắt linh kiện: ${queryError.message}`);
-				}
-
-				const summary = {
-					totalParts: data?.length || 0,
-					totalCost: (data || []).reduce((sum, item) => sum + (item.total_cost || 0), 0),
-					categories: {} as Record<string, { count: number; cost: number }>,
-				};
-
-				// Group by category
-				(data || []).forEach((item) => {
-					const category = item.part?.category || "Khác";
-					if (!summary.categories[category]) {
-						summary.categories[category] = { count: 0, cost: 0 };
-					}
-					summary.categories[category].count += item.quantity_used;
-					summary.categories[category].cost += item.total_cost || 0;
-				});
-
-				return summary;
-			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
-				throw error;
+			if (queryError) {
+				throw new Error(
+					`Không thể tải tóm tắt linh kiện: ${queryError.message}`,
+				);
 			}
-		},
-		[],
-	);
+
+			const summary = {
+				totalParts: data?.length || 0,
+				totalCost: (data || []).reduce(
+					(sum, item) => sum + (item.total_cost || 0),
+					0,
+				),
+				categories: {} as Record<string, { count: number; cost: number }>,
+			};
+
+			// Group by category
+			(data || []).forEach((item) => {
+				const category = item.part?.category || "Khác";
+				if (!summary.categories[category]) {
+					summary.categories[category] = { count: 0, cost: 0 };
+				}
+				summary.categories[category].count += item.quantity_used;
+				summary.categories[category].cost += item.total_cost || 0;
+			});
+
+			return summary;
+		} catch (err) {
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
+			throw error;
+		}
+	}, []);
 
 	return {
 		loading,

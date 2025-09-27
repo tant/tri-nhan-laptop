@@ -3,8 +3,8 @@
  * Handles ticket code generation, status updates, and real-time synchronization
  */
 
+import { type RepairStatus, getRepairStatusLabel } from "@/lib/repair-status";
 import { supabase } from "@/lib/supabase";
-import { getRepairStatusLabel, type RepairStatus } from "@/lib/repair-status";
 import { useCallback, useEffect, useState } from "react";
 
 export interface TicketInfo {

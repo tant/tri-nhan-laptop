@@ -5,9 +5,15 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Currency } from "@/lib/formatting";
 import type { Part } from "@/lib/database-types";
-import { AlertTriangle, Bell, DollarSign, Package, TrendingUp } from "lucide-react";
+import { Currency } from "@/lib/formatting";
+import {
+	AlertTriangle,
+	Bell,
+	DollarSign,
+	Package,
+	TrendingUp,
+} from "lucide-react";
 import { useMemo } from "react";
 
 export interface InventoryStatisticsProps {
@@ -27,18 +33,27 @@ export interface InventoryStats {
 /**
  * Calculate comprehensive inventory statistics
  */
-export function useInventoryStatistics(parts: Part[], totalInventoryValue?: number): InventoryStats {
+export function useInventoryStatistics(
+	parts: Part[],
+	totalInventoryValue?: number,
+): InventoryStats {
 	return useMemo(() => {
-		const outOfStockParts = parts.filter(part => part.current_stock === 0);
-		const lowStockParts = parts.filter(part =>
-			part.current_stock > 0 && part.current_stock <= (part.min_stock_level || 5)
+		const outOfStockParts = parts.filter((part) => part.current_stock === 0);
+		const lowStockParts = parts.filter(
+			(part) =>
+				part.current_stock > 0 &&
+				part.current_stock <= (part.min_stock_level || 5),
 		);
-		const categories = [...new Set(parts.map(part => part.category).filter(Boolean))];
+		const categories = [
+			...new Set(parts.map((part) => part.category).filter(Boolean)),
+		];
 
 		// Calculate total value if not provided
-		const calculatedValue = totalInventoryValue ?? parts.reduce((total, part) => {
-			return total + ((part.unit_price || 0) * part.current_stock);
-		}, 0);
+		const calculatedValue =
+			totalInventoryValue ??
+			parts.reduce((total, part) => {
+				return total + (part.unit_price || 0) * part.current_stock;
+			}, 0);
 
 		const averageValue = parts.length > 0 ? calculatedValue / parts.length : 0;
 
@@ -48,7 +63,7 @@ export function useInventoryStatistics(parts: Part[], totalInventoryValue?: numb
 			lowStock: lowStockParts.length,
 			categories: categories.length,
 			totalValue: calculatedValue,
-			averageValue
+			averageValue,
 		};
 	}, [parts, totalInventoryValue]);
 }
@@ -58,25 +73,26 @@ export function useInventoryStatistics(parts: Part[], totalInventoryValue?: numb
  */
 export function useLowStockParts(parts: Part[]) {
 	return useMemo(() => {
-		return parts.filter(part =>
-			part.current_stock <= (part.min_stock_level || 5)
-		).sort((a, b) => a.current_stock - b.current_stock);
+		return parts
+			.filter((part) => part.current_stock <= (part.min_stock_level || 5))
+			.sort((a, b) => a.current_stock - b.current_stock);
 	}, [parts]);
 }
 
 /**
  * Main statistics cards display
  */
-export function InventoryStatisticsCards({ parts, totalInventoryValue }: InventoryStatisticsProps) {
+export function InventoryStatisticsCards({
+	parts,
+	totalInventoryValue,
+}: InventoryStatisticsProps) {
 	const stats = useInventoryStatistics(parts, totalInventoryValue);
 
 	return (
 		<div className="grid gap-4 md:grid-cols-5">
 			<Card>
 				<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-					<CardTitle className="text-sm font-medium">
-						Tổng linh kiện
-					</CardTitle>
+					<CardTitle className="text-sm font-medium">Tổng linh kiện</CardTitle>
 					<Package className="h-4 w-4 text-muted-foreground" />
 				</CardHeader>
 				<CardContent>
@@ -153,13 +169,21 @@ export function InventoryStatisticsCards({ parts, totalInventoryValue }: Invento
 /**
  * Compact statistics display
  */
-export function CompactInventoryStats({ parts, totalInventoryValue }: InventoryStatisticsProps) {
+export function CompactInventoryStats({
+	parts,
+	totalInventoryValue,
+}: InventoryStatisticsProps) {
 	const stats = useInventoryStatistics(parts, totalInventoryValue);
 
 	return (
 		<div className="flex items-center gap-6 text-sm text-muted-foreground">
-			<span>Tổng: <strong className="text-foreground">{stats.total}</strong></span>
-			<span>Danh mục: <strong className="text-foreground">{stats.categories}</strong></span>
+			<span>
+				Tổng: <strong className="text-foreground">{stats.total}</strong>
+			</span>
+			<span>
+				Danh mục:{" "}
+				<strong className="text-foreground">{stats.categories}</strong>
+			</span>
 			{stats.outOfStock > 0 && (
 				<span className="text-red-600">
 					Hết hàng: <strong>{stats.outOfStock}</strong>
@@ -170,9 +194,12 @@ export function CompactInventoryStats({ parts, totalInventoryValue }: InventoryS
 					Sắp hết: <strong>{stats.lowStock}</strong>
 				</span>
 			)}
-			<span>Giá trị: <strong className="text-foreground">
-				{Currency.formatCompact(stats.totalValue)}
-			</strong></span>
+			<span>
+				Giá trị:{" "}
+				<strong className="text-foreground">
+					{Currency.formatCompact(stats.totalValue)}
+				</strong>
+			</span>
 		</div>
 	);
 }
@@ -210,7 +237,10 @@ export function LowStockAlert({ parts }: { parts: Part[] }) {
 						</Badge>
 					))}
 					{lowStockParts.length > 10 && (
-						<Badge variant="outline" className="text-orange-700 border-orange-300">
+						<Badge
+							variant="outline"
+							className="text-orange-700 border-orange-300"
+						>
 							+{lowStockParts.length - 10} khác
 						</Badge>
 					)}
@@ -227,7 +257,7 @@ export function CategoryValueBreakdown({ parts }: { parts: Part[] }) {
 	const categoryValues = useMemo(() => {
 		const values: Record<string, { count: number; value: number }> = {};
 
-		parts.forEach(part => {
+		parts.forEach((part) => {
 			const category = part.category || "Không phân loại";
 			const value = (part.unit_price || 0) * part.current_stock;
 
@@ -253,7 +283,8 @@ export function CategoryValueBreakdown({ parts }: { parts: Part[] }) {
 			</CardHeader>
 			<CardContent className="space-y-2">
 				{categoryValues.map(({ category, count, value }) => {
-					const percentage = totalValue > 0 ? Math.round((value / totalValue) * 100) : 0;
+					const percentage =
+						totalValue > 0 ? Math.round((value / totalValue) * 100) : 0;
 					return (
 						<div key={category} className="flex justify-between items-center">
 							<div>
@@ -283,20 +314,21 @@ export function CategoryValueBreakdown({ parts }: { parts: Part[] }) {
  */
 export function StockLevelDistribution({ parts }: { parts: Part[] }) {
 	const distribution = useMemo(() => {
-		const outOfStock = parts.filter(p => p.current_stock === 0).length;
-		const lowStock = parts.filter(p =>
-			p.current_stock > 0 && p.current_stock <= (p.min_stock_level || 5)
+		const outOfStock = parts.filter((p) => p.current_stock === 0).length;
+		const lowStock = parts.filter(
+			(p) => p.current_stock > 0 && p.current_stock <= (p.min_stock_level || 5),
 		).length;
-		const adequateStock = parts.filter(p =>
-			p.current_stock > (p.min_stock_level || 5) && p.current_stock <= 100
+		const adequateStock = parts.filter(
+			(p) =>
+				p.current_stock > (p.min_stock_level || 5) && p.current_stock <= 100,
 		).length;
-		const highStock = parts.filter(p => p.current_stock > 100).length;
+		const highStock = parts.filter((p) => p.current_stock > 100).length;
 
 		return [
 			{ label: "Hết hàng", count: outOfStock, color: "text-red-600" },
 			{ label: "Sắp hết", count: lowStock, color: "text-orange-600" },
 			{ label: "Đủ hàng", count: adequateStock, color: "text-green-600" },
-			{ label: "Dư thừa", count: highStock, color: "text-blue-600" }
+			{ label: "Dư thừa", count: highStock, color: "text-blue-600" },
 		];
 	}, [parts]);
 
@@ -315,7 +347,9 @@ export function StockLevelDistribution({ parts }: { parts: Part[] }) {
 							<span className={`text-sm font-medium ${color}`}>{label}</span>
 							<div className="flex items-center gap-2">
 								<span className="text-sm font-medium">{count}</span>
-								<span className="text-xs text-muted-foreground">({percentage}%)</span>
+								<span className="text-xs text-muted-foreground">
+									({percentage}%)
+								</span>
 							</div>
 						</div>
 					);

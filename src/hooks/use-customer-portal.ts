@@ -1,6 +1,10 @@
-import { supabase } from "@/lib/supabase";
-import type { RepairTicket, Customer, RepairStatus } from "@/lib/database-types";
+import type {
+	Customer,
+	RepairStatus,
+	RepairTicket,
+} from "@/lib/database-types";
 import { Currency } from "@/lib/formatting";
+import { supabase } from "@/lib/supabase";
 import { useCallback, useState } from "react";
 
 export interface CustomerRepairInfo extends RepairTicket {

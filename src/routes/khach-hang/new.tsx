@@ -1,9 +1,14 @@
-import { type CustomerProfileData, createDefaultCustomerProfile } from "@/components/customers/CustomerProfileForm";
-import { lazy, Suspense } from "react";
+import {
+	type CustomerProfileData,
+	createEmptyCustomerProfile,
+} from "@/components/customers/CustomerProfileForm";
+import { Suspense, lazy } from "react";
 
 // Lazy load the heavy form component
 const CustomerProfileForm = lazy(() =>
-	import("@/components/customers/CustomerProfileForm").then(m => ({ default: m.CustomerProfileForm }))
+	import("@/components/customers/CustomerProfileForm").then((m) => ({
+		default: m.CustomerProfileForm,
+	})),
 );
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
@@ -17,7 +22,7 @@ function ProtectedCreateCustomer() {
 	const navigate = useNavigate();
 	const { createCustomer } = useCustomerCrud();
 	const [customerData, setCustomerData] = useState<CustomerProfileData>(
-		createDefaultCustomerProfile(),
+		createEmptyCustomerProfile(),
 	);
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -70,7 +75,11 @@ function ProtectedCreateCustomer() {
 
 				<Card>
 					<CardContent className="p-6">
-						<Suspense fallback={<div className="h-96 animate-pulse bg-gray-100 rounded" />}>
+						<Suspense
+							fallback={
+								<div className="h-96 animate-pulse bg-gray-100 rounded" />
+							}
+						>
 							<CustomerProfileForm
 								value={customerData}
 								onChange={setCustomerData}

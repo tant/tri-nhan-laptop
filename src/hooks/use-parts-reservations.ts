@@ -49,13 +49,16 @@ export function usePartsReservations() {
 				setError(null);
 
 				// Check if RPC function exists, otherwise create manual reservation
-				const { data, error: rpcError } = await supabase.rpc("reserve_parts_for_repair", {
-					p_part_id: partId,
-					p_repair_id: repairId,
-					p_quantity: quantity,
-					p_reserved_by: userId,
-					p_duration_hours: durationHours,
-				});
+				const { data, error: rpcError } = await supabase.rpc(
+					"reserve_parts_for_repair",
+					{
+						p_part_id: partId,
+						p_repair_id: repairId,
+						p_quantity: quantity,
+						p_reserved_by: userId,
+						p_duration_hours: durationHours,
+					},
+				);
 
 				if (rpcError) {
 					// Fallback: manual reservation if RPC not available
@@ -78,7 +81,9 @@ export function usePartsReservations() {
 						.single();
 
 					if (insertError) {
-						throw new Error(`Không thể tạo đặt chỗ linh kiện: ${insertError.message}`);
+						throw new Error(
+							`Không thể tạo đặt chỗ linh kiện: ${insertError.message}`,
+						);
 					}
 
 					return reservation.id;
@@ -94,7 +99,8 @@ export function usePartsReservations() {
 
 				return data; // Returns reservation ID
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -135,7 +141,9 @@ export function usePartsReservations() {
 						.eq("status", "active");
 
 					if (updateError) {
-						throw new Error(`Không thể xác nhận đặt chỗ: ${updateError.message}`);
+						throw new Error(
+							`Không thể xác nhận đặt chỗ: ${updateError.message}`,
+						);
 					}
 
 					return true;
@@ -143,7 +151,8 @@ export function usePartsReservations() {
 
 				return !!data;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -163,10 +172,13 @@ export function usePartsReservations() {
 				setError(null);
 
 				// Check if RPC function exists
-				const { data, error: rpcError } = await supabase.rpc("cancel_parts_reservation", {
-					p_reservation_id: reservationId,
-					p_cancelled_by: userId,
-				});
+				const { data, error: rpcError } = await supabase.rpc(
+					"cancel_parts_reservation",
+					{
+						p_reservation_id: reservationId,
+						p_cancelled_by: userId,
+					},
+				);
 
 				if (rpcError) {
 					// Fallback: manual cancellation if RPC not available
@@ -189,7 +201,8 @@ export function usePartsReservations() {
 
 				return !!data;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -222,7 +235,9 @@ export function usePartsReservations() {
 						console.warn("parts_reservations table not found");
 						return [];
 					}
-					throw new Error(`Không thể tải danh sách đặt chỗ: ${queryError.message}`);
+					throw new Error(
+						`Không thể tải danh sách đặt chỗ: ${queryError.message}`,
+					);
 				}
 
 				return data || [];
@@ -237,7 +252,9 @@ export function usePartsReservations() {
 	/**
 	 * Get all active reservations
 	 */
-	const getActiveReservations = useCallback(async (): Promise<PartReservation[]> => {
+	const getActiveReservations = useCallback(async (): Promise<
+		PartReservation[]
+	> => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -258,12 +275,15 @@ export function usePartsReservations() {
 					console.warn("parts_reservations table not found");
 					return [];
 				}
-				throw new Error(`Không thể tải danh sách đặt chỗ: ${queryError.message}`);
+				throw new Error(
+					`Không thể tải danh sách đặt chỗ: ${queryError.message}`,
+				);
 			}
 
 			return data || [];
 		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
 			setError(error);
 			return [];
 		} finally {
@@ -297,7 +317,9 @@ export function usePartsReservations() {
 						console.warn("parts_reservations table not found");
 						return [];
 					}
-					throw new Error(`Không thể tải danh sách đặt chỗ sắp hết hạn: ${queryError.message}`);
+					throw new Error(
+						`Không thể tải danh sách đặt chỗ sắp hết hạn: ${queryError.message}`,
+					);
 				}
 
 				return data || [];
@@ -313,7 +335,11 @@ export function usePartsReservations() {
 	 * Extend reservation expiry time
 	 */
 	const extendReservation = useCallback(
-		async (reservationId: string, additionalHours: number, userId: string): Promise<boolean> => {
+		async (
+			reservationId: string,
+			additionalHours: number,
+			userId: string,
+		): Promise<boolean> => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -327,7 +353,9 @@ export function usePartsReservations() {
 					.single();
 
 				if (fetchError) {
-					throw new Error(`Không thể tải thông tin đặt chỗ: ${fetchError.message}`);
+					throw new Error(
+						`Không thể tải thông tin đặt chỗ: ${fetchError.message}`,
+					);
 				}
 
 				// Calculate new expiry time
@@ -348,11 +376,14 @@ export function usePartsReservations() {
 				}
 
 				// Log the extension
-				console.log(`Reservation ${reservationId} extended by ${additionalHours} hours by user ${userId}`);
+				console.log(
+					`Reservation ${reservationId} extended by ${additionalHours} hours by user ${userId}`,
+				);
 
 				return true;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {

@@ -54,7 +54,9 @@ export function usePartsInventory() {
 	/**
 	 * Get all parts with enhanced stock status
 	 */
-	const getPartsWithStockStatus = useCallback(async (): Promise<PartWithStock[]> => {
+	const getPartsWithStockStatus = useCallback(async (): Promise<
+		PartWithStock[]
+	> => {
 		try {
 			setLoading(true);
 			setError(null);
@@ -65,7 +67,9 @@ export function usePartsInventory() {
 				.order("name", { ascending: true });
 
 			if (queryError) {
-				throw new Error(`Không thể tải danh sách linh kiện: ${queryError.message}`);
+				throw new Error(
+					`Không thể tải danh sách linh kiện: ${queryError.message}`,
+				);
 			}
 
 			return (data || []).map((part) => {
@@ -88,7 +92,8 @@ export function usePartsInventory() {
 				};
 			});
 		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
 			setError(error);
 			throw error;
 		} finally {
@@ -110,7 +115,9 @@ export function usePartsInventory() {
 				.order("current_stock", { ascending: true });
 
 			if (queryError) {
-				throw new Error(`Không thể tải danh sách linh kiện sắp hết: ${queryError.message}`);
+				throw new Error(
+					`Không thể tải danh sách linh kiện sắp hết: ${queryError.message}`,
+				);
 			}
 
 			// Filter for low stock parts on client side
@@ -122,7 +129,8 @@ export function usePartsInventory() {
 
 			return lowStockParts;
 		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
 			setError(error);
 			throw error;
 		} finally {
@@ -143,7 +151,9 @@ export function usePartsInventory() {
 				.select("current_stock, selling_price");
 
 			if (queryError) {
-				throw new Error(`Không thể tính giá trị tồn kho: ${queryError.message}`);
+				throw new Error(
+					`Không thể tính giá trị tồn kho: ${queryError.message}`,
+				);
 			}
 
 			const totalValue = (data || []).reduce((sum, part) => {
@@ -152,7 +162,8 @@ export function usePartsInventory() {
 
 			return totalValue;
 		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
 			setError(error);
 			throw error;
 		} finally {
@@ -173,7 +184,9 @@ export function usePartsInventory() {
 				.select("current_stock, min_stock_level, selling_price");
 
 			if (queryError) {
-				throw new Error(`Không thể tải thống kê tồn kho: ${queryError.message}`);
+				throw new Error(
+					`Không thể tải thống kê tồn kho: ${queryError.message}`,
+				);
 			}
 
 			const parts = data || [];
@@ -183,11 +196,12 @@ export function usePartsInventory() {
 			}, 0);
 
 			const lowStockCount = parts.filter(
-				(part) => part.current_stock <= part.min_stock_level && part.current_stock > 0
+				(part) =>
+					part.current_stock <= part.min_stock_level && part.current_stock > 0,
 			).length;
 
 			const outOfStockCount = parts.filter(
-				(part) => part.current_stock === 0
+				(part) => part.current_stock === 0,
 			).length;
 
 			const averageValue = totalParts > 0 ? totalValue / totalParts : 0;
@@ -200,7 +214,8 @@ export function usePartsInventory() {
 				averageValue,
 			};
 		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
 			setError(error);
 			throw error;
 		} finally {
@@ -244,7 +259,8 @@ export function usePartsInventory() {
 
 				return updatedPart;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -276,10 +292,15 @@ export function usePartsInventory() {
 					.single();
 
 				if (fetchError) {
-					throw new Error(`Không thể tải thông tin linh kiện: ${fetchError.message}`);
+					throw new Error(
+						`Không thể tải thông tin linh kiện: ${fetchError.message}`,
+					);
 				}
 
-				const newQuantity = Math.max(0, currentPart.current_stock + quantityChange);
+				const newQuantity = Math.max(
+					0,
+					currentPart.current_stock + quantityChange,
+				);
 
 				// Update part stock
 				const { data: updatedPart, error: updateError } = await supabase
@@ -293,15 +314,25 @@ export function usePartsInventory() {
 					.single();
 
 				if (updateError) {
-					throw new Error(`Không thể điều chỉnh tồn kho: ${updateError.message}`);
+					throw new Error(
+						`Không thể điều chỉnh tồn kho: ${updateError.message}`,
+					);
 				}
 
 				// Log adjustment
-				await logInventoryAdjustment(partId, quantityChange, currentPart.current_stock, newQuantity, reason, userId);
+				await logInventoryAdjustment(
+					partId,
+					quantityChange,
+					currentPart.current_stock,
+					newQuantity,
+					reason,
+					userId,
+				);
 
 				return updatedPart;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
@@ -314,33 +345,41 @@ export function usePartsInventory() {
 	/**
 	 * Get available stock considering reservations
 	 */
-	const getAvailableStock = useCallback(async (partId: string): Promise<number> => {
-		try {
-			const { data, error: rpcError } = await supabase.rpc("get_available_stock", {
-				part_uuid: partId,
-			});
+	const getAvailableStock = useCallback(
+		async (partId: string): Promise<number> => {
+			try {
+				const { data, error: rpcError } = await supabase.rpc(
+					"get_available_stock",
+					{
+						part_uuid: partId,
+					},
+				);
 
-			if (rpcError) {
-				// Fallback: just return current stock if RPC not available
-				const { data: part, error: fallbackError } = await supabase
-					.from("parts")
-					.select("current_stock")
-					.eq("id", partId)
-					.single();
+				if (rpcError) {
+					// Fallback: just return current stock if RPC not available
+					const { data: part, error: fallbackError } = await supabase
+						.from("parts")
+						.select("current_stock")
+						.eq("id", partId)
+						.single();
 
-				if (fallbackError) {
-					throw new Error(`Không thể tải tồn kho khả dụng: ${fallbackError.message}`);
+					if (fallbackError) {
+						throw new Error(
+							`Không thể tải tồn kho khả dụng: ${fallbackError.message}`,
+						);
+					}
+
+					return part.current_stock;
 				}
 
-				return part.current_stock;
+				return data as number;
+			} catch (err) {
+				console.error("Error getting available stock:", err);
+				throw err;
 			}
-
-			return data as number;
-		} catch (err) {
-			console.error("Error getting available stock:", err);
-			throw err;
-		}
-	}, []);
+		},
+		[],
+	);
 
 	/**
 	 * Get inventory transactions for audit trail
@@ -370,7 +409,9 @@ export function usePartsInventory() {
 						console.warn("inventory_transactions table not found");
 						return [];
 					}
-					throw new Error(`Không thể tải lịch sử giao dịch: ${queryError.message}`);
+					throw new Error(
+						`Không thể tải lịch sử giao dịch: ${queryError.message}`,
+					);
 				}
 
 				return data || [];
@@ -386,7 +427,11 @@ export function usePartsInventory() {
 	 * Search parts by various criteria
 	 */
 	const searchParts = useCallback(
-		async (searchTerm: string, includeOutOfStock = false, limit = 50): Promise<PartWithStock[]> => {
+		async (
+			searchTerm: string,
+			includeOutOfStock = false,
+			limit = 50,
+		): Promise<PartWithStock[]> => {
 			try {
 				setLoading(true);
 				setError(null);
@@ -407,7 +452,9 @@ export function usePartsInventory() {
 				const { data, error: queryError } = await query;
 
 				if (queryError) {
-					throw new Error(`Không thể tìm kiếm linh kiện: ${queryError.message}`);
+					throw new Error(
+						`Không thể tìm kiếm linh kiện: ${queryError.message}`,
+					);
 				}
 
 				// Enhance with stock status
@@ -433,7 +480,8 @@ export function usePartsInventory() {
 
 				return partsWithStock;
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {

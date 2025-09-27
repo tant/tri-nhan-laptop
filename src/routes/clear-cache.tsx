@@ -14,17 +14,17 @@ function ClearCachePage() {
 			hasCache: !!cached,
 			cachedUser: cached ? JSON.parse(cached) : null,
 			allLocalStorageKeys: Object.keys(localStorage),
-			storageSize: JSON.stringify(localStorage).length
+			storageSize: JSON.stringify(localStorage).length,
 		});
 	}, []);
 
 	const clearAllCache = () => {
 		try {
-			console.log('🧹 Clearing all browser storage...');
+			console.log("🧹 Clearing all browser storage...");
 
 			// Get all localStorage keys
 			const keys = Object.keys(localStorage);
-			console.log('LocalStorage keys:', keys);
+			console.log("LocalStorage keys:", keys);
 
 			// Clear everything
 			localStorage.clear();
@@ -35,27 +35,26 @@ function ClearCachePage() {
 				"user_profile_cache",
 				"sb-127.0.0.1:54321-auth-token",
 				"supabase.auth.token",
-				"sb-localhost-auth-token"
+				"sb-localhost-auth-token",
 			];
 
-			supabaseKeys.forEach(key => {
+			supabaseKeys.forEach((key) => {
 				try {
 					localStorage.removeItem(key);
 					sessionStorage.removeItem(key);
 				} catch (e) {
-					console.log('Could not remove', key, e);
+					console.log("Could not remove", key, e);
 				}
 			});
 
 			// Clear IndexedDB if available
-			if ('indexedDB' in window) {
+			if ("indexedDB" in window) {
 				try {
-					indexedDB.deleteDatabase('supabase-cache');
+					indexedDB.deleteDatabase("supabase-cache");
 				} catch (e) {
-					console.log('Could not clear IndexedDB:', e);
+					console.log("Could not clear IndexedDB:", e);
 				}
 			}
-
 
 			setCleared(true);
 
@@ -63,7 +62,6 @@ function ClearCachePage() {
 			setTimeout(() => {
 				window.location.replace("/login");
 			}, 1500);
-
 		} catch (error) {
 			console.error("Error clearing cache:", error);
 		}
@@ -78,14 +76,23 @@ function ClearCachePage() {
 				<CardContent className="space-y-4">
 					{cacheInfo && (
 						<div className="bg-gray-100 p-3 rounded text-xs">
-							<p><strong>Cached User ID:</strong> {cacheInfo.cachedUser?.id || 'None'}</p>
-							<p><strong>Expected ID:</strong> 8a478035-fd6e-49d9-8332-3ecb487ee129</p>
-							<p><strong>Cache Keys:</strong> {cacheInfo.allLocalStorageKeys.length} items</p>
+							<p>
+								<strong>Cached User ID:</strong>{" "}
+								{cacheInfo.cachedUser?.id || "None"}
+							</p>
+							<p>
+								<strong>Expected ID:</strong>{" "}
+								8a478035-fd6e-49d9-8332-3ecb487ee129
+							</p>
+							<p>
+								<strong>Cache Keys:</strong>{" "}
+								{cacheInfo.allLocalStorageKeys.length} items
+							</p>
 							<p className="text-red-600">
-								{cacheInfo.cachedUser?.id !== '8a478035-fd6e-49d9-8332-3ecb487ee129' ?
-									'❌ ID Mismatch - Need to clear cache!' :
-									'✅ IDs match'
-								}
+								{cacheInfo.cachedUser?.id !==
+								"8a478035-fd6e-49d9-8332-3ecb487ee129"
+									? "❌ ID Mismatch - Need to clear cache!"
+									: "✅ IDs match"}
 							</p>
 						</div>
 					)}

@@ -5,13 +5,25 @@
 
 import { StockStatusBadge } from "@/components/parts/StockStatusBadge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Currency } from "@/lib/formatting";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import type { Part } from "@/lib/database-types";
+import { Currency } from "@/lib/formatting";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AlertTriangle, Bell, Edit, Search, Settings } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
@@ -39,32 +51,39 @@ function useFilteredParts(parts: Part[], filters: InventoryFilters) {
 		// Search filter
 		if (filters.searchTerm) {
 			const search = filters.searchTerm.toLowerCase();
-			filtered = filtered.filter(part =>
-				part.name?.toLowerCase().includes(search) ||
-				part.part_number?.toLowerCase().includes(search) ||
-				part.description?.toLowerCase().includes(search) ||
-				part.brand?.toLowerCase().includes(search)
+			filtered = filtered.filter(
+				(part) =>
+					part.name?.toLowerCase().includes(search) ||
+					part.part_number?.toLowerCase().includes(search) ||
+					part.description?.toLowerCase().includes(search) ||
+					part.brand?.toLowerCase().includes(search),
 			);
 		}
 
 		// Category filter
 		if (filters.categoryFilter && filters.categoryFilter !== "all") {
-			filtered = filtered.filter(part => part.category === filters.categoryFilter);
+			filtered = filtered.filter(
+				(part) => part.category === filters.categoryFilter,
+			);
 		}
 
 		// Stock status filter
 		if (filters.stockFilter && filters.stockFilter !== "all") {
 			switch (filters.stockFilter) {
 				case "in_stock":
-					filtered = filtered.filter(part => part.current_stock > (part.min_stock_level || 5));
+					filtered = filtered.filter(
+						(part) => part.current_stock > (part.min_stock_level || 5),
+					);
 					break;
 				case "low_stock":
-					filtered = filtered.filter(part =>
-						part.current_stock > 0 && part.current_stock <= (part.min_stock_level || 5)
+					filtered = filtered.filter(
+						(part) =>
+							part.current_stock > 0 &&
+							part.current_stock <= (part.min_stock_level || 5),
 					);
 					break;
 				case "out_of_stock":
-					filtered = filtered.filter(part => part.current_stock === 0);
+					filtered = filtered.filter((part) => part.current_stock === 0);
 					break;
 			}
 		}
@@ -78,17 +97,21 @@ function useFilteredParts(parts: Part[], filters: InventoryFilters) {
  */
 function useInventoryStats(parts: Part[]) {
 	return useMemo(() => {
-		const outOfStock = parts.filter(part => part.current_stock === 0);
-		const lowStock = parts.filter(part =>
-			part.current_stock > 0 && part.current_stock <= (part.min_stock_level || 5)
+		const outOfStock = parts.filter((part) => part.current_stock === 0);
+		const lowStock = parts.filter(
+			(part) =>
+				part.current_stock > 0 &&
+				part.current_stock <= (part.min_stock_level || 5),
 		);
-		const categories = [...new Set(parts.map(part => part.category).filter(Boolean))];
+		const categories = [
+			...new Set(parts.map((part) => part.category).filter(Boolean)),
+		];
 
 		return {
 			total: parts.length,
 			outOfStock: outOfStock.length,
 			lowStock: lowStock.length,
-			categories: categories.length
+			categories: categories.length,
 		};
 	}, [parts]);
 }
@@ -98,7 +121,7 @@ function useInventoryStats(parts: Part[]) {
  */
 function createInventoryColumns({
 	onStockAdjustment,
-	onEditPart
+	onEditPart,
 }: {
 	onStockAdjustment: (part: Part) => void;
 	onEditPart: (part: Part) => void;
@@ -195,24 +218,27 @@ function createInventoryColumns({
 function InventoryFilters({
 	parts,
 	filters,
-	onChange
+	onChange,
 }: {
 	parts: Part[];
 	filters: InventoryFilters;
 	onChange: (filters: InventoryFilters) => void;
 }) {
 	const stats = useInventoryStats(parts);
-	const categories = useMemo(() =>
-		[...new Set(parts.map(part => part.category).filter(Boolean))],
-		[parts]
+	const categories = useMemo(
+		() => [...new Set(parts.map((part) => part.category).filter(Boolean))],
+		[parts],
 	);
 
-	const updateFilter = useCallback((key: keyof InventoryFilters, value: string) => {
-		onChange({
-			...filters,
-			[key]: value
-		});
-	}, [filters, onChange]);
+	const updateFilter = useCallback(
+		(key: keyof InventoryFilters, value: string) => {
+			onChange({
+				...filters,
+				[key]: value,
+			});
+		},
+		[filters, onChange],
+	);
 
 	return (
 		<Card>
@@ -284,7 +310,9 @@ function InventoryFilters({
 						Lọc nhanh:
 					</span>
 					<Button
-						variant={filters.stockFilter === "out_of_stock" ? "default" : "outline"}
+						variant={
+							filters.stockFilter === "out_of_stock" ? "default" : "outline"
+						}
 						size="sm"
 						onClick={() => updateFilter("stockFilter", "out_of_stock")}
 						className="h-7"
@@ -293,7 +321,9 @@ function InventoryFilters({
 						Hết hàng ({stats.outOfStock})
 					</Button>
 					<Button
-						variant={filters.stockFilter === "low_stock" ? "default" : "outline"}
+						variant={
+							filters.stockFilter === "low_stock" ? "default" : "outline"
+						}
 						size="sm"
 						onClick={() => updateFilter("stockFilter", "low_stock")}
 						className="h-7"
@@ -322,28 +352,24 @@ export function InventoryView({
 	parts,
 	loading,
 	onStockAdjustment,
-	onEditPart
+	onEditPart,
 }: InventoryViewProps) {
 	const [filters, setFilters] = useState<InventoryFilters>({
 		searchTerm: "",
 		categoryFilter: "all",
-		stockFilter: "all"
+		stockFilter: "all",
 	});
 
 	const filteredParts = useFilteredParts(parts, filters);
-	const columns = useMemo(() =>
-		createInventoryColumns({ onStockAdjustment, onEditPart }),
-		[onStockAdjustment, onEditPart]
+	const columns = useMemo(
+		() => createInventoryColumns({ onStockAdjustment, onEditPart }),
+		[onStockAdjustment, onEditPart],
 	);
 
 	return (
 		<div className="space-y-6">
 			{/* Search and Filter */}
-			<InventoryFilters
-				parts={parts}
-				filters={filters}
-				onChange={setFilters}
-			/>
+			<InventoryFilters parts={parts} filters={filters} onChange={setFilters} />
 
 			{/* Parts Table */}
 			<Card>
@@ -351,10 +377,11 @@ export function InventoryView({
 					<CardTitle>Danh sách linh kiện</CardTitle>
 					<CardDescription>
 						Tổng số {filteredParts.length} linh kiện
-						{filters.searchTerm || filters.categoryFilter !== "all" || filters.stockFilter !== "all"
+						{filters.searchTerm ||
+						filters.categoryFilter !== "all" ||
+						filters.stockFilter !== "all"
 							? ` (từ ${parts.length} linh kiện)`
-							: ""
-						}
+							: ""}
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
@@ -367,7 +394,9 @@ export function InventoryView({
 					{filteredParts.length === 0 && (
 						<div className="text-center py-8">
 							<p className="text-muted-foreground">
-								{filters.searchTerm || filters.categoryFilter !== "all" || filters.stockFilter !== "all"
+								{filters.searchTerm ||
+								filters.categoryFilter !== "all" ||
+								filters.stockFilter !== "all"
 									? "Không tìm thấy linh kiện phù hợp với tiêu chí lọc"
 									: "Chưa có linh kiện nào trong kho"}
 							</p>
@@ -382,26 +411,31 @@ export function InventoryView({
 /**
  * Export inventory filters hook for external use
  */
-export function useInventoryFilters(initialFilters?: Partial<InventoryFilters>) {
+export function useInventoryFilters(
+	initialFilters?: Partial<InventoryFilters>,
+) {
 	const [filters, setFilters] = useState<InventoryFilters>({
 		searchTerm: "",
 		categoryFilter: "all",
 		stockFilter: "all",
-		...initialFilters
+		...initialFilters,
 	});
 
-	const updateFilter = useCallback((key: keyof InventoryFilters, value: string) => {
-		setFilters(prev => ({
-			...prev,
-			[key]: value
-		}));
-	}, []);
+	const updateFilter = useCallback(
+		(key: keyof InventoryFilters, value: string) => {
+			setFilters((prev) => ({
+				...prev,
+				[key]: value,
+			}));
+		},
+		[],
+	);
 
 	const resetFilters = useCallback(() => {
 		setFilters({
 			searchTerm: "",
 			categoryFilter: "all",
-			stockFilter: "all"
+			stockFilter: "all",
 		});
 	}, []);
 
@@ -409,6 +443,6 @@ export function useInventoryFilters(initialFilters?: Partial<InventoryFilters>) 
 		filters,
 		setFilters,
 		updateFilter,
-		resetFilters
+		resetFilters,
 	};
 }

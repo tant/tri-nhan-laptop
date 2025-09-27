@@ -1,12 +1,12 @@
 -- Vietnamese Laptop Repair Shop Seed Data
 
--- Insert sample customers
-insert into customers (phone, full_name, address, notes) values
-('0901234567', 'Nguyễn Văn An', '123 Đường ABC, Quận 1, TP.HCM', 'Khách hàng VIP'),
-('0912345678', 'Trần Thị Bình', '456 Đường DEF, Quận 2, TP.HCM', 'Thường xuyên sửa laptop Dell'),
-('0923456789', 'Lê Minh Cường', '789 Đường GHI, Quận 3, TP.HCM', null),
-('0934567890', 'Phạm Thị Dung', '321 Đường JKL, Quận 4, TP.HCM', 'Có laptop gaming'),
-('0945678901', 'Hoàng Văn Em', '654 Đường MNO, Quận 5, TP.HCM', null);
+-- Insert sample customers (simplified structure)
+insert into customers (phone, full_name, address) values
+('0901234567', 'Nguyễn Văn An', '123 Đường ABC, Quận 1, TP.HCM'),
+('0912345678', 'Trần Thị Bình', '456 Đường DEF, Quận 2, TP.HCM'),
+('0923456789', 'Lê Minh Cường', '789 Đường GHI, Quận 3, TP.HCM'),
+('0934567890', 'Phạm Thị Dung', '321 Đường JKL, Quận 4, TP.HCM'),
+('0945678901', 'Hoàng Văn Em', null); -- Address is optional
 
 -- Insert sample parts inventory
 insert into parts (name, category, brand, model_compatibility, current_stock, unit_cost, unit_price, selling_price, supplier_info) values

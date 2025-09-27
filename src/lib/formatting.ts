@@ -14,9 +14,9 @@
  */
 
 // Vietnamese locale constants
-export const VIETNAMESE_LOCALE = "vi-VN";
-export const VIETNAMESE_CURRENCY = "VND";
-export const VIETNAMESE_TIMEZONE = "Asia/Ho_Chi_Minh";
+const VIETNAMESE_LOCALE = "vi-VN";
+const VIETNAMESE_CURRENCY = "VND";
+const VIETNAMESE_TIMEZONE = "Asia/Ho_Chi_Minh";
 
 // Import phone formatting utility
 import { formatPhoneDisplay } from "./phone-utils";
@@ -169,7 +169,7 @@ export const Currency = {
 			.replace(/\./g, "")
 			.replace(/,/g, ".");
 
-		const parsed = parseFloat(cleaned);
+		const parsed = Number.parseFloat(cleaned);
 		return isNaN(parsed) ? 0 : parsed;
 	},
 
@@ -195,7 +195,7 @@ export const Currency = {
 	formatBreakdown: (
 		parts: number,
 		labor: number,
-		other: number = 0
+		other = 0,
 	): { total: string; breakdown: string } => {
 		const total = parts + labor + other;
 		const breakdown = `Linh kiện: ${Currency.format(parts)}, Công: ${Currency.format(labor)}${
@@ -419,7 +419,15 @@ export const DateTime = {
 	 */
 	getDayOfWeek: (date: string | Date): string => {
 		const dateObj = typeof date === "string" ? new Date(date) : date;
-		const days = ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"];
+		const days = [
+			"Chủ nhật",
+			"Thứ hai",
+			"Thứ ba",
+			"Thứ tư",
+			"Thứ năm",
+			"Thứ sáu",
+			"Thứ bảy",
+		];
 		return days[dateObj.getDay()];
 	},
 };
@@ -499,7 +507,9 @@ export const Numbers = {
 		const sizes = ["Bytes", "KB", "MB", "GB"];
 		const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+		return (
+			Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i]
+		);
 	},
 
 	/**
@@ -518,7 +528,7 @@ export const Numbers = {
 	 *
 	 * @since 1.0.0
 	 */
-	formatQuantity: (quantity: number, unit: string = "cái"): string => {
+	formatQuantity: (quantity: number, unit = "cái"): string => {
 		return `${Numbers.format(quantity)} ${unit}`;
 	},
 
@@ -539,7 +549,8 @@ export const Numbers = {
 	 * @since 1.0.0
 	 */
 	formatRating: (rating: number): string => {
-		const stars = "★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
+		const stars =
+			"★".repeat(Math.floor(rating)) + "☆".repeat(5 - Math.floor(rating));
 		return `${stars} (${rating.toFixed(1)})`;
 	},
 };
@@ -657,7 +668,7 @@ export const Text = {
 	formatStatus: (status: string): string => {
 		return status
 			.split("_")
-			.map(word => Text.capitalize(word))
+			.map((word) => Text.capitalize(word))
 			.join(" ");
 	},
 };
@@ -707,7 +718,7 @@ export const Business = {
 	formatCustomerSummary: (
 		name: string,
 		phone: string,
-		totalRepairs: number
+		totalRepairs: number,
 	): string => {
 		return `${name} (${Text.formatPhone(phone)}) • ${totalRepairs} lần sửa chữa`;
 	},
@@ -731,7 +742,7 @@ export const Business = {
 	formatPartsSummary: (
 		partName: string,
 		quantity: number,
-		totalCost: number
+		totalCost: number,
 	): string => {
 		return `${partName} x${quantity} = ${Currency.format(totalCost)}`;
 	},
@@ -759,7 +770,7 @@ export const Business = {
 	 */
 	formatInventoryStatus: (
 		current: number,
-		minimum: number
+		minimum: number,
 	): { text: string; status: "good" | "low" | "out" } => {
 		if (current === 0) {
 			return { text: "Hết hàng", status: "out" };

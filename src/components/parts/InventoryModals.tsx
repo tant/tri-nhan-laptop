@@ -3,21 +3,29 @@
  * Centralized modal state and components for inventory management
  */
 
-import { lazy, Suspense, useReducer } from "react";
 import type { Part } from "@/lib/database-types";
+import { Suspense, lazy, useReducer } from "react";
 
 // Lazy load modals to reduce initial bundle size
 const BulkImportModal = lazy(() =>
-	import("@/components/parts/BulkImportModal").then(m => ({ default: m.BulkImportModal }))
+	import("@/components/parts/BulkImportModal").then((m) => ({
+		default: m.BulkImportModal,
+	})),
 );
 const ExportPartsModal = lazy(() =>
-	import("@/components/parts/ExportPartsModal").then(m => ({ default: m.ExportPartsModal }))
+	import("@/components/parts/ExportPartsModal").then((m) => ({
+		default: m.ExportPartsModal,
+	})),
 );
 const PartsFormModal = lazy(() =>
-	import("@/components/parts/PartsFormModal").then(m => ({ default: m.PartsFormModal }))
+	import("@/components/parts/PartsFormModal").then((m) => ({
+		default: m.PartsFormModal,
+	})),
 );
 const StockAdjustmentModal = lazy(() =>
-	import("@/components/parts/StockAdjustmentModal").then(m => ({ default: m.StockAdjustmentModal }))
+	import("@/components/parts/StockAdjustmentModal").then((m) => ({
+		default: m.StockAdjustmentModal,
+	})),
 );
 
 // Modal state management types
@@ -31,15 +39,15 @@ export type ModalState = {
 };
 
 export type ModalAction =
-	| { type: 'OPEN_STOCK_ADJUSTMENT'; part: Part }
-	| { type: 'CLOSE_STOCK_ADJUSTMENT' }
-	| { type: 'OPEN_PARTS_FORM'; part?: Part }
-	| { type: 'CLOSE_PARTS_FORM' }
-	| { type: 'OPEN_BULK_IMPORT' }
-	| { type: 'CLOSE_BULK_IMPORT' }
-	| { type: 'OPEN_EXPORT' }
-	| { type: 'CLOSE_EXPORT' }
-	| { type: 'CLOSE_ALL' };
+	| { type: "OPEN_STOCK_ADJUSTMENT"; part: Part }
+	| { type: "CLOSE_STOCK_ADJUSTMENT" }
+	| { type: "OPEN_PARTS_FORM"; part?: Part }
+	| { type: "CLOSE_PARTS_FORM" }
+	| { type: "OPEN_BULK_IMPORT" }
+	| { type: "CLOSE_BULK_IMPORT" }
+	| { type: "OPEN_EXPORT" }
+	| { type: "CLOSE_EXPORT" }
+	| { type: "CLOSE_ALL" };
 
 const initialModalState: ModalState = {
 	stockAdjustment: false,
@@ -52,31 +60,31 @@ const initialModalState: ModalState = {
 
 function modalReducer(state: ModalState, action: ModalAction): ModalState {
 	switch (action.type) {
-		case 'OPEN_STOCK_ADJUSTMENT':
+		case "OPEN_STOCK_ADJUSTMENT":
 			return {
 				...initialModalState, // Close all others
 				stockAdjustment: true,
-				selectedPart: action.part
+				selectedPart: action.part,
 			};
-		case 'CLOSE_STOCK_ADJUSTMENT':
+		case "CLOSE_STOCK_ADJUSTMENT":
 			return { ...state, stockAdjustment: false, selectedPart: null };
-		case 'OPEN_PARTS_FORM':
+		case "OPEN_PARTS_FORM":
 			return {
 				...initialModalState, // Close all others
 				partsForm: true,
-				editingPart: action.part || null
+				editingPart: action.part || null,
 			};
-		case 'CLOSE_PARTS_FORM':
+		case "CLOSE_PARTS_FORM":
 			return { ...state, partsForm: false, editingPart: null };
-		case 'OPEN_BULK_IMPORT':
+		case "OPEN_BULK_IMPORT":
 			return { ...initialModalState, bulkImport: true };
-		case 'CLOSE_BULK_IMPORT':
+		case "CLOSE_BULK_IMPORT":
 			return { ...state, bulkImport: false };
-		case 'OPEN_EXPORT':
+		case "OPEN_EXPORT":
 			return { ...initialModalState, export: true };
-		case 'CLOSE_EXPORT':
+		case "CLOSE_EXPORT":
 			return { ...state, export: false };
-		case 'CLOSE_ALL':
+		case "CLOSE_ALL":
 			return initialModalState;
 		default:
 			return state;
@@ -90,39 +98,39 @@ export function useInventoryModals() {
 	const [modalState, dispatch] = useReducer(modalReducer, initialModalState);
 
 	const openStockAdjustment = (part: Part) => {
-		dispatch({ type: 'OPEN_STOCK_ADJUSTMENT', part });
+		dispatch({ type: "OPEN_STOCK_ADJUSTMENT", part });
 	};
 
 	const closeStockAdjustment = () => {
-		dispatch({ type: 'CLOSE_STOCK_ADJUSTMENT' });
+		dispatch({ type: "CLOSE_STOCK_ADJUSTMENT" });
 	};
 
 	const openPartsForm = (part?: Part) => {
-		dispatch({ type: 'OPEN_PARTS_FORM', part });
+		dispatch({ type: "OPEN_PARTS_FORM", part });
 	};
 
 	const closePartsForm = () => {
-		dispatch({ type: 'CLOSE_PARTS_FORM' });
+		dispatch({ type: "CLOSE_PARTS_FORM" });
 	};
 
 	const openBulkImport = () => {
-		dispatch({ type: 'OPEN_BULK_IMPORT' });
+		dispatch({ type: "OPEN_BULK_IMPORT" });
 	};
 
 	const closeBulkImport = () => {
-		dispatch({ type: 'CLOSE_BULK_IMPORT' });
+		dispatch({ type: "CLOSE_BULK_IMPORT" });
 	};
 
 	const openExport = () => {
-		dispatch({ type: 'OPEN_EXPORT' });
+		dispatch({ type: "OPEN_EXPORT" });
 	};
 
 	const closeExport = () => {
-		dispatch({ type: 'CLOSE_EXPORT' });
+		dispatch({ type: "CLOSE_EXPORT" });
 	};
 
 	const closeAll = () => {
-		dispatch({ type: 'CLOSE_ALL' });
+		dispatch({ type: "CLOSE_ALL" });
 	};
 
 	return {
@@ -135,7 +143,7 @@ export function useInventoryModals() {
 		closeBulkImport,
 		openExport,
 		closeExport,
-		closeAll
+		closeAll,
 	};
 }
 
@@ -162,7 +170,7 @@ export function InventoryModals({
 	onStockAdjustmentSuccess,
 	onPartsFormSuccess,
 	onBulkImportSuccess,
-	onClose
+	onClose,
 }: InventoryModalsProps) {
 	return (
 		<Suspense fallback={null}>
@@ -210,7 +218,7 @@ export function StockAdjustmentModalWrapper({
 	part,
 	isOpen,
 	onClose,
-	onSuccess
+	onSuccess,
 }: {
 	part: Part | null;
 	isOpen: boolean;
@@ -235,7 +243,7 @@ export function PartsFormModalWrapper({
 	part,
 	isOpen,
 	onClose,
-	onSuccess
+	onSuccess,
 }: {
 	part: Part | null;
 	isOpen: boolean;
@@ -259,7 +267,7 @@ export function PartsFormModalWrapper({
 export function BulkImportModalWrapper({
 	isOpen,
 	onClose,
-	onSuccess
+	onSuccess,
 }: {
 	isOpen: boolean;
 	onClose: () => void;
@@ -281,7 +289,7 @@ export function BulkImportModalWrapper({
 export function ExportPartsModalWrapper({
 	parts,
 	isOpen,
-	onClose
+	onClose,
 }: {
 	parts: Part[];
 	isOpen: boolean;
@@ -291,11 +299,7 @@ export function ExportPartsModalWrapper({
 
 	return (
 		<Suspense fallback={null}>
-			<ExportPartsModal
-				isOpen={isOpen}
-				onClose={onClose}
-				parts={parts}
-			/>
+			<ExportPartsModal isOpen={isOpen} onClose={onClose} parts={parts} />
 		</Suspense>
 	);
 }
@@ -304,8 +308,8 @@ export function ExportPartsModalWrapper({
  * Helper function to check if any modal is open
  */
 export function hasOpenModal(modalState: ModalState): boolean {
-	return Object.values(modalState).some(value =>
-		typeof value === 'boolean' ? value : false
+	return Object.values(modalState).some((value) =>
+		typeof value === "boolean" ? value : false,
 	);
 }
 
@@ -313,9 +317,9 @@ export function hasOpenModal(modalState: ModalState): boolean {
  * Helper function to get currently open modal name
  */
 export function getOpenModalName(modalState: ModalState): string | null {
-	if (modalState.stockAdjustment) return 'stockAdjustment';
-	if (modalState.partsForm) return 'partsForm';
-	if (modalState.bulkImport) return 'bulkImport';
-	if (modalState.export) return 'export';
+	if (modalState.stockAdjustment) return "stockAdjustment";
+	if (modalState.partsForm) return "partsForm";
+	if (modalState.bulkImport) return "bulkImport";
+	if (modalState.export) return "export";
 	return null;
 }

@@ -1,10 +1,3 @@
-/**
- * Repair Ticket Validation Hook
- * Focused validation utilities for repair tickets
- */
-
-import type { Database } from "@/lib/supabase";
-
 // Database types
 export type RepairPriority = "low" | "normal" | "high" | "urgent";
 
@@ -87,7 +80,12 @@ export function useRepairValidation() {
 		}
 
 		// Priority validation
-		const validPriorities: RepairPriority[] = ["low", "normal", "high", "urgent"];
+		const validPriorities: RepairPriority[] = [
+			"low",
+			"normal",
+			"high",
+			"urgent",
+		];
 		if (!validPriorities.includes(data.priority)) {
 			errors.push("Mức độ ưu tiên không hợp lệ");
 		}
@@ -99,7 +97,10 @@ export function useRepairValidation() {
 		}
 
 		// Cost validation (if provided)
-		if (data.estimatedCost !== undefined && (data.estimatedCost < 0 || data.estimatedCost > 100000000)) {
+		if (
+			data.estimatedCost !== undefined &&
+			(data.estimatedCost < 0 || data.estimatedCost > 100000000)
+		) {
 			errors.push("Chi phí dự kiến không hợp lệ");
 		}
 
@@ -112,7 +113,10 @@ export function useRepairValidation() {
 	/**
 	 * Get condition description in Vietnamese
 	 */
-	const getConditionDescription = (condition: string, notes?: string): string => {
+	const getConditionDescription = (
+		condition: string,
+		notes?: string,
+	): string => {
 		const descriptions = {
 			excellent: "Tuyệt vời - Không có vết xước hoặc hỏng hóc",
 			good: "Tốt - Có thể có vài vết xước nhỏ",
@@ -120,7 +124,8 @@ export function useRepairValidation() {
 			poor: "Kém - Có nhiều vết xước hoặc hỏng hóc",
 		};
 
-		const baseDescription = descriptions[condition as keyof typeof descriptions] || condition;
+		const baseDescription =
+			descriptions[condition as keyof typeof descriptions] || condition;
 		return notes ? `${baseDescription}. Ghi chú: ${notes}` : baseDescription;
 	};
 
@@ -144,28 +149,64 @@ export function useRepairValidation() {
 	const inferRepairCategory = (issueDescription: string): string => {
 		const description = issueDescription.toLowerCase();
 
-		if (description.includes("màn hình") || description.includes("hiển thị") || description.includes("screen")) {
+		if (
+			description.includes("màn hình") ||
+			description.includes("hiển thị") ||
+			description.includes("screen")
+		) {
 			return "display";
 		}
-		if (description.includes("bàn phím") || description.includes("keyboard") || description.includes("phím")) {
+		if (
+			description.includes("bàn phím") ||
+			description.includes("keyboard") ||
+			description.includes("phím")
+		) {
 			return "keyboard";
 		}
-		if (description.includes("pin") || description.includes("battery") || description.includes("sạc")) {
+		if (
+			description.includes("pin") ||
+			description.includes("battery") ||
+			description.includes("sạc")
+		) {
 			return "battery";
 		}
-		if (description.includes("quạt") || description.includes("fan") || description.includes("nóng") || description.includes("nhiệt")) {
+		if (
+			description.includes("quạt") ||
+			description.includes("fan") ||
+			description.includes("nóng") ||
+			description.includes("nhiệt")
+		) {
 			return "cooling";
 		}
-		if (description.includes("âm thanh") || description.includes("loa") || description.includes("sound") || description.includes("audio")) {
+		if (
+			description.includes("âm thanh") ||
+			description.includes("loa") ||
+			description.includes("sound") ||
+			description.includes("audio")
+		) {
 			return "audio";
 		}
-		if (description.includes("wifi") || description.includes("mạng") || description.includes("kết nối") || description.includes("network")) {
+		if (
+			description.includes("wifi") ||
+			description.includes("mạng") ||
+			description.includes("kết nối") ||
+			description.includes("network")
+		) {
 			return "network";
 		}
-		if (description.includes("ổ cứng") || description.includes("ssd") || description.includes("hdd") || description.includes("storage")) {
+		if (
+			description.includes("ổ cứng") ||
+			description.includes("ssd") ||
+			description.includes("hdd") ||
+			description.includes("storage")
+		) {
 			return "storage";
 		}
-		if (description.includes("ram") || description.includes("memory") || description.includes("bộ nhớ")) {
+		if (
+			description.includes("ram") ||
+			description.includes("memory") ||
+			description.includes("bộ nhớ")
+		) {
 			return "memory";
 		}
 

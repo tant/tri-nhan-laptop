@@ -12,10 +12,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useCustomerSearch } from "@/hooks/use-customer-search";
-import { useRepairTicketsCrud } from "@/hooks/use-repair-tickets-crud";
 import { useRepairSearch } from "@/hooks/use-repair-search";
-import { getPopularBrands } from "@/lib/devices/vietnamese-brands";
+import { useRepairTicketsCrud } from "@/hooks/use-repair-tickets-crud";
 import type { Customer } from "@/lib/database-types";
+import { getPopularBrands } from "@/lib/devices/vietnamese-brands";
 import {
 	AlertTriangle,
 	ArrowLeft,
@@ -57,7 +57,6 @@ interface FormData {
 	customer_notes?: string;
 	technician_notes?: string;
 }
-
 
 export function CreateTicketForm({
 	customerId,

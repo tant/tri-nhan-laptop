@@ -96,7 +96,8 @@ export function useRepairSearch() {
 				}
 
 				if (filters.dateRange) {
-					query = query.gte("created_at", filters.dateRange.from.toISOString())
+					query = query
+						.gte("created_at", filters.dateRange.from.toISOString())
 						.lte("created_at", filters.dateRange.to.toISOString());
 				}
 
@@ -107,10 +108,12 @@ export function useRepairSearch() {
 				const { data, error: queryError } = await query;
 
 				if (queryError) {
-					throw new Error(`Không thể tải danh sách phiếu sửa chữa: ${queryError.message}`);
+					throw new Error(
+						`Không thể tải danh sách phiếu sửa chữa: ${queryError.message}`,
+					);
 				}
 
-				return data.map(ticket => ({
+				return data.map((ticket) => ({
 					id: ticket.id,
 					ticket_code: ticket.ticket_code,
 					customer_phone: ticket.customer_phone,
@@ -126,21 +129,22 @@ export function useRepairSearch() {
 					technician_name: ticket.user_profiles?.full_name,
 				}));
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
 				setLoading(false);
 			}
 		},
-		[]
+		[],
 	);
 
 	/**
 	 * Search tickets by text query
 	 */
 	const searchByText = useCallback(
-		async (query: string, limit: number = 50): Promise<RepairTicketSummary[]> => {
+		async (query: string, limit = 50): Promise<RepairTicketSummary[]> => {
 			if (!query.trim()) {
 				return [];
 			}
@@ -165,7 +169,9 @@ export function useRepairSearch() {
 						customer_devices(brand, model),
 						user_profiles(full_name)
 					`)
-					.or(`ticket_code.ilike.%${query}%,issue_description.ilike.%${query}%,customer_phone.ilike.%${query}%`)
+					.or(
+						`ticket_code.ilike.%${query}%,issue_description.ilike.%${query}%,customer_phone.ilike.%${query}%`,
+					)
 					.order("created_at", { ascending: false })
 					.limit(limit);
 
@@ -173,7 +179,7 @@ export function useRepairSearch() {
 					throw new Error(`Không thể tìm kiếm: ${queryError.message}`);
 				}
 
-				return data.map(ticket => ({
+				return data.map((ticket) => ({
 					id: ticket.id,
 					ticket_code: ticket.ticket_code,
 					customer_phone: ticket.customer_phone,
@@ -189,14 +195,15 @@ export function useRepairSearch() {
 					technician_name: ticket.user_profiles?.full_name,
 				}));
 			} catch (err) {
-				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				const error =
+					err instanceof Error ? err : new Error("Lỗi không xác định");
 				setError(error);
 				throw error;
 			} finally {
 				setLoading(false);
 			}
 		},
-		[]
+		[],
 	);
 
 	/**
@@ -223,44 +230,54 @@ export function useRepairSearch() {
 					"in_diagnosis",
 					"waiting_parts",
 					"in_repair",
-					"quality_testing"
+					"quality_testing",
 				]);
 
 			if (queryError) {
-				throw new Error(`Không thể tải thông tin kỹ thuật viên: ${queryError.message}`);
+				throw new Error(
+					`Không thể tải thông tin kỹ thuật viên: ${queryError.message}`,
+				);
 			}
 
 			// Group by technician and calculate workload
-			const workload = data.reduce((acc, ticket) => {
-				if (!ticket.assigned_technician_id) return acc;
+			const workload = data.reduce(
+				(acc, ticket) => {
+					if (!ticket.assigned_technician_id) return acc;
 
-				const techId = ticket.assigned_technician_id;
-				if (!acc[techId]) {
-					acc[techId] = {
-						technicianId: techId,
-						technicianName: ticket.user_profiles?.full_name || "Không xác định",
-						totalTickets: 0,
-						urgentTickets: 0,
-						highPriorityTickets: 0,
-					};
-				}
+					const techId = ticket.assigned_technician_id;
+					if (!acc[techId]) {
+						acc[techId] = {
+							technicianId: techId,
+							technicianName:
+								ticket.user_profiles?.full_name || "Không xác định",
+							totalTickets: 0,
+							urgentTickets: 0,
+							highPriorityTickets: 0,
+						};
+					}
 
-				acc[techId].totalTickets++;
-				if (ticket.priority === "urgent") acc[techId].urgentTickets++;
-				if (ticket.priority === "high") acc[techId].highPriorityTickets++;
+					acc[techId].totalTickets++;
+					if (ticket.priority === "urgent") acc[techId].urgentTickets++;
+					if (ticket.priority === "high") acc[techId].highPriorityTickets++;
 
-				return acc;
-			}, {} as Record<string, {
-				technicianId: string;
-				technicianName: string;
-				totalTickets: number;
-				urgentTickets: number;
-				highPriorityTickets: number;
-			}>);
+					return acc;
+				},
+				{} as Record<
+					string,
+					{
+						technicianId: string;
+						technicianName: string;
+						totalTickets: number;
+						urgentTickets: number;
+						highPriorityTickets: number;
+					}
+				>,
+			);
 
 			return Object.values(workload);
 		} catch (err) {
-			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			const error =
+				err instanceof Error ? err : new Error("Lỗi không xác định");
 			setError(error);
 			throw error;
 		} finally {
@@ -294,11 +311,11 @@ export function useRepairSearch() {
 				const lastCode = data[0].ticket_code;
 				const match = lastCode.match(/LRP-\d{4}-(\d{6})$/);
 				if (match) {
-					nextNumber = parseInt(match[1]) + 1;
+					nextNumber = Number.parseInt(match[1]) + 1;
 				}
 			}
 
-			return `LRP-${currentYear}-${nextNumber.toString().padStart(6, '0')}`;
+			return `LRP-${currentYear}-${nextNumber.toString().padStart(6, "0")}`;
 		} catch (err) {
 			console.error("Error generating ticket code:", err);
 			// Fallback to timestamp-based code

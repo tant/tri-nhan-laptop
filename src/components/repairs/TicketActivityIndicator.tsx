@@ -28,7 +28,7 @@ export const TicketActivityIndicator = memo(function TicketActivityIndicator({
 	ticketCode,
 	activity,
 	showCount = true,
-	size = "md"
+	size = "md",
 }: TicketActivityIndicatorProps) {
 	const hasActivity = activity?.hasRecentActivity;
 	const activityCount = activity?.activityCount || 0;
@@ -36,19 +36,19 @@ export const TicketActivityIndicator = memo(function TicketActivityIndicator({
 	const sizeClasses = {
 		sm: "w-1.5 h-1.5",
 		md: "w-2 h-2",
-		lg: "w-2.5 h-2.5"
+		lg: "w-2.5 h-2.5",
 	};
 
 	const displayCode = ticketCode || `#${ticketId.slice(0, 8)}`;
 
 	return (
 		<div className="flex items-center gap-2">
-			<div className="font-medium">
-				{displayCode}
-			</div>
+			<div className="font-medium">{displayCode}</div>
 			{hasActivity && (
 				<div className="flex items-center gap-1">
-					<div className={`${sizeClasses[size]} bg-blue-500 rounded-full animate-pulse`} />
+					<div
+						className={`${sizeClasses[size]} bg-blue-500 rounded-full animate-pulse`}
+					/>
 					{showCount && activityCount > 1 && (
 						<Badge variant="secondary" className="text-xs h-4 px-1">
 							{activityCount}
@@ -66,7 +66,7 @@ export const TicketActivityIndicator = memo(function TicketActivityIndicator({
 export const ActivityDot = memo(function ActivityDot({
 	hasActivity,
 	size = "md",
-	color = "blue"
+	color = "blue",
 }: {
 	hasActivity: boolean;
 	size?: "sm" | "md" | "lg";
@@ -77,18 +77,20 @@ export const ActivityDot = memo(function ActivityDot({
 	const sizeClasses = {
 		sm: "w-1.5 h-1.5",
 		md: "w-2 h-2",
-		lg: "w-2.5 h-2.5"
+		lg: "w-2.5 h-2.5",
 	};
 
 	const colorClasses = {
 		blue: "bg-blue-500",
 		green: "bg-green-500",
 		red: "bg-red-500",
-		yellow: "bg-yellow-500"
+		yellow: "bg-yellow-500",
 	};
 
 	return (
-		<div className={`${sizeClasses[size]} ${colorClasses[color]} rounded-full animate-pulse`} />
+		<div
+			className={`${sizeClasses[size]} ${colorClasses[color]} rounded-full animate-pulse`}
+		/>
 	);
 });
 
@@ -97,7 +99,7 @@ export const ActivityDot = memo(function ActivityDot({
  */
 export const ActivityCountBadge = memo(function ActivityCountBadge({
 	count,
-	threshold = 1
+	threshold = 1,
 }: {
 	count: number;
 	threshold?: number;
@@ -116,13 +118,15 @@ export const ActivityCountBadge = memo(function ActivityCountBadge({
  */
 export const ActivityStatus = memo(function ActivityStatus({
 	activity,
-	showLastActivity = false
+	showLastActivity = false,
 }: {
 	activity?: TicketActivity;
 	showLastActivity?: boolean;
 }) {
 	if (!activity?.hasRecentActivity) {
-		return <span className="text-xs text-muted-foreground">Không có hoạt động</span>;
+		return (
+			<span className="text-xs text-muted-foreground">Không có hoạt động</span>
+		);
 	}
 
 	return (
@@ -143,13 +147,18 @@ export const ActivityStatus = memo(function ActivityStatus({
  */
 export function BulkActivityIndicator({
 	activities,
-	showDetails = false
+	showDetails = false,
 }: {
 	activities: Record<string, TicketActivity>;
 	showDetails?: boolean;
 }) {
-	const activeTickets = Object.values(activities).filter(a => a.hasRecentActivity).length;
-	const totalActivity = Object.values(activities).reduce((sum, a) => sum + a.activityCount, 0);
+	const activeTickets = Object.values(activities).filter(
+		(a) => a.hasRecentActivity,
+	).length;
+	const totalActivity = Object.values(activities).reduce(
+		(sum, a) => sum + a.activityCount,
+		0,
+	);
 
 	if (activeTickets === 0) return null;
 
@@ -172,14 +181,16 @@ export function BulkActivityIndicator({
  * Activity timeline indicator
  */
 export const ActivityTimeline = memo(function ActivityTimeline({
-	activities
+	activities,
 }: {
 	activities: TicketActivity[];
 }) {
 	const recentActivities = activities
-		.filter(a => a.hasRecentActivity && a.lastActivity)
-		.sort((a, b) =>
-			new Date(b.lastActivity!).getTime() - new Date(a.lastActivity!).getTime()
+		.filter((a) => a.hasRecentActivity && a.lastActivity)
+		.sort(
+			(a, b) =>
+				new Date(b.lastActivity!).getTime() -
+				new Date(a.lastActivity!).getTime(),
 		)
 		.slice(0, 5);
 
@@ -214,14 +225,19 @@ export const ActivityTimeline = memo(function ActivityTimeline({
 export function ActivityMonitor({
 	ticketIds,
 	activities,
-	onActivityUpdate
+	onActivityUpdate,
 }: {
 	ticketIds: string[];
 	activities: Record<string, TicketActivity>;
 	onActivityUpdate?: (ticketId: string, activity: TicketActivity) => void;
 }) {
-	const activeCount = Object.values(activities).filter(a => a.hasRecentActivity).length;
-	const totalActivity = Object.values(activities).reduce((sum, a) => sum + a.activityCount, 0);
+	const activeCount = Object.values(activities).filter(
+		(a) => a.hasRecentActivity,
+	).length;
+	const totalActivity = Object.values(activities).reduce(
+		(sum, a) => sum + a.activityCount,
+		0,
+	);
 
 	return (
 		<div className="flex items-center gap-4 text-sm text-muted-foreground">

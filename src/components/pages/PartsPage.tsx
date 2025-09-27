@@ -1,14 +1,22 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
-import { InventoryActions, InventoryPageHeader } from "@/components/parts/InventoryActions";
-import { InventoryModals, useInventoryModals } from "@/components/parts/InventoryModals";
-import { InventoryStatisticsCards, LowStockAlert } from "@/components/parts/InventoryStatistics";
+import {
+	InventoryActions,
+	InventoryPageHeader,
+} from "@/components/parts/InventoryActions";
+import {
+	InventoryModals,
+	useInventoryModals,
+} from "@/components/parts/InventoryModals";
+import {
+	InventoryStatisticsCards,
+	LowStockAlert,
+} from "@/components/parts/InventoryStatistics";
 import { InventoryView } from "@/components/parts/InventoryView";
 import { PartsInventorySkeleton } from "@/components/skeleton-loaders";
 import { usePartsManagement } from "@/hooks/use-parts-management";
-import { supabase } from "@/lib/supabase";
 import type { Part } from "@/lib/database-types";
+import { supabase } from "@/lib/supabase";
 import { useCallback, useEffect, useState } from "react";
-
 
 export function PartsPage() {
 	const [parts, setParts] = useState<Part[]>([]);
@@ -25,7 +33,7 @@ export function PartsPage() {
 		openBulkImport,
 		closeBulkImport,
 		openExport,
-		closeExport
+		closeExport,
 	} = useInventoryModals();
 
 	const {
@@ -77,17 +85,19 @@ export function PartsPage() {
 					if (payload.eventType === "INSERT" && payload.new) {
 						// Add new part to list
 						const newPart = payload.new as Part;
-						setParts(prev => [newPart, ...prev]);
+						setParts((prev) => [newPart, ...prev]);
 					} else if (payload.eventType === "UPDATE" && payload.new) {
 						// Update existing part
 						const updatedPart = payload.new as Part;
-						setParts(prev => prev.map(part =>
-							part.id === updatedPart.id ? updatedPart : part
-						));
+						setParts((prev) =>
+							prev.map((part) =>
+								part.id === updatedPart.id ? updatedPart : part,
+							),
+						);
 					} else if (payload.eventType === "DELETE" && payload.old) {
 						// Remove deleted part
 						const deletedId = payload.old.id;
-						setParts(prev => prev.filter(part => part.id !== deletedId));
+						setParts((prev) => prev.filter((part) => part.id !== deletedId));
 					} else {
 						// Fallback to full refetch for complex changes
 						fetchParts();
@@ -161,7 +171,7 @@ export function PartsPage() {
 					stockAdjustment: closeStockAdjustment,
 					partsForm: closePartsForm,
 					bulkImport: closeBulkImport,
-					export: closeExport
+					export: closeExport,
 				}}
 			/>
 		</div>

@@ -11,7 +11,12 @@
  * @author Vietnamese Laptop Repair Shop Management System
  */
 
-import type { Customer, RepairTicket, Part, UserProfile } from "./database-types";
+import type {
+	Customer,
+	Part,
+	RepairTicket,
+	UserProfile,
+} from "./database-types";
 
 /**
  * Simple phone number validation (simplified from complex Vietnamese patterns)
@@ -178,7 +183,8 @@ export function isPart(obj: unknown): obj is Part {
 		part.name.trim().length > 0 &&
 		typeof part.current_stock === "number" &&
 		part.current_stock >= 0 &&
-		(part.unit_price === null || (typeof part.unit_price === "number" && part.unit_price >= 0)) &&
+		(part.unit_price === null ||
+			(typeof part.unit_price === "number" && part.unit_price >= 0)) &&
 		(part.category === null || typeof part.category === "string")
 	);
 }
@@ -220,7 +226,7 @@ const VALID_REPAIR_STATUSES = [
 	"repair_failed",
 	"customer_no_show",
 	"ready_for_return",
-	"abandoned"
+	"abandoned",
 ] as const;
 
 /**
@@ -236,15 +242,24 @@ const VALID_USER_ROLES = ["shop_owner", "staff"] as const;
 /**
  * Type guard for valid repair status
  */
-export function isValidRepairStatus(status: unknown): status is RepairTicket["status"] {
-	return typeof status === "string" && VALID_REPAIR_STATUSES.includes(status as any);
+export function isValidRepairStatus(
+	status: unknown,
+): status is RepairTicket["status"] {
+	return (
+		typeof status === "string" && VALID_REPAIR_STATUSES.includes(status as any)
+	);
 }
 
 /**
  * Type guard for valid repair priority
  */
-export function isValidRepairPriority(priority: unknown): priority is "low" | "normal" | "high" | "urgent" {
-	return typeof priority === "string" && VALID_REPAIR_PRIORITIES.includes(priority as any);
+export function isValidRepairPriority(
+	priority: unknown,
+): priority is "low" | "normal" | "high" | "urgent" {
+	return (
+		typeof priority === "string" &&
+		VALID_REPAIR_PRIORITIES.includes(priority as any)
+	);
 }
 
 /**
@@ -290,7 +305,8 @@ export function isValidDatabaseId(id: unknown): id is string {
 	if (typeof id !== "string") return false;
 
 	// UUID v4 pattern
-	const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+	const uuidPattern =
+		/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 	return uuidPattern.test(id);
 }
 
@@ -395,7 +411,7 @@ export const ValidationHelpers = {
 		}
 
 		return true;
-	}
+	},
 };
 
 /**
@@ -404,12 +420,15 @@ export const ValidationHelpers = {
 export function withVietnameseValidation<T>(
 	data: unknown,
 	validator: (data: unknown) => T,
-	context: string
+	context: string,
 ): T {
 	try {
 		return validator(data);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Unknown validation error";
-		throw new Error(`Vietnamese data validation failed in ${context}: ${message}`);
+		const message =
+			error instanceof Error ? error.message : "Unknown validation error";
+		throw new Error(
+			`Vietnamese data validation failed in ${context}: ${message}`,
+		);
 	}
 }

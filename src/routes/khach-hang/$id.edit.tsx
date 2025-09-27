@@ -1,9 +1,11 @@
 import type { CustomerProfileData } from "@/components/customers/CustomerProfileForm";
-import { lazy, Suspense } from "react";
+import { Suspense, lazy } from "react";
 
 // Lazy load the heavy form component
 const CustomerProfileForm = lazy(() =>
-	import("@/components/customers/CustomerProfileForm").then(m => ({ default: m.CustomerProfileForm }))
+	import("@/components/customers/CustomerProfileForm").then((m) => ({
+		default: m.CustomerProfileForm,
+	})),
 );
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
@@ -34,43 +36,9 @@ function ProtectedCustomerEdit() {
 				const data = await findCustomerByPhone(id);
 				// Convert database customer to profile data format
 				const profileData: CustomerProfileData = {
-					// Basic info
-					fullName: data.full_name || "",
 					phone: data.phone,
-					email: data.email || "",
-					dateOfBirth: null, // May need conversion
-					idCard: null, // May need conversion
-
-					// Address
-					address: data.address as string | null, // Type conversion may be needed
-
-					// Category and business info
-					category: "individual" as const,
-					businessName: "",
-					taxId: "",
-					businessLicense: "",
-
-					// Contact preferences
-					contactPreferences: {
-						preferredMethod: "phone" as const,
-						allowSMS: true,
-						allowEmail: !!data.email,
-						allowCall: true,
-						preferredTime: "any" as const,
-					},
-
-					// Additional info
-					notes: data.notes || "",
-					tags: [],
-					isVip: false,
-					loyaltyPoints: 0,
-
-					// Privacy settings
-					privacyConsent: {
-						dataProcessing: true,
-						marketing: false,
-						thirdParty: false,
-					},
+					fullName: data.full_name || "",
+					address: data.address || "",
 				};
 				setCustomerData(profileData);
 			} catch (err) {
@@ -94,10 +62,7 @@ function ProtectedCustomerEdit() {
 
 			await updateCustomer(id, {
 				full_name: profile.fullName,
-				email: profile.email || null,
 				address: profile.address,
-				notes: profile.notes,
-				updated_at: new Date().toISOString(),
 			});
 
 			console.log("Customer updated:", id);
@@ -177,7 +142,11 @@ function ProtectedCustomerEdit() {
 
 				<Card>
 					<CardContent className="p-6">
-						<Suspense fallback={<div className="h-96 animate-pulse bg-gray-100 rounded" />}>
+						<Suspense
+							fallback={
+								<div className="h-96 animate-pulse bg-gray-100 rounded" />
+							}
+						>
 							<CustomerProfileForm
 								value={customerData}
 								onChange={setCustomerData}

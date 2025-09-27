@@ -4,7 +4,11 @@ import { createClient } from "@supabase/supabase-js";
 // ✅ CORRECT: App connects to local Supabase development environment
 const getSupabaseUrl = () => {
 	// If running on a domain (not localhost), use the proxy path
-	if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+	if (
+		typeof window !== "undefined" &&
+		!window.location.hostname.includes("localhost") &&
+		!window.location.hostname.includes("127.0.0.1")
+	) {
 		return `${window.location.origin}/supabase`;
 	}
 	// Otherwise use the direct local URL
@@ -17,8 +21,11 @@ const supabaseAnonKey =
 	"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0";
 
 // Debug logging
-console.log('🔗 Supabase URL:', supabaseUrl);
-console.log('🌐 Current hostname:', typeof window !== 'undefined' ? window.location.hostname : 'server');
+console.log("🔗 Supabase URL:", supabaseUrl);
+console.log(
+	"🌐 Current hostname:",
+	typeof window !== "undefined" ? window.location.hostname : "server",
+);
 
 // Create Supabase client with Vietnamese repair shop configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -68,23 +75,20 @@ export type Database = {
 			};
 			customers: {
 				Row: {
-					phone: string; // Primary key
-					full_name: string;
-					address: string | null;
-					notes: string | null;
+					phone: string; // Primary key (no spaces, e.g., 0901234567)
+					full_name: string; // Required
+					address: string | null; // Optional
 					created_at: string;
 					updated_at: string;
 				};
 				Insert: {
-					phone: string;
-					full_name: string;
-					address?: string | null;
-					notes?: string | null;
+					phone: string; // Required, no spaces
+					full_name: string; // Required
+					address?: string | null; // Optional
 				};
 				Update: {
 					full_name?: string;
 					address?: string | null;
-					notes?: string | null;
 				};
 			};
 			repair_tickets: {
@@ -129,17 +133,12 @@ export type Database = {
 					estimated_completion: string | null;
 					total_cost: number | null;
 					deposit_amount: number | null;
-					is_paid: boolean;
-					paid_at: string | null;
-					payment_method: "cash" | "transfer" | "other" | null;
-					receipt_note: string | null;
 					warranty_until: string | null;
 					has_issue_report: boolean;
 					customer_approved_at: string | null;
 					customer_approved_by: string | null;
 					repair_completed_at: string | null;
 					repair_completed_by: string | null;
-					paid_by: string | null;
 					// Additional fields from actual database schema
 					labor_cost: number | null;
 					labor_hours: number | null;
@@ -199,17 +198,12 @@ export type Database = {
 					estimated_completion?: string | null;
 					total_cost?: number | null;
 					deposit_amount?: number | null;
-					is_paid?: boolean;
-					paid_at?: string | null;
-					payment_method?: "cash" | "transfer" | "other" | null;
-					receipt_note?: string | null;
 					warranty_until?: string | null;
 					has_issue_report?: boolean;
 					customer_approved_at?: string | null;
 					customer_approved_by?: string | null;
 					repair_completed_at?: string | null;
 					repair_completed_by?: string | null;
-					paid_by?: string | null;
 					// Additional optional fields for comprehensive ticket management
 					labor_cost?: number | null;
 					labor_hours?: number | null;
@@ -267,17 +261,12 @@ export type Database = {
 					estimated_completion?: string | null;
 					total_cost?: number | null;
 					deposit_amount?: number | null;
-					is_paid?: boolean;
-					paid_at?: string | null;
-					payment_method?: "cash" | "transfer" | "other" | null;
-					receipt_note?: string | null;
 					warranty_until?: string | null;
 					has_issue_report?: boolean;
 					customer_approved_at?: string | null;
 					customer_approved_by?: string | null;
 					repair_completed_at?: string | null;
 					repair_completed_by?: string | null;
-					paid_by?: string | null;
 					priority?: "low" | "normal" | "high" | "urgent";
 				};
 			};
@@ -347,7 +336,6 @@ export type Database = {
 				| "customer_no_show"
 				| "ready_for_return"
 				| "abandoned";
-			payment_method: "cash" | "transfer" | "other";
 			user_role: "shop_owner" | "staff";
 			repair_priority: "low" | "normal" | "high" | "urgent";
 		};
@@ -389,7 +377,6 @@ export const testSupabaseConnection = async (): Promise<boolean> => {
 			console.error("Supabase connection test failed:", error);
 			return false;
 		}
-
 
 		return true;
 	} catch (error) {

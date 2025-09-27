@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { usePartsInventory } from "./use-parts-inventory";
-import { usePartsUsage } from "./use-parts-usage";
+import type { PartWithStock } from "./use-parts-inventory";
 import { usePartsReservations } from "./use-parts-reservations";
-import type { PartWithStock, InventoryTransaction } from "./use-parts-inventory";
-import type { PartUsage } from "./use-parts-usage";
 import type { PartReservation } from "./use-parts-reservations";
+import { usePartsUsage } from "./use-parts-usage";
+import type { PartUsage } from "./use-parts-usage";
 
 // Re-export types for backward compatibility
 export type { PartUsage } from "./use-parts-usage";
-export type { PartWithStock, InventoryTransaction } from "./use-parts-inventory";
+export type {
+	PartWithStock,
+	InventoryTransaction,
+} from "./use-parts-inventory";
 export type { PartReservation } from "./use-parts-reservations";
 
 export interface PartsManagementState {
@@ -38,8 +41,10 @@ export function usePartsManagement() {
 	const reservations = usePartsReservations();
 
 	// Merge loading and error states
-	const combinedLoading = state.loading || inventory.loading || usage.loading || reservations.loading;
-	const combinedError = state.error || inventory.error || usage.error || reservations.error;
+	const combinedLoading =
+		state.loading || inventory.loading || usage.loading || reservations.loading;
+	const combinedError =
+		state.error || inventory.error || usage.error || reservations.error;
 
 	// Legacy compatibility wrappers for composed hooks
 	const addPartsToRepair = useCallback(
@@ -75,12 +80,11 @@ export function usePartsManagement() {
 		return result;
 	}, [inventory]);
 
-	const getPartsWithStockStatus = useCallback(
-		async (): Promise<PartWithStock[]> => {
-			return inventory.getPartsWithStockStatus();
-		},
-		[inventory],
-	);
+	const getPartsWithStockStatus = useCallback(async (): Promise<
+		PartWithStock[]
+	> => {
+		return inventory.getPartsWithStockStatus();
+	}, [inventory]);
 
 	const searchAvailableParts = useCallback(
 		async (searchTerm: string, limit = 10) => {
@@ -97,7 +101,13 @@ export function usePartsManagement() {
 			userId: string,
 			notes?: string,
 		) => {
-			return inventory.updatePartStock(partId, newQuantity, cost, userId, notes);
+			return inventory.updatePartStock(
+				partId,
+				newQuantity,
+				cost,
+				userId,
+				notes,
+			);
 		},
 		[inventory],
 	);
@@ -112,7 +122,14 @@ export function usePartsManagement() {
 			durationHours = 24,
 			notes?: string,
 		) => {
-			return reservations.reservePartsForRepair(partId, repairId, quantity, userId, durationHours, notes);
+			return reservations.reservePartsForRepair(
+				partId,
+				repairId,
+				quantity,
+				userId,
+				durationHours,
+				notes,
+			);
 		},
 		[reservations],
 	);

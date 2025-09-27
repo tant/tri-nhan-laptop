@@ -3,6 +3,7 @@
  * Handles all system access logging and security tracking
  */
 
+import { maskPhoneNumber } from "@/lib/security/phone-privacy";
 import { supabase } from "@/lib/supabase";
 
 export interface AuditLogEntry {
@@ -289,23 +290,6 @@ export async function auditRepairTicketAccess<T>(
 			},
 		});
 	}
-}
-
-/**
- * Mask phone number for audit logging
- */
-function maskPhoneNumber(phone: string): string {
-	if (!phone || phone.length <= 4) return phone;
-
-	const visibleStart = 2;
-	const visibleEnd = 2;
-	const masked = "*".repeat(phone.length - visibleStart - visibleEnd);
-
-	return (
-		phone.substring(0, visibleStart) +
-		masked +
-		phone.substring(phone.length - visibleEnd)
-	);
 }
 
 /**

@@ -19,7 +19,6 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import type { Database } from "@/lib/supabase";
-import type { Part } from "@/lib/database-types";
 import { CheckCircle, Download, FileText, Package } from "lucide-react";
 import { useState } from "react";
 

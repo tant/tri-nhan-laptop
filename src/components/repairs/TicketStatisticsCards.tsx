@@ -23,26 +23,38 @@ export interface StatCard {
 export function useTicketStatistics(tickets: RepairTicket[]) {
 	return useMemo(() => {
 		const total = tickets.length;
-		const inProgress = tickets.filter(t => t.status === "in_repair").length;
-		const waitingParts = tickets.filter(t => t.status === "waiting_parts").length;
+		const inProgress = tickets.filter((t) => t.status === "in_repair").length;
+		const waitingParts = tickets.filter(
+			(t) => t.status === "waiting_parts",
+		).length;
 
 		// Calculate completed today
 		const today = new Date().toDateString();
-		const completedToday = tickets.filter(t =>
-			t.status === "completed" &&
-			t.completed_at &&
-			new Date(t.completed_at).toDateString() === today
+		const completedToday = tickets.filter(
+			(t) =>
+				t.status === "completed" &&
+				t.completed_at &&
+				new Date(t.completed_at).toDateString() === today,
 		).length;
 
 		// Additional statistics
-		const pending = tickets.filter(t =>
-			["device_received", "preliminary_inspection", "awaiting_repair_plan"].includes(t.status)
+		const pending = tickets.filter((t) =>
+			[
+				"device_received",
+				"preliminary_inspection",
+				"awaiting_repair_plan",
+			].includes(t.status),
 		).length;
 
-		const urgent = tickets.filter(t => t.priority === "urgent").length;
-		const overdue = tickets.filter(t => {
+		const urgent = tickets.filter((t) => t.priority === "urgent").length;
+		const overdue = tickets.filter((t) => {
 			if (!t.expected_completion_date) return false;
-			return new Date(t.expected_completion_date) < new Date() && !["completed", "cancelled_by_customer", "cannot_repair"].includes(t.status);
+			return (
+				new Date(t.expected_completion_date) < new Date() &&
+				!["completed", "cancelled_by_customer", "cannot_repair"].includes(
+					t.status,
+				)
+			);
 		}).length;
 
 		return {
@@ -52,7 +64,7 @@ export function useTicketStatistics(tickets: RepairTicket[]) {
 			completedToday,
 			pending,
 			urgent,
-			overdue
+			overdue,
 		};
 	}, [tickets]);
 }
@@ -67,23 +79,23 @@ export function PrimaryStatisticsCards({ tickets }: TicketStatisticsProps) {
 		{
 			title: "Tổng phiếu",
 			value: stats.total,
-			description: "Tất cả phiếu sửa chữa"
+			description: "Tất cả phiếu sửa chữa",
 		},
 		{
 			title: "Đang sửa chữa",
 			value: stats.inProgress,
-			description: "Phiếu đang được thực hiện"
+			description: "Phiếu đang được thực hiện",
 		},
 		{
 			title: "Chờ linh kiện",
 			value: stats.waitingParts,
-			description: "Phiếu chờ linh kiện"
+			description: "Phiếu chờ linh kiện",
 		},
 		{
 			title: "Hoàn thành hôm nay",
 			value: stats.completedToday,
-			description: "Phiếu hoàn thành trong ngày"
-		}
+			description: "Phiếu hoàn thành trong ngày",
+		},
 	];
 
 	return (
@@ -117,18 +129,18 @@ export function ExtendedStatisticsCards({ tickets }: TicketStatisticsProps) {
 		{
 			title: "Chờ xử lý",
 			value: stats.pending,
-			description: "Phiếu mới và chờ phê duyệt"
+			description: "Phiếu mới và chờ phê duyệt",
 		},
 		{
 			title: "Khẩn cấp",
 			value: stats.urgent,
-			description: "Phiếu có độ ưu tiên cao"
+			description: "Phiếu có độ ưu tiên cao",
 		},
 		{
 			title: "Quá hạn",
 			value: stats.overdue,
-			description: "Phiếu vượt thời gian dự kiến"
-		}
+			description: "Phiếu vượt thời gian dự kiến",
+		},
 	];
 
 	return (
@@ -160,9 +172,17 @@ export function CompactStatistics({ tickets }: TicketStatisticsProps) {
 
 	return (
 		<div className="flex items-center gap-6 text-sm text-muted-foreground">
-			<span>Tổng: <strong className="text-foreground">{stats.total}</strong></span>
-			<span>Đang sửa: <strong className="text-foreground">{stats.inProgress}</strong></span>
-			<span>Chờ linh kiện: <strong className="text-foreground">{stats.waitingParts}</strong></span>
+			<span>
+				Tổng: <strong className="text-foreground">{stats.total}</strong>
+			</span>
+			<span>
+				Đang sửa:{" "}
+				<strong className="text-foreground">{stats.inProgress}</strong>
+			</span>
+			<span>
+				Chờ linh kiện:{" "}
+				<strong className="text-foreground">{stats.waitingParts}</strong>
+			</span>
 			{stats.urgent > 0 && (
 				<span className="text-destructive">
 					Khẩn cấp: <strong>{stats.urgent}</strong>
@@ -183,7 +203,7 @@ export function CompactStatistics({ tickets }: TicketStatisticsProps) {
 export function StatusBreakdownCard({ tickets }: TicketStatisticsProps) {
 	const statusCounts = useMemo(() => {
 		const counts: Record<string, number> = {};
-		tickets.forEach(ticket => {
+		tickets.forEach((ticket) => {
 			counts[ticket.status] = (counts[ticket.status] || 0) + 1;
 		});
 		return counts;
@@ -201,10 +221,14 @@ export function StatusBreakdownCard({ tickets }: TicketStatisticsProps) {
 					const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
 					return (
 						<div key={status} className="flex justify-between items-center">
-							<span className="text-sm capitalize">{status.replace(/_/g, " ")}</span>
+							<span className="text-sm capitalize">
+								{status.replace(/_/g, " ")}
+							</span>
 							<div className="flex items-center gap-2">
 								<span className="text-sm font-medium">{count}</span>
-								<span className="text-xs text-muted-foreground">({percentage}%)</span>
+								<span className="text-xs text-muted-foreground">
+									({percentage}%)
+								</span>
 							</div>
 						</div>
 					);

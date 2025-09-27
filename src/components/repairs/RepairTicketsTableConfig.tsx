@@ -17,19 +17,40 @@ import { memo } from "react";
 // Static mappings for performance
 export const STATUS_MAP = {
 	device_received: { label: "Tiếp nhận thiết bị", variant: "outline" as const },
-	preliminary_inspection: { label: "Kiểm tra sơ bộ", variant: "secondary" as const },
-	awaiting_repair_plan: { label: "Chờ phương án sửa chữa", variant: "secondary" as const },
-	approved_for_repair: { label: "Đã phê duyệt sửa chữa", variant: "default" as const },
+	preliminary_inspection: {
+		label: "Kiểm tra sơ bộ",
+		variant: "secondary" as const,
+	},
+	awaiting_repair_plan: {
+		label: "Chờ phương án sửa chữa",
+		variant: "secondary" as const,
+	},
+	approved_for_repair: {
+		label: "Đã phê duyệt sửa chữa",
+		variant: "default" as const,
+	},
 	in_diagnosis: { label: "Đang chẩn đoán", variant: "default" as const },
 	waiting_parts: { label: "Chờ linh kiện", variant: "destructive" as const },
 	in_repair: { label: "Đang sửa chữa", variant: "default" as const },
-	quality_testing: { label: "Kiểm tra chất lượng", variant: "default" as const },
+	quality_testing: {
+		label: "Kiểm tra chất lượng",
+		variant: "default" as const,
+	},
 	ready_for_pickup: { label: "Sẵn sàng nhận", variant: "default" as const },
 	completed: { label: "Hoàn thành", variant: "default" as const },
 	cannot_repair: { label: "Không thể sửa", variant: "destructive" as const },
-	cancelled_by_customer: { label: "Khách hàng hủy", variant: "destructive" as const },
-	repair_failed: { label: "Sửa chữa thất bại", variant: "destructive" as const },
-	customer_no_show: { label: "Khách không đến", variant: "destructive" as const },
+	cancelled_by_customer: {
+		label: "Khách hàng hủy",
+		variant: "destructive" as const,
+	},
+	repair_failed: {
+		label: "Sửa chữa thất bại",
+		variant: "destructive" as const,
+	},
+	customer_no_show: {
+		label: "Khách không đến",
+		variant: "destructive" as const,
+	},
 	ready_for_return: { label: "Sẵn sàng trả", variant: "outline" as const },
 	abandoned: { label: "Bỏ qua", variant: "destructive" as const },
 } as const;
@@ -43,22 +64,25 @@ export const PRIORITY_MAP = {
 
 // Memoized badge components
 export const StatusBadge = memo(function StatusBadge({
-	status
+	status,
 }: {
-	status: RepairTicket["status"]
+	status: RepairTicket["status"];
 }) {
-	const statusInfo = STATUS_MAP[status] || { label: status, variant: "outline" as const };
+	const statusInfo = STATUS_MAP[status] || {
+		label: status,
+		variant: "outline" as const,
+	};
 	return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
 });
 
 export const PriorityBadge = memo(function PriorityBadge({
-	priority
+	priority,
 }: {
-	priority: string
+	priority: string;
 }) {
 	const priorityInfo = PRIORITY_MAP[priority as keyof typeof PRIORITY_MAP] || {
 		label: priority,
-		variant: "outline" as const
+		variant: "outline" as const,
 	};
 	return <Badge variant={priorityInfo.variant}>{priorityInfo.label}</Badge>;
 });
@@ -83,7 +107,10 @@ const formatCurrency = (amount: number | null) => {
 const formatDate = DateTime.formatDate;
 
 export interface RepairTicketsTableProps {
-	onStatusChange: (ticketId: string, newStatus: RepairTicket["status"]) => Promise<void>;
+	onStatusChange: (
+		ticketId: string,
+		newStatus: RepairTicket["status"],
+	) => Promise<void>;
 	onTechnicianChange: (ticketId: string, technicianId: string) => Promise<void>;
 	isProcessing?: (ticketId: string) => boolean;
 }
@@ -123,7 +150,9 @@ export function createRepairTicketsColumns({
 				return (
 					<div className="space-y-1">
 						<div className="font-medium">{customer.full_name}</div>
-						<div className="text-sm text-muted-foreground">{customer.phone}</div>
+						<div className="text-sm text-muted-foreground">
+							{customer.phone}
+						</div>
 					</div>
 				);
 			},
@@ -263,10 +292,12 @@ export function getStatusInfo(status: RepairTicket["status"]) {
  * Get priority info for a given priority
  */
 export function getPriorityInfo(priority: string) {
-	return PRIORITY_MAP[priority as keyof typeof PRIORITY_MAP] || {
-		label: priority,
-		variant: "outline" as const
-	};
+	return (
+		PRIORITY_MAP[priority as keyof typeof PRIORITY_MAP] || {
+			label: priority,
+			variant: "outline" as const,
+		}
+	);
 }
 
 /**

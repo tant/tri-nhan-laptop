@@ -1,5 +1,4 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/auth-context";
 import {
 	type CustomerDataSummary,
 	type DataExportRequest,
@@ -132,7 +132,7 @@ export function CustomerPrivacyManager({
 			const result = await updateCustomerConsent(
 				customerPhone,
 				newConsents,
-				user?.id || "unknown"
+				user?.id || "unknown",
 			);
 
 			if (result.success) {
@@ -156,7 +156,7 @@ export function CustomerPrivacyManager({
 				customerPhone,
 				exportConfig.type,
 				exportConfig.format,
-				user?.id || "unknown"
+				user?.id || "unknown",
 			);
 
 			if (result.success && result.data) {
@@ -188,7 +188,7 @@ export function CustomerPrivacyManager({
 		try {
 			const result = await requestDataDeletion(
 				customerPhone,
-				user?.id || "unknown"
+				user?.id || "unknown",
 				deleteReason,
 			);
 

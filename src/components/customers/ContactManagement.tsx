@@ -11,12 +11,12 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { validatePhone } from "@/lib/phone-utils";
 import {
 	type ContactPreferences,
 	type EmailValidationResult,
 	validateEmail,
 } from "@/lib/validation/customer-data";
-import { validatePhone } from "@/lib/phone-utils";
 import {
 	AlertCircle,
 	Check,

@@ -47,7 +47,7 @@ export function EditTicketForm({
 	const [priority, setPriority] = useState("");
 	const [status, setStatus] = useState("");
 	const [estimatedCost, setEstimatedCost] = useState("");
-	const [notes, setNotes] = useState("");
+	// Notes field removed - no payment management
 
 	useEffect(() => {
 		async function loadTicket() {
@@ -62,7 +62,7 @@ export function EditTicketForm({
 				setPriority(data.priority || "normal");
 				setStatus(data.status);
 				setEstimatedCost(data.total_cost?.toString() || "");
-				setNotes(data.receipt_note || "");
+				// Notes field removed - no payment management
 			} catch (err) {
 				setError(
 					err instanceof Error
@@ -90,7 +90,7 @@ export function EditTicketForm({
 				priority,
 				status,
 				total_cost: estimatedCost ? Number(estimatedCost) : null,
-				receipt_note: notes,
+				// Notes field removed - no payment management
 			};
 
 			await updateRepair(ticketId, updates);
@@ -206,16 +206,7 @@ export function EditTicketForm({
 								/>
 							</div>
 
-							<div>
-								<Label htmlFor="notes">Ghi chú</Label>
-								<Textarea
-									id="notes"
-									value={notes}
-									onChange={(e) => setNotes(e.target.value)}
-									placeholder="Ghi chú bổ sung"
-									rows={3}
-								/>
-							</div>
+							{/* Notes field removed - no payment management */}
 						</CardContent>
 					</Card>
 				</div>

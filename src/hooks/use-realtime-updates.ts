@@ -3,8 +3,8 @@
  * Handles Supabase Realtime integration for instant status synchronization
  */
 
-import { supabase } from "@/lib/supabase";
 import { getRepairStatusLabel } from "@/lib/repair-status";
+import { supabase } from "@/lib/supabase";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface RealtimeEvent {
