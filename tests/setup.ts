@@ -2,9 +2,33 @@ import { cleanup } from "@testing-library/react";
 import { beforeEach, vi } from "vitest";
 import "@testing-library/jest-dom";
 
-// Mock environment variables with state tracking
+// Import our new type guards for testing
+import {
+	isValidVietnamesePhone,
+	isValidRepairTicketCode,
+	isValidVietnameseCurrency,
+	ValidationHelpers,
+	isCustomer,
+	isRepairTicket,
+	isPart,
+	isUserProfile
+} from "@/lib/type-guards";
+import type {
+	SupabaseResult,
+	SupabaseArrayResult,
+	VietnameseBusinessError
+} from "@/lib/supabase-types";
+import type { Customer, RepairTicket, Part, UserProfile } from "@/lib/database-types";
+
+// Import enhanced mocking infrastructure
+import { globalSupabaseMock, VietnameseMockDataGenerator } from "./utils/supabase-mock";
+
+// Import Vietnamese locale testing utilities
+import { VietnameseTestSetup } from "./utils/vietnamese-locale-testing";
+
+// Mock environment variables with enhanced type-safe tracking
 vi.mock("@/lib/supabase", () => {
-	// Mock state storage for testing
+	// Legacy mock state for backward compatibility
 	const mockStateHistory: any[] = [];
 	const mockTickets: Record<string, any> = {};
 	let ticketCodeCounter = 1;
@@ -212,21 +236,11 @@ vi.mock("@/lib/supabase", () => {
 	};
 
 	return {
-		supabase: {
-			auth: {
-				getUser: vi.fn(() =>
-					Promise.resolve({ data: { user: null }, error: null }),
-				),
-				signInWithPassword: vi.fn(() =>
-					Promise.resolve({ data: { user: null }, error: null }),
-				),
-				signOut: vi.fn(() => Promise.resolve({ error: null })),
-				onAuthStateChange: vi.fn(),
-			},
-			from: vi.fn((tableName: string) => mockChainBuilder(tableName)),
-		},
-		createClient: vi.fn(),
-		// Expose mock state for test cleanup
+		// Enhanced Supabase client with type safety
+		supabase: globalSupabaseMock.createMockClient(),
+		createClient: vi.fn(() => globalSupabaseMock.createMockClient()),
+
+		// Legacy mock state for backward compatibility
 		_mockState: {
 			history: mockStateHistory,
 			tickets: mockTickets,
@@ -237,7 +251,17 @@ vi.mock("@/lib/supabase", () => {
 				mockStateHistory.length = 0;
 				Object.keys(mockTickets).forEach((key) => delete mockTickets[key]);
 				ticketCodeCounter = 1;
+				// Also reset enhanced mock
+				globalSupabaseMock.reset();
 			},
+		},
+
+		// Enhanced mock utilities
+		_enhancedMock: {
+			supabase: globalSupabaseMock,
+			dataGenerator: VietnameseMockDataGenerator,
+			seedTestData: () => globalSupabaseMock.seedTestData(),
+			reset: () => globalSupabaseMock.reset(),
 		},
 	};
 });
@@ -265,35 +289,24 @@ vi.mock("@tanstack/react-router", () => ({
 	}),
 }));
 
-// Vietnamese locale setup for tests
-Object.defineProperty(window, "navigator", {
-	value: {
-		language: "vi-VN",
-		languages: ["vi-VN", "vi", "en-US", "en"],
-	},
-	writable: true,
-});
+// Enhanced Vietnamese locale setup for tests
+VietnameseTestSetup.createVietnameseTestEnvironment();
 
-// Mock Intl for Vietnamese formatting
-global.Intl = {
-	...Intl,
-	DateTimeFormat: vi.fn(() => ({
-		format: vi.fn(() => "23/09/2025"),
-		formatToParts: vi.fn(),
-	})),
-	NumberFormat: vi.fn(() => ({
-		format: vi.fn((num) => num.toLocaleString("vi-VN")),
-	})),
-} as any;
-
-// Cleanup after each test
+// Cleanup after each test with enhanced mock reset
 beforeEach(() => {
 	cleanup();
 	vi.clearAllMocks();
 
-	// Reset mock state
+	// Reset legacy mock state
 	const mockModule = vi.importMock("@/lib/supabase") as any;
 	if (mockModule._mockState) {
 		mockModule._mockState.reset();
 	}
+
+	// Reset enhanced mock state
+	globalSupabaseMock.reset();
+	VietnameseMockDataGenerator.reset();
+
+	// Seed fresh test data for each test
+	globalSupabaseMock.seedTestData();
 });

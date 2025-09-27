@@ -1,0 +1,460 @@
+/**
+ * @fileoverview Repair Tickets CRUD Hook for Vietnamese Laptop Repair Shop
+ *
+ * Comprehensive Create, Read, Update, Delete operations for repair tickets with
+ * Vietnamese business context. Handles customer auto-creation, device registration,
+ * repair category inference, and multi-step ticket creation workflow.
+ *
+ * Key Features:
+ * - Vietnamese phone number validation and customer auto-creation
+ * - Device registration and tracking
+ * - Repair category inference from Vietnamese descriptions
+ * - Draft ticket support for incomplete submissions
+ * - Service notes integration with initial inspection data
+ * - Vietnamese error messages and user feedback
+ *
+ * @version 1.0.0
+ * @since Phase 3.4.1
+ */
+
+import { supabase } from "@/lib/supabase";
+import type { Database } from "@/lib/supabase";
+import { useCallback, useState } from "react";
+import { useRepairValidation } from "./use-repair-validation";
+import type { NewRepairTicket } from "./use-repair-validation";
+
+// Vietnamese repair shop database types
+type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
+
+/**
+ * Result interface for ticket creation operations
+ *
+ * Provides comprehensive feedback for Vietnamese repair ticket creation,
+ * including success status, generated IDs, and user-friendly warnings.
+ */
+export interface TicketCreationResult {
+	/** Whether the ticket creation was successful */
+	success: boolean;
+	/** Generated ticket ID (UUID) if successful */
+	ticketId?: string;
+	/** Generated Vietnamese ticket code (LRP-YYYY-XXXXXX) if successful */
+	ticketCode?: string;
+	/** Vietnamese error message if creation failed */
+	error?: string;
+	/** Non-critical warnings in Vietnamese (e.g., missing optional features) */
+	warnings?: string[];
+}
+
+export interface RepairTicketWithDetails extends RepairTicket {
+	customer?: {
+		full_name: string;
+		phone: string;
+		email?: string;
+	};
+	device_info?: {
+		brand: string;
+		model: string;
+		serial_number?: string;
+	};
+	technician?: {
+		full_name: string;
+	};
+}
+
+/**
+ * Hook for repair ticket CRUD operations
+ */
+export function useRepairTicketsCrud() {
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState<Error | null>(null);
+	const { validateTicketData, getConditionDescription, inferRepairCategory } = useRepairValidation();
+
+	/**
+	 * Create a new repair ticket
+	 */
+	const createRepairTicket = useCallback(
+		async (ticketData: NewRepairTicket): Promise<TicketCreationResult> => {
+			try {
+				setLoading(true);
+				setError(null);
+
+				// Validate required fields
+				const validation = validateTicketData(ticketData);
+				if (!validation.isValid) {
+					return {
+						success: false,
+						error: `Dữ liệu không hợp lệ: ${validation.errors.join(", ")}`,
+					};
+				}
+
+				// Check if customer exists, create if not
+				const { data: customer, error: customerError } = await supabase
+					.from("customers")
+					.select("phone, full_name")
+					.eq("phone", ticketData.customerPhone)
+					.single();
+
+				if (customerError && customerError.code === "PGRST116") {
+					// Customer doesn't exist, create new one
+					const { error: createCustomerError } = await supabase
+						.from("customers")
+						.insert({
+							phone: ticketData.customerPhone,
+							full_name: ticketData.customerName,
+							email: ticketData.customerEmail,
+						});
+
+					if (createCustomerError) {
+						return {
+							success: false,
+							error: `Không thể tạo khách hàng: ${createCustomerError.message}`,
+						};
+					}
+				} else if (customerError) {
+					return {
+						success: false,
+						error: `Lỗi kiểm tra khách hàng: ${customerError.message}`,
+					};
+				}
+
+				// Create or find device
+				let deviceId: string | null = null;
+				if (ticketData.serialNumber) {
+					const { data: existingDevice } = await supabase
+						.from("customer_devices")
+						.select("id")
+						.eq("customer_phone", ticketData.customerPhone)
+						.eq("serial_number", ticketData.serialNumber)
+						.single();
+
+					if (existingDevice) {
+						deviceId = existingDevice.id;
+					} else {
+						const { data: newDevice, error: deviceError } = await supabase
+							.from("customer_devices")
+							.insert({
+								customer_phone: ticketData.customerPhone,
+								device_type: ticketData.deviceType,
+								brand: ticketData.deviceBrand,
+								model: ticketData.deviceModel,
+								serial_number: ticketData.serialNumber,
+								device_notes: `Tình trạng: ${getConditionDescription(ticketData.physicalCondition.overall, ticketData.physicalCondition.notes)}`,
+							})
+							.select("id")
+							.single();
+
+						if (deviceError) {
+							return {
+								success: false,
+								error: `Không thể tạo thông tin thiết bị: ${deviceError.message}`,
+							};
+						}
+
+						deviceId = newDevice.id;
+					}
+				}
+
+				// Infer repair category if not provided
+				const repairCategory = ticketData.repairCategory || inferRepairCategory(ticketData.issueDescription);
+
+				// Create repair ticket (ticket_code will be auto-generated by database trigger)
+				const ticketInsert = {
+					customer_phone: ticketData.customerPhone,
+					device_id: deviceId,
+					issue_description: ticketData.issueDescription,
+					customer_description: ticketData.customerDescription,
+					priority: ticketData.priority,
+					estimated_cost: ticketData.estimatedCost,
+					estimated_completion_date: ticketData.estimatedCompletion?.toISOString(),
+					assigned_technician_id: ticketData.assignedTechnician,
+					repair_category: repairCategory,
+					physical_condition: ticketData.physicalCondition.overall,
+					accessories_included: ticketData.accessories?.join(", "),
+					preliminary_diagnosis: ticketData.preliminaryDiagnosis,
+					status: ticketData.isDraft ? "draft" : "device_received",
+				};
+
+				const { data: ticket, error: ticketError } = await supabase
+					.from("repair_tickets")
+					.insert(ticketInsert)
+					.select("id, ticket_code")
+					.single();
+
+				if (ticketError) {
+					return {
+						success: false,
+						error: `Không thể tạo phiếu sửa chữa: ${ticketError.message}`,
+					};
+				}
+
+				const warnings: string[] = [];
+
+				// Add initial service note if provided
+				if (ticketData.preliminaryDiagnosis || ticketData.physicalCondition.notes) {
+					const serviceNote = [
+						ticketData.preliminaryDiagnosis && `Chẩn đoán sơ bộ: ${ticketData.preliminaryDiagnosis}`,
+						ticketData.physicalCondition.notes && `Tình trạng vật lý: ${ticketData.physicalCondition.notes}`
+					].filter(Boolean).join("\n");
+
+					const { error: noteError } = await supabase
+						.from("service_notes")
+						.insert({
+							repair_ticket_id: ticket.id,
+							note_content: serviceNote,
+							note_type: "initial_inspection",
+							created_by: ticketData.assignedTechnician || null,
+						});
+
+					if (noteError) {
+						warnings.push(`Không thể thêm ghi chú dịch vụ: ${noteError.message}`);
+					}
+				}
+
+				// TODO: Handle file uploads (photos, documents) here
+				if (ticketData.photos && ticketData.photos.length > 0) {
+					warnings.push("Tính năng tải lên hình ảnh sẽ được bổ sung sau");
+				}
+
+				if (ticketData.documents && ticketData.documents.length > 0) {
+					warnings.push("Tính năng tải lên tài liệu sẽ được bổ sung sau");
+				}
+
+				return {
+					success: true,
+					ticketId: ticket.id,
+					ticketCode: ticket.ticket_code,
+					warnings: warnings.length > 0 ? warnings : undefined,
+				};
+			} catch (err) {
+				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				setError(error);
+				return {
+					success: false,
+					error: error.message,
+				};
+			} finally {
+				setLoading(false);
+			}
+		},
+		[validateTicketData, getConditionDescription, inferRepairCategory]
+	);
+
+	/**
+	 * Get a repair ticket by ID with full details
+	 */
+	const getRepairById = useCallback(async (ticketId: string): Promise<RepairTicketWithDetails | null> => {
+		try {
+			setLoading(true);
+			setError(null);
+
+			const { data, error: queryError } = await supabase
+				.from("repair_tickets")
+				.select(`
+					*,
+					customers(full_name, phone, email),
+					customer_devices(brand, model, serial_number),
+					user_profiles!repair_tickets_assigned_technician_id_fkey(full_name)
+				`)
+				.eq("id", ticketId)
+				.single();
+
+			if (queryError) {
+				if (queryError.code === "PGRST116") {
+					return null; // Ticket not found
+				}
+				throw new Error(`Không thể tải thông tin phiếu sửa chữa: ${queryError.message}`);
+			}
+
+			return {
+				...data,
+				customer: data.customers ? {
+					full_name: data.customers.full_name,
+					phone: data.customers.phone,
+					email: data.customers.email,
+				} : undefined,
+				device_info: data.customer_devices ? {
+					brand: data.customer_devices.brand,
+					model: data.customer_devices.model,
+					serial_number: data.customer_devices.serial_number,
+				} : undefined,
+				technician: data.user_profiles ? {
+					full_name: data.user_profiles.full_name,
+				} : undefined,
+			};
+		} catch (err) {
+			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			setError(error);
+			throw error;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	/**
+	 * Update a repair ticket
+	 */
+	const updateRepair = useCallback(
+		async (ticketId: string, updates: Partial<RepairTicket>): Promise<RepairTicket> => {
+			try {
+				setLoading(true);
+				setError(null);
+
+				const { data, error: updateError } = await supabase
+					.from("repair_tickets")
+					.update(updates)
+					.eq("id", ticketId)
+					.select()
+					.single();
+
+				if (updateError) {
+					throw new Error(`Không thể cập nhật phiếu sửa chữa: ${updateError.message}`);
+				}
+
+				return data;
+			} catch (err) {
+				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				setError(error);
+				throw error;
+			} finally {
+				setLoading(false);
+			}
+		},
+		[]
+	);
+
+	/**
+	 * Save ticket as draft
+	 */
+	const saveDraft = useCallback(
+		async (
+			ticketData: Partial<NewRepairTicket>,
+			draftId?: string
+		): Promise<TicketCreationResult> => {
+			try {
+				setLoading(true);
+				setError(null);
+
+				// For draft, only require essential fields
+				const draftData = {
+					...ticketData,
+					status: "draft" as const,
+					isDraft: true,
+				};
+
+				if (draftId) {
+					// Update existing draft
+					const { error: updateError } = await supabase
+						.from("repair_tickets")
+						.update(draftData)
+						.eq("id", draftId)
+						.eq("status", "draft");
+
+					if (updateError) {
+						return {
+							success: false,
+							error: `Không thể lưu bản nháp: ${updateError.message}`,
+						};
+					}
+
+					return {
+						success: true,
+						ticketId: draftId,
+					};
+				}
+
+				// Create new draft
+				return await createRepairTicket(draftData as NewRepairTicket);
+			} catch (err) {
+				const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+				setError(error);
+				return {
+					success: false,
+					error: error.message,
+				};
+			} finally {
+				setLoading(false);
+			}
+		},
+		[createRepairTicket]
+	);
+
+	/**
+	 * Load draft data
+	 */
+	const loadDraft = useCallback(async (draftId: string): Promise<Partial<NewRepairTicket> | null> => {
+		try {
+			setLoading(true);
+			setError(null);
+
+			const { data, error: queryError } = await supabase
+				.from("repair_tickets")
+				.select("*")
+				.eq("id", draftId)
+				.eq("status", "draft")
+				.single();
+
+			if (queryError) {
+				if (queryError.code === "PGRST116") {
+					return null; // Draft not found
+				}
+				throw new Error(`Không thể tải bản nháp: ${queryError.message}`);
+			}
+
+			// Convert database format back to NewRepairTicket format
+			return {
+				customerPhone: data.customer_phone,
+				customerName: data.customer_phone, // We'll need to fetch customer name separately
+				issueDescription: data.issue_description,
+				customerDescription: data.customer_description,
+				priority: data.priority as any,
+				estimatedCost: data.estimated_cost || undefined,
+				preliminaryDiagnosis: data.preliminary_diagnosis || undefined,
+				repairCategory: data.repair_category || undefined,
+			};
+		} catch (err) {
+			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			setError(error);
+			throw error;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	/**
+	 * Delete a repair ticket (soft delete by updating status)
+	 */
+	const deleteTicket = useCallback(async (ticketId: string): Promise<boolean> => {
+		try {
+			setLoading(true);
+			setError(null);
+
+			const { error: updateError } = await supabase
+				.from("repair_tickets")
+				.update({ status: "cancelled_by_customer" })
+				.eq("id", ticketId);
+
+			if (updateError) {
+				throw new Error(`Không thể xóa phiếu sửa chữa: ${updateError.message}`);
+			}
+
+			return true;
+		} catch (err) {
+			const error = err instanceof Error ? err : new Error("Lỗi không xác định");
+			setError(error);
+			return false;
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	return {
+		loading,
+		error,
+		createRepairTicket,
+		getRepairById,
+		updateRepair,
+		saveDraft,
+		loadDraft,
+		deleteTicket,
+	};
+}

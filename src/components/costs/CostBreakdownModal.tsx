@@ -77,6 +77,7 @@ export function CostBreakdownModal({
 	const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [showAddForm, setShowAddForm] = useState(false);
+	const [editingItem, setEditingItem] = useState<CostBreakdown | null>(null);
 	const [addItemForm, setAddItemForm] = useState<AddCostItemForm>({
 		breakdown_type: "parts",
 		item_name: "",

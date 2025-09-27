@@ -54,6 +54,14 @@ pnpm run test:all          # Run unit tests
 pnpm run test              # Default: run unit tests only
 ```
 
+**Phase 3.4.2 Testing Infrastructure Enhancements:**
+- **Vietnamese Locale Testing**: Comprehensive utilities for Vietnamese business validation, phone numbers, currency formatting, and date/time handling
+- **Enhanced Supabase Mocking**: Type-safe mock infrastructure with Vietnamese business context
+- **Component Unit Tests**: Tests for Vietnamese-specific UI components (data tables, forms, status displays)
+- **Hook Unit Tests**: Tests for business logic hooks (repair CRUD, customer CRUD, optimistic mutations)
+- **Integration Tests**: End-to-end testing of critical Vietnamese business workflows
+- **Test Data Generation**: Realistic Vietnamese customer and repair ticket data for testing
+
 ## Architecture Overview
 
 ### Tech Stack
@@ -97,6 +105,13 @@ pnpm run test              # Default: run unit tests only
 - **Optimistic Updates**: `use-optimistic-mutation.ts` for responsive UI
 - **Error Handling**: Centralized Supabase error mapping to Vietnamese messages
 - **Loading States**: Skeleton loaders for all data-heavy components
+
+#### Phase 3.4.1 Type Safety Enhancements
+- **Enhanced TypeScript Configuration**: Stricter compiler options with `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess`, and improved error detection
+- **Comprehensive Type Guards**: Runtime validation for Vietnamese phone numbers, repair ticket codes, currency amounts, and business entities
+- **Generic Component Types**: Reusable TypeScript generics for data tables, forms, and Vietnamese business components
+- **Supabase Query Types**: Strengthened database operation types with Vietnamese business context and enhanced error handling
+- **JSDoc Documentation**: Comprehensive API documentation for all exported functions with examples and version tracking
 
 ### Database Schema (Key Tables)
 
@@ -172,6 +187,24 @@ VITE_DEFAULT_LOCALE=vi-VN
 - `supabase/migrations/` - Database schema migrations
 - `supabase/seed.sql` - Sample data for development
 - `scripts/create-admin.js` - Admin user creation utility
+
+### Phase 3.4 Enhanced Architecture (New Files)
+
+#### Type Safety & Validation (Phase 3.4.1)
+- `src/lib/type-guards.ts` - Runtime type validation for Vietnamese business entities
+- `src/lib/validation/phone-vietnamese.ts` - Vietnamese phone number validation and formatting
+- `src/lib/validation/currency-vietnamese.ts` - VND currency validation and formatting
+- `src/lib/supabase-types.ts` - Enhanced Supabase operation types with error handling
+- `src/lib/database-types.ts` - Consolidated database entity types
+- `src/lib/formatting.ts` - Vietnamese locale formatting utilities with JSDoc documentation
+
+#### Testing Infrastructure (Phase 3.4.2)
+- `tests/utils/supabase-mock.ts` - Type-safe Supabase mocking with Vietnamese business context
+- `tests/utils/vietnamese-locale-testing.ts` - Comprehensive Vietnamese locale testing utilities
+- `tests/hooks/` - Hook unit tests for business logic (repair CRUD, customer CRUD, optimistic mutations)
+- `tests/components/` - Component unit tests for Vietnamese-specific UI components
+- `tests/integration/` - Integration tests for critical Vietnamese business workflows
+- `tests/examples/` - Example tests demonstrating Vietnamese locale testing best practices
 
 ## Development Workflow
 
@@ -273,4 +306,55 @@ The following rules are configured to work with this codebase:
 - Hook dependencies as warnings - address if causing issues
 - Auto-fix with: `pnpm biome check --write`
 
-- to memorize every time you change code and script, make sure to check and update documents and testscript to reflex final changes. I just need to current best version, the changes is not quite needed
+## Phase 3.4 Development Guidelines
+
+### Type Safety Best Practices (Phase 3.4.1)
+- **Always use type guards**: Import and use type guards from `src/lib/type-guards.ts` for runtime validation
+- **Vietnamese data validation**: Use Vietnamese-specific validators for phone numbers, currency, and business entities
+- **Generic components**: Leverage generic types for reusable components with proper constraints
+- **JSDoc documentation**: Add comprehensive JSDoc comments for all exported functions with examples
+- **Error handling**: Use typed error handling with `SupabaseResult<T>` and `VietnameseBusinessError`
+
+```typescript
+// Example: Proper type guard usage
+import { isValidVietnamesePhone, isCustomer } from '@/lib/type-guards';
+
+function processCustomerPhone(phone: unknown) {
+  if (!isValidVietnamesePhone(phone)) {
+    throw new Error('Invalid Vietnamese phone number');
+  }
+  // phone is now typed as string and validated
+}
+```
+
+### Testing Best Practices (Phase 3.4.2)
+- **Vietnamese locale testing**: Use utilities from `tests/utils/vietnamese-locale-testing.ts`
+- **Mock Vietnamese business data**: Use `VietnameseMockDataGenerator` for realistic test data
+- **Component testing**: Test Vietnamese-specific formatting and validation in components
+- **Hook testing**: Use enhanced Supabase mocking for hook unit tests
+- **Integration testing**: Test complete Vietnamese business workflows end-to-end
+
+```typescript
+// Example: Vietnamese locale testing
+import VietnameseLocaleUtils from 'tests/utils/vietnamese-locale-testing';
+
+it('should format Vietnamese currency correctly', () => {
+  const amount = 1500000;
+  const formatted = VietnameseLocaleUtils.currency.testVNDFormatting(amount);
+  VietnameseLocaleUtils.assertions.assertVietnameseCurrencyFormat(formatted, amount);
+});
+```
+
+### Component Development Patterns (Phase 3.4.3)
+- **Vietnamese business context**: Always consider Vietnamese locale requirements
+- **Type-safe props**: Use generic types for reusable components
+- **Error boundaries**: Implement Vietnamese error messages for user-facing errors
+- **Loading states**: Use skeleton loaders for better UX during data loading
+- **Optimistic updates**: Use `useOptimisticMutation` for responsive UI interactions
+
+### Database Integration Guidelines
+- **Required fields validation**: Always validate Vietnamese business requirements
+- **Phone number handling**: Use `toStorageFormat()` for database storage and `formatForDisplay()` for UI
+- **Currency validation**: Validate VND amounts are positive and follow Vietnamese business rules
+- **Error handling**: Map Supabase errors to Vietnamese user-friendly messages
+- **Real-time updates**: Implement Supabase real-time subscriptions for live data updates

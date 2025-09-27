@@ -7,467 +7,119 @@ import {
 	validateVietnamesePhone,
 } from "@/lib/validation/phone-vietnamese";
 import { useCallback, useState } from "react";
+import { useCustomerSearch } from "./use-customer-search";
+import { useCustomerCrud } from "./use-customer-crud";
+import type { CustomerWithStats, CustomerSearchOptions } from "./use-customer-search";
+import type { PhoneChangeRecord } from "./use-customer-crud";
 
 // Database types
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type NewCustomer = Database["public"]["Tables"]["customers"]["Insert"];
 type UpdateCustomer = Database["public"]["Tables"]["customers"]["Update"];
 
-export interface CustomerWithStats extends Customer {
-	fullName: string; // Alias for full_name to match test expectations
-	createdAt: string; // Alias for created_at to match test expectations
-	totalRepairs: number;
-	lastRepairDate: string | null;
-	activeRepairs: number;
-}
-
-export interface CustomerSearchOptions {
-	query?: string;
-	limit?: number;
-	includeStats?: boolean;
-}
-
-export interface PhoneChangeRecord {
-	oldPhone: string;
-	newPhone: string;
-	changedAt: string;
-	changedBy: string;
-	reason?: string;
-}
+// Re-export types for backward compatibility
+export type { CustomerWithStats, CustomerSearchOptions } from "./use-customer-search";
+export type { PhoneChangeRecord } from "./use-customer-crud";
 
 /**
- * Custom hook for managing customer data with phone-based identification
+ * Main customer hook - provides comprehensive customer management through composed focused hooks
+ * This maintains backward compatibility while using the new architecture
  */
 export function useCustomers() {
 	const [customers, setCustomers] = useState<CustomerWithStats[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<Error | null>(null);
 
+	// Compose focused hooks
+	const search = useCustomerSearch();
+	const crud = useCustomerCrud();
+
+	// Merge loading and error states
+	const combinedLoading = loading || search.loading || crud.loading;
+	const combinedError = error || search.error || crud.error;
+
 	/**
-	 * Fetch customers with optional search and statistics
+	 * Fetch customers with optional search and statistics (legacy compatibility)
 	 */
 	const fetchCustomers = useCallback(
 		async (options: CustomerSearchOptions = {}) => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				let query = supabase.from("customers").select("*");
-
-				// Apply search filter if provided
-				if (options.query) {
-					const normalizedQuery = normalizePhoneNumber(options.query);
-					query = query.or(
-						`phone.ilike.%${normalizedQuery}%,full_name.ilike.%${options.query}%`,
-					);
-				}
-
-				// Apply limit
-				if (options.limit) {
-					query = query.limit(options.limit);
-				}
-
-				// Order by most recent
-				query = query.order("created_at", { ascending: false });
-
-				const { data: customersData, error: customersError } = await query;
-
-				if (customersError) {
-					throw new Error(
-						`Không thể tải danh sách khách hàng: ${customersError.message}`,
-					);
-				}
-
-				if (!customersData) {
-					setCustomers([]);
-					return [];
-				}
-
-				// Add repair statistics if requested
-				let customersWithStats: CustomerWithStats[];
-
-				if (options.includeStats !== false) {
-					customersWithStats = await Promise.all(
-						customersData.map(async (customer) => {
-							try {
-								// Get repair statistics
-								const { data: repairStats, error: repairError } = await supabase
-									.from("repair_tickets")
-									.select("created_at, status")
-									.eq("customer_phone", customer.phone);
-
-								if (repairError) {
-									console.error(
-										"Error fetching repair stats for customer:",
-										customer.phone,
-										repairError,
-									);
-									return {
-										...customer,
-										totalRepairs: 0,
-										lastRepairDate: null,
-										activeRepairs: 0,
-									};
-								}
-
-								const totalRepairs = repairStats?.length || 0;
-								const activeRepairs =
-									repairStats?.filter(
-										(r) =>
-											![
-												"completed",
-												"cancelled_by_customer",
-												"abandoned",
-											].includes(r.status),
-									).length || 0;
-								const lastRepairDate =
-									repairStats && repairStats.length > 0
-										? repairStats.sort(
-												(a, b) =>
-													new Date(b.created_at).getTime() -
-													new Date(a.created_at).getTime(),
-											)[0].created_at
-										: null;
-
-								return {
-									...customer,
-									totalRepairs,
-									lastRepairDate,
-									activeRepairs,
-								};
-							} catch (error) {
-								console.error("Error processing customer stats:", error);
-								return {
-									...customer,
-									totalRepairs: 0,
-									lastRepairDate: null,
-									activeRepairs: 0,
-								};
-							}
-						}),
-					);
-				} else {
-					customersWithStats = customersData.map((customer) => ({
-						...customer,
-						totalRepairs: 0,
-						lastRepairDate: null,
-						activeRepairs: 0,
-					}));
-				}
-
-				setCustomers(customersWithStats);
-				return customersWithStats;
-			} catch (err) {
-				const error =
-					err instanceof Error
-						? err
-						: new Error("Lỗi không xác định khi tải khách hàng");
-				console.error("Error fetching customers:", error);
-				setError(error);
-				return [];
-			} finally {
-				setLoading(false);
-			}
+			const result = await search.searchCustomers(options);
+			setCustomers(result);
+			return result;
 		},
-		[],
+		[search],
 	);
 
 	/**
-	 * Find customer by phone number (primary key lookup)
+	 * Find customer by phone number (legacy compatibility)
 	 */
 	const findCustomerByPhone = useCallback(
 		async (phone: string): Promise<CustomerWithStats | null> => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				// Validate and normalize phone number
-				const validation = validateVietnamesePhone(phone);
-				if (!validation.isValid) {
-					throw new Error(validation.error || "Số điện thoại không hợp lệ");
-				}
-
-				const normalizedPhone = normalizePhoneNumber(phone);
-
-				const { data: customer, error: customerError } = await supabase
-					.from("customers")
-					.select("*")
-					.eq("phone", normalizedPhone)
-					.single();
-
-				if (customerError) {
-					if (customerError.code === "PGRST116") {
-						// No customer found
-						return null;
-					}
-					throw new Error(`Không thể tìm khách hàng: ${customerError.message}`);
-				}
-
-				if (!customer) return null;
-
-				// Get repair statistics
-				const { data: repairStats } = await supabase
-					.from("repair_tickets")
-					.select("created_at, status")
-					.eq("customer_phone", customer.phone);
-
-				const totalRepairs = repairStats?.length || 0;
-				const activeRepairs =
-					repairStats?.filter(
-						(r) =>
-							!["completed", "cancelled_by_customer", "abandoned"].includes(
-								r.status,
-							),
-					).length || 0;
-				const lastRepairDate =
-					repairStats && repairStats.length > 0
-						? repairStats.sort(
-								(a, b) =>
-									new Date(b.created_at).getTime() -
-									new Date(a.created_at).getTime(),
-							)[0].created_at
-						: null;
-
-				const customerWithStats: CustomerWithStats = {
-					...customer,
-					totalRepairs,
-					lastRepairDate,
-					activeRepairs,
-				};
-
-				return customerWithStats;
-			} catch (err) {
-				const error =
-					err instanceof Error
-						? err
-						: new Error("Lỗi không xác định khi tìm khách hàng");
-				console.error("Error finding customer by phone:", error);
-				setError(error);
-				return null;
-			} finally {
-				setLoading(false);
-			}
+			return search.findCustomerByPhone(phone);
 		},
-		[],
+		[search],
 	);
 
 	/**
-	 * Create new customer with phone number validation
+	 * Create new customer (legacy compatibility)
 	 */
 	const createCustomer = useCallback(
 		async (
 			customerData: Omit<NewCustomer, "phone"> & { phone: string },
 		): Promise<CustomerWithStats | null> => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				// Validate phone number
-				const validation = validateVietnamesePhone(customerData.phone);
-				if (!validation.isValid) {
-					throw new Error(validation.error || "Số điện thoại không hợp lệ");
-				}
-
-				const normalizedPhone = toStorageFormat(customerData.phone);
-
-				// Check for duplicate phone number
-				const existingCustomer = await findCustomerByPhone(normalizedPhone);
-				if (existingCustomer) {
-					throw new Error(
-						"Số điện thoại này đã được sử dụng bởi khách hàng khác",
-					);
-				}
-
-				// Create customer
-				const { data: newCustomer, error: createError } = await supabase
-					.from("customers")
-					.insert({
-						...customerData,
-						phone: normalizedPhone,
-					})
-					.select("*")
-					.single();
-
-				if (createError) {
-					throw new Error(
-						`Không thể tạo khách hàng mới: ${createError.message}`,
-					);
-				}
-
-				if (!newCustomer) {
-					throw new Error("Không có dữ liệu khách hàng được trả về");
-				}
-
-				const customerWithStats: CustomerWithStats = {
-					...newCustomer,
-					fullName: newCustomer.full_name, // Map database field to expected field
-					createdAt: newCustomer.created_at, // Map database field to expected field
-					totalRepairs: 0,
-					lastRepairDate: null,
-					activeRepairs: 0,
-				};
-
+			const result = await crud.createCustomer(customerData);
+			if (result) {
 				// Update local state
-				setCustomers((prev) => [customerWithStats, ...prev]);
-
-				return customerWithStats;
-			} catch (err) {
-				const error =
-					err instanceof Error
-						? err
-						: new Error("Lỗi không xác định khi tạo khách hàng");
-				console.error("Error creating customer:", error);
-				setError(error);
-				return null;
-			} finally {
-				setLoading(false);
+				setCustomers((prev) => [result, ...prev]);
 			}
+			return result;
 		},
-		[findCustomerByPhone],
+		[crud],
 	);
 
 	/**
-	 * Auto-create customer when first repair ticket is submitted
+	 * Auto-create customer (legacy compatibility)
 	 */
 	const autoCreateCustomer = useCallback(
 		async (
 			phone: string,
 			fullName: string,
 		): Promise<CustomerWithStats | null> => {
-			try {
-				// Check if customer already exists
-				const existingCustomer = await findCustomerByPhone(phone);
-				if (existingCustomer) {
-					return existingCustomer;
-				}
-
-				// Create new customer with minimal data
-				return await createCustomer({
-					phone,
-					full_name: fullName,
-					address: null,
-					notes: "Tự động tạo từ phiếu sửa chữa",
-				});
-			} catch (err) {
-				const error =
-					err instanceof Error ? err : new Error("Lỗi tạo khách hàng tự động");
-				console.error("Error auto-creating customer:", error);
-				setError(error);
-				return null;
+			const result = await crud.autoCreateCustomer(phone, fullName);
+			if (result) {
+				// Update local state
+				setCustomers((prev) => [result, ...prev]);
 			}
+			return result;
 		},
-		[findCustomerByPhone, createCustomer],
+		[crud],
 	);
 
 	/**
-	 * Update customer information
+	 * Update customer (legacy compatibility)
 	 */
 	const updateCustomer = useCallback(
 		async (
 			phone: string,
 			updates: UpdateCustomer,
 		): Promise<CustomerWithStats | null> => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				const normalizedPhone = normalizePhoneNumber(phone);
-
-				// If updating phone number, validate new number
-				if (updates.phone && updates.phone !== phone) {
-					const validation = validateVietnamesePhone(updates.phone);
-					if (!validation.isValid) {
-						throw new Error(
-							validation.error || "Số điện thoại mới không hợp lệ",
-						);
-					}
-
-					const newNormalizedPhone = toStorageFormat(updates.phone);
-
-					// Check for duplicate
-					const existingCustomer =
-						await findCustomerByPhone(newNormalizedPhone);
-					if (existingCustomer && existingCustomer.phone !== normalizedPhone) {
-						throw new Error(
-							"Số điện thoại mới đã được sử dụng bởi khách hàng khác",
-						);
-					}
-
-					updates.phone = newNormalizedPhone;
-				}
-
-				const { data: updatedCustomer, error: updateError } = await supabase
-					.from("customers")
-					.update(updates)
-					.eq("phone", normalizedPhone)
-					.select("*")
-					.single();
-
-				if (updateError) {
-					throw new Error(
-						`Không thể cập nhật khách hàng: ${updateError.message}`,
-					);
-				}
-
-				if (!updatedCustomer) {
-					throw new Error("Không có dữ liệu khách hàng được trả về");
-				}
-
-				// Get updated statistics
-				const { data: repairStats } = await supabase
-					.from("repair_tickets")
-					.select("created_at, status")
-					.eq("customer_phone", updatedCustomer.phone);
-
-				const totalRepairs = repairStats?.length || 0;
-				const activeRepairs =
-					repairStats?.filter(
-						(r) =>
-							!["completed", "cancelled_by_customer", "abandoned"].includes(
-								r.status,
-							),
-					).length || 0;
-				const lastRepairDate =
-					repairStats && repairStats.length > 0
-						? repairStats.sort(
-								(a, b) =>
-									new Date(b.created_at).getTime() -
-									new Date(a.created_at).getTime(),
-							)[0].created_at
-						: null;
-
-				const customerWithStats: CustomerWithStats = {
-					...updatedCustomer,
-					totalRepairs,
-					lastRepairDate,
-					activeRepairs,
-				};
-
+			const result = await crud.updateCustomer(phone, updates);
+			if (result) {
 				// Update local state
+				const normalizedPhone = normalizePhoneNumber(phone);
 				setCustomers((prev) =>
 					prev.map((customer) =>
-						customer.phone === normalizedPhone ? customerWithStats : customer,
+						customer.phone === normalizedPhone ? result : customer,
 					),
 				);
-
-				return customerWithStats;
-			} catch (err) {
-				const error =
-					err instanceof Error
-						? err
-						: new Error("Lỗi không xác định khi cập nhật khách hàng");
-				console.error("Error updating customer:", error);
-				setError(error);
-				return null;
-			} finally {
-				setLoading(false);
 			}
+			return result;
 		},
-		[findCustomerByPhone],
+		[crud],
 	);
 
 	/**
-	 * Search customers by phone number with partial matching
+	 * Search customers by text query (legacy compatibility)
 	 */
 	const searchCustomers = useCallback(
 		async (query: string): Promise<CustomerWithStats[]> => {
@@ -475,9 +127,9 @@ export function useCustomers() {
 				return [];
 			}
 
-			return fetchCustomers({ query, limit: 50, includeStats: true });
+			return search.searchCustomers({ query, limit: 50, includeStats: true });
 		},
-		[fetchCustomers],
+		[search],
 	);
 
 	/**
@@ -494,126 +146,12 @@ export function useCustomers() {
 		return validateVietnamesePhone(phone);
 	}, []);
 
-	/**
-	 * Change customer phone number with history tracking
-	 */
-	const changeCustomerPhone = useCallback(
-		async (
-			customerId: string,
-			oldPhone: string,
-			newPhone: string,
-			reason: string,
-		): Promise<PhoneChangeRecord | null> => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				// Validate new phone number
-				const validation = validateVietnamesePhone(newPhone);
-				if (!validation.isValid) {
-					throw new Error(validation.error || "Số điện thoại mới không hợp lệ");
-				}
-
-				const normalizedNewPhone = toStorageFormat(newPhone);
-				const normalizedOldPhone = normalizePhoneNumber(oldPhone);
-
-				// Check if new phone already exists
-				const existingCustomer = await findCustomerByPhone(normalizedNewPhone);
-				if (existingCustomer && existingCustomer.phone !== normalizedOldPhone) {
-					throw new Error(
-						"Số điện thoại mới đã được sử dụng bởi khách hàng khác",
-					);
-				}
-
-				// Update customer phone
-				const { error: updateError } = await supabase
-					.from("customers")
-					.update({ phone: normalizedNewPhone })
-					.eq("phone", normalizedOldPhone);
-
-				if (updateError) {
-					throw new Error(
-						`Không thể cập nhật số điện thoại: ${updateError.message}`,
-					);
-				}
-
-				// Create phone change record
-				const changeRecord: PhoneChangeRecord = {
-					oldPhone: normalizedOldPhone,
-					newPhone: normalizedNewPhone,
-					changedAt: new Date().toISOString(),
-					changedBy: customerId,
-					reason,
-				};
-
-				// Log phone change history
-				const { error: historyError } = await supabase
-					.from("customer_phone_changes")
-					.insert({
-						customer_id: customerId,
-						old_phone: normalizedOldPhone,
-						new_phone: normalizedNewPhone,
-						changed_at: changeRecord.changedAt,
-						changed_by: customerId,
-						reason,
-					});
-
-				if (historyError) {
-					console.error("Failed to log phone change history:", historyError);
-				}
-
-				return changeRecord;
-			} catch (err) {
-				const error =
-					err instanceof Error
-						? err
-						: new Error("Lỗi không xác định khi thay đổi số điện thoại");
-				console.error("Error changing customer phone:", error);
-				setError(error);
-				return null;
-			} finally {
-				setLoading(false);
-			}
-		},
-		[findCustomerByPhone],
-	);
-
-	/**
-	 * Get phone change history for a customer
-	 */
-	const getPhoneChangeHistory = useCallback(
-		async (customerId: string): Promise<PhoneChangeRecord[]> => {
-			try {
-				const { data, error } = await supabase
-					.from("customer_phone_changes")
-					.select("*")
-					.eq("customer_id", customerId)
-					.order("changed_at", { ascending: false });
-
-				if (error) {
-					throw new Error(`Không thể tải lịch sử thay đổi: ${error.message}`);
-				}
-
-				return (data || []).map((record) => ({
-					oldPhone: record.old_phone,
-					newPhone: record.new_phone,
-					changedAt: record.changed_at,
-					changedBy: record.changed_by,
-					reason: record.reason,
-				}));
-			} catch (err) {
-				console.error("Error fetching phone change history:", err);
-				return [];
-			}
-		},
-		[],
-	);
 
 	return {
 		// State
 		customers,
-		loading,
-		error,
+		loading: combinedLoading,
+		error: combinedError,
 
 		// Main operations
 		fetchCustomers,
@@ -622,14 +160,22 @@ export function useCustomers() {
 		updateCustomer,
 		autoCreateCustomer,
 
-		// Search and utilities
+		// Search operations (composed from search hook)
 		searchCustomers,
+		quickSearch: search.quickSearch,
+		getCustomerSuggestions: search.getCustomerSuggestions,
+		searchActiveCustomers: search.searchActiveCustomers,
+
+		// Utilities
 		formatPhoneForDisplay,
 		validatePhone,
 
-		// Phone change tracking
-		changeCustomerPhone,
-		getPhoneChangeHistory,
+		// CRUD operations (composed from CRUD hook)
+		deleteCustomer: crud.deleteCustomer,
+
+		// Phone change tracking (composed from CRUD hook)
+		changeCustomerPhone: crud.changeCustomerPhone,
+		getPhoneChangeHistory: crud.getPhoneChangeHistory,
 
 		// Utilities for phone number handling
 		normalizePhone: normalizePhoneNumber,

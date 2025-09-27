@@ -28,7 +28,7 @@ import {
 	Plus,
 	RefreshCw,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 
 
 // Customer with repair count
@@ -61,61 +61,56 @@ export function CustomersPage() {
 			setLoading(true);
 			setError(null);
 
-			// First, get all customers
-			const { data: customersData, error: customersError } = await supabase
-				.from("customers")
-				.select("*")
-				.order("created_at", { ascending: false });
+			// Optimized: Get customers and all repair tickets in 2 queries instead of N+1
+			const [customersResult, repairsResult] = await Promise.all([
+				supabase
+					.from("customers")
+					.select("*")
+					.order("created_at", { ascending: false }),
+				supabase
+					.from("repair_tickets")
+					.select("customer_phone, created_at, status")
+			]);
 
-			if (customersError) {
-				throw customersError;
+			if (customersResult.error) {
+				throw customersResult.error;
 			}
 
-			// Then, get repair statistics for each customer
-			const customersWithStats: CustomerWithStats[] = await Promise.all(
-				customersData.map(async (customer) => {
-					// Get repair counts and last repair date
-					const { data: repairStats, error: repairError } = await supabase
-						.from("repair_tickets")
-						.select("created_at, status")
-						.eq("customer_phone", customer.phone);
+			if (repairsResult.error) {
+				console.error("Error fetching repair stats:", repairsResult.error);
+			}
 
-					if (repairError) {
-						console.error("Error fetching repair stats:", repairError);
-						return {
-							...customer,
-							id: customer.phone, // Use phone as ID for optimistic list compatibility
-							totalRepairs: 0,
-							lastRepairDate: null,
-							activeRepairs: 0,
-						};
-					}
+			const customersData = customersResult.data;
+			const allRepairs = repairsResult.data || [];
 
-					const totalRepairs = repairStats.length;
-					const activeRepairs = repairStats.filter(
-						(r) =>
-							!["completed", "cancelled_by_customer", "abandoned"].includes(
-								r.status,
-							),
-					).length;
-					const lastRepairDate =
-						repairStats.length > 0
-							? repairStats.sort(
-									(a, b) =>
-										new Date(b.created_at).getTime() -
-										new Date(a.created_at).getTime(),
-								)[0].created_at
-							: null;
+			// Group repairs by customer phone for efficient lookup
+			const repairsByCustomer = allRepairs.reduce((acc, repair) => {
+				if (!acc[repair.customer_phone]) {
+					acc[repair.customer_phone] = [];
+				}
+				acc[repair.customer_phone].push(repair);
+				return acc;
+			}, {} as Record<string, Array<{customer_phone: string, created_at: string, status: string}>>);
 
-					return {
-						...customer,
-						id: customer.phone, // Use phone as ID for optimistic list compatibility
-						totalRepairs,
-						lastRepairDate,
-						activeRepairs,
-					};
-				}),
-			);
+			// Process statistics client-side (much faster than N database calls)
+			const customersWithStats: CustomerWithStats[] = customersData.map(customer => {
+				const repairs = repairsByCustomer[customer.phone] || [];
+				const totalRepairs = repairs.length;
+				const activeRepairs = repairs.filter(r =>
+					!["completed", "cancelled_by_customer", "abandoned"].includes(r.status)
+				).length;
+				const lastRepairDate = repairs.length > 0
+					? repairs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]?.created_at || null
+					: null;
+
+				return {
+					...customer,
+					id: customer.phone,
+					totalRepairs,
+					lastRepairDate,
+					activeRepairs,
+				};
+			});
 
 			setCustomers(customersWithStats);
 		} catch (err) {
@@ -131,7 +126,7 @@ export function CustomersPage() {
 		fetchCustomers();
 	}, [fetchCustomers]);
 
-	// Real-time subscription to customer changes
+	// Optimized real-time subscription to customer changes
 	useEffect(() => {
 		const channel = supabase
 			.channel("customers-changes")
@@ -144,8 +139,32 @@ export function CustomersPage() {
 				},
 				(payload) => {
 					console.log("Customer change detected:", payload);
-					// Refetch data when changes occur
-					fetchCustomers();
+
+					// Handle individual record changes instead of full refetch
+					if (payload.eventType === "INSERT" && payload.new) {
+						// For new customers, add with zero stats initially
+						const newCustomer = {
+							...payload.new,
+							id: payload.new.phone, // Use phone as ID
+							totalRepairs: 0,
+							lastRepairDate: null,
+							activeRepairs: 0,
+						} as CustomerWithStats;
+						setCustomers([newCustomer, ...customers]);
+					} else if (payload.eventType === "UPDATE" && payload.new) {
+						// For customer updates, preserve existing stats but update customer data
+						setCustomers(prev => prev.map(customer =>
+							customer.phone === payload.new.phone
+								? { ...customer, ...payload.new }
+								: customer
+						));
+					} else if (payload.eventType === "DELETE" && payload.old) {
+						// Remove deleted customer
+						setCustomers(prev => prev.filter(customer => customer.phone !== payload.old.phone));
+					} else {
+						// Fallback to full refetch for complex changes
+						fetchCustomers();
+					}
 				},
 			)
 			.subscribe();
@@ -153,7 +172,7 @@ export function CustomersPage() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [fetchCustomers]);
+	}, [fetchCustomers, customers]);
 
 	// Table columns definition
 	const columns: ColumnDef<CustomerWithStats>[] = [
@@ -378,6 +397,22 @@ export function CustomersPage() {
 		}
 	};
 
+	// Memoized customer statistics to avoid expensive filtering on each render
+	const newCustomers = useMemo(
+		() => customers.filter((c) => c.totalRepairs === 0).length,
+		[customers]
+	);
+
+	const activeRepairsCustomers = useMemo(
+		() => customers.filter((c) => c.activeRepairs > 0).length,
+		[customers]
+	);
+
+	const loyalCustomers = useMemo(
+		() => customers.filter((c) => c.totalRepairs >= 5).length,
+		[customers]
+	);
+
 	// Loading state
 	if (loading) {
 		return (
@@ -509,7 +544,7 @@ export function CustomersPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{customers.filter((c) => c.totalRepairs === 0).length}
+							{newCustomers}
 						</div>
 					</CardContent>
 				</Card>
@@ -519,7 +554,7 @@ export function CustomersPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{customers.filter((c) => c.activeRepairs > 0).length}
+							{activeRepairsCustomers}
 						</div>
 					</CardContent>
 				</Card>
@@ -531,7 +566,7 @@ export function CustomersPage() {
 					</CardHeader>
 					<CardContent>
 						<div className="text-2xl font-bold">
-							{customers.filter((c) => c.totalRepairs >= 5).length}
+							{loyalCustomers}
 						</div>
 					</CardContent>
 				</Card>

@@ -8,7 +8,15 @@ import {
 	phoneValidation,
 	vietnameseTestData,
 	vietnameseTextValidation,
+	enhancedValidation,
 } from "../../utils/vietnamese-test-helpers";
+
+// Import enhanced type guards for testing
+import {
+	isValidVietnamesePhone,
+	ValidationHelpers,
+} from "@/lib/type-guards";
+import { Currency, DateTime, Text } from "@/lib/formatting";
 
 describe("Epic 1.2.1: Vietnamese Auth Integration - Unit Tests", () => {
 	beforeEach(() => {
@@ -505,6 +513,119 @@ describe("Epic 1.2.1: Vietnamese Auth Integration - Unit Tests", () => {
 			expect(
 				vietnameseTextValidation.hasVietnameseCharacters(cleanup.message),
 			).toBe(true);
+		});
+	});
+
+	describe("1.2.1-UNIT-006: Enhanced Type Safety with Phase 3.4.1 Integration", () => {
+		it("should validate phone numbers using enhanced type guards", () => {
+			const testPhones = phoneValidation.generateValidNumbers();
+			const invalidPhones = phoneValidation.generateInvalidNumbers();
+
+			// Test valid phone numbers
+			testPhones.forEach(phone => {
+				expect(isValidVietnamesePhone(phone)).toBe(true);
+				expect(phoneValidation.validate(phone)).toBe(true);
+
+				// Test formatting
+				const formatted = phoneValidation.format(phone);
+				expect(formatted).toContain(" ");
+				expect(formatted.length).toBeGreaterThan(phone.length);
+			});
+
+			// Test invalid phone numbers
+			invalidPhones.forEach(phone => {
+				expect(isValidVietnamesePhone(phone)).toBe(false);
+				expect(phoneValidation.validate(phone)).toBe(false);
+			});
+		});
+
+		it("should validate Vietnamese business data comprehensively", () => {
+			const validBusinessData = {
+				phone: "0901234567",
+				currency: 500000,
+				ticketCode: "LRP-2025-000001",
+				date: "2025-01-01T00:00:00Z"
+			};
+
+			const validation = enhancedValidation.validateBusinessData(validBusinessData);
+			expect(validation.isValid).toBe(true);
+			expect(validation.errors).toHaveLength(0);
+
+			const invalidBusinessData = {
+				phone: "invalid-phone",
+				currency: -100,
+				ticketCode: "INVALID",
+				date: "invalid-date"
+			};
+
+			const invalidValidation = enhancedValidation.validateBusinessData(invalidBusinessData);
+			expect(invalidValidation.isValid).toBe(false);
+			expect(invalidValidation.errors.length).toBeGreaterThan(0);
+		});
+
+		it("should test Vietnamese formatting with type safety", () => {
+			const testData = {
+				currency: 1500000,
+				date: "2025-01-15T10:30:00Z",
+				phone: "0901234567",
+				ticketCode: "LRP-2025-000001"
+			};
+
+			const results = enhancedValidation.testVietnameseFormatting(testData);
+
+			// Verify currency formatting
+			expect(results.currency.formatted).toContain("₫");
+			expect(results.currency.isValid).toBe(true);
+			expect(results.currency.compact).toBeDefined();
+
+			// Verify date formatting
+			expect(results.date.formatted).toMatch(/\d{2}\/\d{2}\/\d{4}/);
+			expect(results.date.isValid).toBe(true);
+			expect(results.date.relative).toBeDefined();
+
+			// Verify phone formatting
+			expect(results.phone.formatted).toContain(" ");
+			expect(results.phone.isValid).toBe(true);
+
+			// Verify ticket code formatting
+			expect(results.ticketCode.formatted).toMatch(/^LRP-\d{4}-\d{6}$/);
+			expect(results.ticketCode.isValid).toBe(true);
+		});
+
+		it("should generate comprehensive test scenarios", () => {
+			const scenarios = enhancedValidation.generateTestScenarios();
+
+			// Verify valid scenarios
+			expect(scenarios.valid.customers).toBeDefined();
+			expect(scenarios.valid.currencies.length).toBeGreaterThan(0);
+			expect(scenarios.valid.dates.length).toBeGreaterThan(0);
+			expect(scenarios.valid.ticketCodes.length).toBeGreaterThan(0);
+
+			// Verify invalid scenarios
+			expect(scenarios.invalid.phones.length).toBeGreaterThan(0);
+			expect(scenarios.invalid.currencies.length).toBeGreaterThan(0);
+			expect(scenarios.invalid.dates.length).toBeGreaterThan(0);
+			expect(scenarios.invalid.ticketCodes.length).toBeGreaterThan(0);
+
+			// Test that invalid data actually fails validation
+			scenarios.invalid.phones.forEach(phone => {
+				expect(isValidVietnamesePhone(phone)).toBe(false);
+			});
+		});
+
+		it("should integrate with Vietnamese text validation utilities", () => {
+			const vietnameseText = "Nguyễn Văn An - Khách hàng VIP";
+			const englishText = "John Doe - VIP Customer";
+
+			expect(vietnameseTextValidation.hasVietnameseCharacters(vietnameseText)).toBe(true);
+			expect(vietnameseTextValidation.hasVietnameseCharacters(englishText)).toBe(false);
+
+			expect(vietnameseTextValidation.isValidVietnameseName("Nguyễn Văn An")).toBe(true);
+			expect(vietnameseTextValidation.isValidVietnameseName("John123")).toBe(false);
+
+			// Test tone removal
+			const withoutTones = vietnameseTextValidation.removeVietnameseTones("Nguyễn Văn An");
+			expect(withoutTones).toBe("Nguyen Van An");
 		});
 	});
 });

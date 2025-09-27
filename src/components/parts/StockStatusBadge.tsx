@@ -1,15 +1,14 @@
 import { Badge } from "@/components/ui/badge";
-import type { Database } from "@/lib/supabase";
+import type { Part } from "@/lib/database-types";
 import { AlertTriangle, Package, TrendingDown } from "lucide-react";
-
-type Part = Database["public"]["Tables"]["parts"]["Row"];
+import { memo } from "react";
 
 interface StockStatusBadgeProps {
 	part: Part;
 	showIcon?: boolean;
 }
 
-export function StockStatusBadge({
+export const StockStatusBadge = memo(function StockStatusBadge({
 	part,
 	showIcon = true,
 }: StockStatusBadgeProps) {
@@ -47,7 +46,7 @@ export function StockStatusBadge({
 			{label}
 		</Badge>
 	);
-}
+});
 
 export function getStockStatusInfo(part: Part) {
 	const minStock = part.min_stock_level || 5;

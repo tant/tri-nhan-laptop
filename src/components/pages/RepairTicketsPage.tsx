@@ -1,13 +1,16 @@
 import { SupabaseErrorAlert } from "@/components/error-boundary";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { StatusBadge, PriorityBadge } from "@/components/repairs/StatusBadgeComponents";
+import { PrimaryStatisticsCards } from "@/components/repairs/TicketStatisticsCards";
+import { TicketActivityIndicator } from "@/components/repairs/TicketActivityIndicator";
 import { RepairTicketsSkeleton } from "@/components/skeleton-loaders";
 import { AssignTechnicianDropdown } from "@/components/tickets/AssignTechnicianDropdown";
 import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { useMultipleTicketsActivity } from "@/hooks/use-ticket-activity";
+import { Currency } from "@/lib/formatting";
 import { supabase } from "@/lib/supabase";
 import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
 import { useNavigate } from "@tanstack/react-router";
@@ -73,7 +76,7 @@ export function RepairTicketsPage() {
 		navigate({ to: "/phieu-sua-chua/new" });
 	};
 
-	// Real-time subscription to repair changes
+	// Optimized real-time subscription to repair changes
 	useEffect(() => {
 		const channel = supabase
 			.channel("repair_tickets-changes")
@@ -86,8 +89,23 @@ export function RepairTicketsPage() {
 				},
 				(payload) => {
 					console.log("Repair change detected:", payload);
-					// Refetch data when changes occur
-					fetchRepairs();
+
+					// Handle individual record changes instead of full refetch
+					if (payload.eventType === "INSERT" && payload.new) {
+						// Add new repair ticket to list
+						setRepairs(prev => [payload.new as RepairWithDetails, ...prev]);
+					} else if (payload.eventType === "UPDATE" && payload.new) {
+						// Update existing repair ticket
+						setRepairs(prev => prev.map(repair =>
+							repair.id === payload.new.id ? { ...repair, ...payload.new } : repair
+						));
+					} else if (payload.eventType === "DELETE" && payload.old) {
+						// Remove deleted repair ticket
+						setRepairs(prev => prev.filter(repair => repair.id !== payload.old.id));
+					} else {
+						// Fallback to full refetch for complex changes
+						fetchRepairs();
+					}
 				},
 			)
 			.subscribe();
@@ -97,88 +115,8 @@ export function RepairTicketsPage() {
 		};
 	}, [fetchRepairs]);
 
-	// Status badge mapping
-	const getStatusBadge = (status: RepairTicket["status"]) => {
-		const statusMap = {
-			device_received: {
-				label: "Tiếp nhận thiết bị",
-				variant: "outline" as const,
-			},
-			preliminary_inspection: {
-				label: "Kiểm tra sơ bộ",
-				variant: "secondary" as const,
-			},
-			awaiting_repair_plan: {
-				label: "Chờ phương án sửa chữa",
-				variant: "secondary" as const,
-			},
-			approved_for_repair: {
-				label: "Đã phê duyệt sửa chữa",
-				variant: "default" as const,
-			},
-			in_diagnosis: { label: "Đang chẩn đoán", variant: "default" as const },
-			waiting_parts: {
-				label: "Chờ linh kiện",
-				variant: "destructive" as const,
-			},
-			in_repair: { label: "Đang sửa chữa", variant: "default" as const },
-			quality_testing: {
-				label: "Kiểm tra chất lượng",
-				variant: "default" as const,
-			},
-			ready_for_pickup: { label: "Sẵn sàng nhận", variant: "default" as const },
-			completed: { label: "Hoàn thành", variant: "default" as const },
-			cannot_repair: {
-				label: "Không thể sửa",
-				variant: "destructive" as const,
-			},
-			cancelled_by_customer: {
-				label: "Khách hàng hủy",
-				variant: "destructive" as const,
-			},
-			repair_failed: {
-				label: "Sửa chữa thất bại",
-				variant: "destructive" as const,
-			},
-			customer_no_show: {
-				label: "Khách không đến",
-				variant: "destructive" as const,
-			},
-			ready_for_return: { label: "Sẵn sàng trả", variant: "outline" as const },
-			abandoned: { label: "Bỏ qua", variant: "destructive" as const },
-		};
 
-		const statusInfo = statusMap[status] || {
-			label: status,
-			variant: "outline" as const,
-		};
-		return <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>;
-	};
 
-	// Priority badge mapping
-	const getPriorityBadge = (priority: string) => {
-		const priorityMap = {
-			low: { label: "Thấp", variant: "outline" as const },
-			normal: { label: "Bình thường", variant: "secondary" as const },
-			high: { label: "Cao", variant: "destructive" as const },
-			urgent: { label: "Khẩn cấp", variant: "destructive" as const },
-		};
-
-		const priorityInfo = priorityMap[priority] || {
-			label: priority,
-			variant: "outline" as const,
-		};
-		return <Badge variant={priorityInfo.variant}>{priorityInfo.label}</Badge>;
-	};
-
-	// Format currency (Vietnamese dong)
-	const formatCurrency = (amount: number | null) => {
-		if (!amount) return "Chưa định giá";
-		return new Intl.NumberFormat("vi-VN", {
-			style: "currency",
-			currency: "VND",
-		}).format(amount);
-	};
 
 	// Handle status transition success - temporarily disabled
 	// const handleStatusTransitionSuccess = (updatedRepair: Repair) => {
@@ -205,24 +143,16 @@ export function RepairTicketsPage() {
 			),
 			cell: ({ row }) => {
 				const ticketId = row.original.id;
-				const hasActivity = ticketActivities[ticketId]?.hasRecentActivity;
-				const activityCount = ticketActivities[ticketId]?.activityCount || 0;
+				const ticketCode = row.getValue("ticket_code") as string;
+				const activity = ticketActivities[ticketId];
 
 				return (
-					<div className="flex items-center gap-2 ml-4">
-						<div className="font-medium">
-							{row.getValue("ticket_code") || `#${row.original.id.slice(0, 8)}`}
-						</div>
-						{hasActivity && (
-							<div className="flex items-center gap-1">
-								<div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-								{activityCount > 1 && (
-									<Badge variant="secondary" className="text-xs h-4 px-1">
-										{activityCount}
-									</Badge>
-								)}
-							</div>
-						)}
+					<div className="ml-4">
+						<TicketActivityIndicator
+							ticketId={ticketId}
+							ticketCode={ticketCode}
+							activity={activity}
+						/>
 					</div>
 				);
 			},
@@ -277,7 +207,7 @@ export function RepairTicketsPage() {
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			),
-			cell: ({ row }) => getStatusBadge(row.getValue("status")),
+			cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
 		},
 		{
 			accessorKey: "priority",
@@ -290,14 +220,14 @@ export function RepairTicketsPage() {
 					<ArrowUpDown className="ml-2 h-4 w-4" />
 				</Button>
 			),
-			cell: ({ row }) => getPriorityBadge(row.getValue("priority")),
+			cell: ({ row }) => <PriorityBadge priority={row.getValue("priority")} />,
 		},
 		{
 			accessorKey: "estimated_cost",
 			header: "Giá dự kiến",
 			cell: ({ row }) => (
-				<div className="text-right">
-					{formatCurrency(row.getValue("estimated_cost"))}
+				<div className="text-right font-mono">
+					{Currency.format(row.getValue("estimated_cost"))}
 				</div>
 			),
 		},
@@ -401,56 +331,7 @@ export function RepairTicketsPage() {
 			)}
 
 			{/* Statistics Cards */}
-			<div className="grid gap-4 md:grid-cols-4">
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Tổng phiếu</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">{repairs.length}</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Đang sửa chữa</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{repairs.filter((r) => r.status === "in_progress").length}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Chờ linh kiện</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{repairs.filter((r) => r.status === "waiting_parts").length}
-						</div>
-					</CardContent>
-				</Card>
-				<Card>
-					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">
-							Hoàn thành hôm nay
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<div className="text-2xl font-bold">
-							{
-								repairs.filter(
-									(r) =>
-										r.status === "completed" &&
-										r.completed_at &&
-										new Date(r.completed_at).toDateString() ===
-											new Date().toDateString(),
-								).length
-							}
-						</div>
-					</CardContent>
-				</Card>
-			</div>
+			<PrimaryStatisticsCards tickets={repairs} />
 
 			{/* Repair Tickets Table - Full Width */}
 			<Card>

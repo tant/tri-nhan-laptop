@@ -1,3 +1,20 @@
+/**
+ * @fileoverview Authentication Context for Vietnamese Laptop Repair Shop
+ *
+ * Provides comprehensive authentication state management with Vietnamese business
+ * context, including role-based access control, profile caching, and optimized
+ * performance for the repair shop workflow.
+ *
+ * Features:
+ * - localStorage profile caching for instant role validation
+ * - Request deduplication to prevent concurrent profile fetches
+ * - Vietnamese business role validation (shop_owner, staff)
+ * - Optimized authentication flow with fallback mechanisms
+ *
+ * @version 1.0.0
+ * @since Phase 3.4.1
+ */
+
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import type { Session, User } from "@supabase/supabase-js";
@@ -10,17 +27,31 @@ import {
 	useState,
 } from "react";
 
-// Define user profile type from database
+// Vietnamese repair shop user profile type from database
 type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
 
+/**
+ * Authentication context interface with Vietnamese business features
+ *
+ * Provides all necessary authentication state and methods for managing
+ * user sessions in a Vietnamese laptop repair shop context.
+ */
 interface AuthContextType {
+	/** Current authenticated user from Supabase Auth */
 	user: User | null;
+	/** User profile with Vietnamese business role (shop_owner | staff) */
 	profile: UserProfile | null;
+	/** Current Supabase session */
 	session: Session | null;
+	/** Loading state during authentication operations */
 	loading: boolean;
+	/** Sign in with email and password */
 	signIn: (email: string, password: string) => Promise<{ error?: Error }>;
+	/** Sign out and clear all authentication state */
 	signOut: () => Promise<void>;
+	/** Quick check if user is authenticated */
 	isAuthenticated: boolean;
+	/** Check if user has specific Vietnamese business role */
 	isRole: (role: UserProfile["role"]) => boolean;
 }
 
