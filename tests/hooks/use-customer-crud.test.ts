@@ -20,14 +20,11 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 // Mock phone validation
-vi.mock('@/lib/validation/phone-vietnamese', () => ({
-  normalizePhoneNumber: vi.fn((phone: string) => phone.replace(/\D/g, '')),
-  toStorageFormat: vi.fn((phone: string) => phone.replace(/\D/g, '')),
-  validateVietnamesePhone: vi.fn((phone: string) => ({
-    isValid: /^(03|05|07|08|09)[0-9]{8}$/.test(phone.replace(/\D/g, '')),
-    error: /^(03|05|07|08|09)[0-9]{8}$/.test(phone.replace(/\D/g, ''))
-      ? null
-      : 'Số điện thoại không đúng định dạng Việt Nam',
+vi.mock('@/lib/phone-utils', () => ({
+  normalizePhone: vi.fn((phone: string) => phone.trim()),
+  validatePhone: vi.fn((phone: string) => ({
+    isValid: phone && phone.trim().length > 0,
+    error: phone && phone.trim().length > 0 ? undefined : 'Số điện thoại không được để trống',
   })),
 }));
 

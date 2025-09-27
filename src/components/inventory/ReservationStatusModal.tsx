@@ -1,4 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,7 @@ export function ReservationStatusModal({
 		confirmPartsReservation,
 		cancelPartsReservation,
 	} = usePartsManagement();
+	const { user } = useAuth();
 
 	// Load reservations when modal opens
 	useEffect(() => {
@@ -88,7 +90,7 @@ export function ReservationStatusModal({
 	const handleConfirmReservation = async (reservationId: string) => {
 		try {
 			setProcessingReservation(reservationId);
-			await confirmPartsReservation(reservationId, "current-user-id"); // TODO: Get real user ID
+			await confirmPartsReservation(reservationId, user?.id || "unknown");
 
 			// Reload reservations
 			await loadReservations();
@@ -106,7 +108,7 @@ export function ReservationStatusModal({
 	const handleCancelReservation = async (reservationId: string) => {
 		try {
 			setProcessingReservation(reservationId);
-			await cancelPartsReservation(reservationId, "current-user-id"); // TODO: Get real user ID
+			await cancelPartsReservation(reservationId, user?.id || "unknown");
 
 			// Reload reservations
 			await loadReservations();

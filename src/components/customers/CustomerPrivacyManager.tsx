@@ -1,4 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,6 +55,7 @@ export function CustomerPrivacyManager({
 	customerName,
 	onConsentUpdate,
 }: CustomerPrivacyManagerProps) {
+	const { user } = useAuth();
 	const [consentStatus, setConsentStatus] = useState<{
 		hasValidConsent: boolean;
 		missingConsents: string[];
@@ -130,7 +132,7 @@ export function CustomerPrivacyManager({
 			const result = await updateCustomerConsent(
 				customerPhone,
 				newConsents,
-				"staff", // TODO: Get actual user ID
+				user?.id || "unknown"
 			);
 
 			if (result.success) {
@@ -154,7 +156,7 @@ export function CustomerPrivacyManager({
 				customerPhone,
 				exportConfig.type,
 				exportConfig.format,
-				"staff", // TODO: Get actual user ID
+				user?.id || "unknown"
 			);
 
 			if (result.success && result.data) {
@@ -186,7 +188,7 @@ export function CustomerPrivacyManager({
 		try {
 			const result = await requestDataDeletion(
 				customerPhone,
-				"staff", // TODO: Get actual user ID
+				user?.id || "unknown"
 				deleteReason,
 			);
 

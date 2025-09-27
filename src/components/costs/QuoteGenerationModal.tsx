@@ -1,4 +1,5 @@
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useAuth } from "@/contexts/auth-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,6 +50,7 @@ export function QuoteGenerationModal({
 	repairId,
 	onQuoteUpdate,
 }: QuoteGenerationModalProps) {
+	const { user } = useAuth();
 	const [quotes, setQuotes] = useState<CustomerQuote[]>([]);
 	const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -104,7 +106,7 @@ export function QuoteGenerationModal({
 
 			const quoteId = await generateCustomerQuote(
 				repairId,
-				"current-user-id", // TODO: Get real user ID
+				user?.id || "unknown"
 				createForm.terms_conditions,
 				createForm.valid_days,
 			);

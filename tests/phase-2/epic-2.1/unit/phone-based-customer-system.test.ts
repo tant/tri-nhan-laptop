@@ -5,102 +5,70 @@
 
 import { useCustomers } from "@/hooks/use-customers";
 import {
-	normalizePhoneNumber,
-	toDisplayFormat,
-	toStorageFormat,
-	validateVietnamesePhone,
-} from "@/lib/validation/phone-vietnamese";
+	normalizePhone,
+	formatPhoneDisplay,
+	validatePhone,
+} from "@/lib/phone-utils";
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("Epic 2.1.1: Phone-Based Customer Identification System", () => {
-	describe("Vietnamese Phone Number Validation", () => {
-		it("should validate Vietnamese mobile numbers correctly", () => {
-			const validMobileNumbers = [
-				"0901234567", // Viettel
-				"0987654321", // Vinaphone
-				"0912345678", // Mobifone
-				"0934567890", // Viettel
-				"0886543210", // Vietnamobile
-				"0356789012", // Viettel
-				"0769876543", // Gmobile
-				"0599123456", // Vietnamobile
+	describe("Simplified Phone Number Validation", () => {
+		it("should validate non-empty phone numbers", () => {
+			const validNumbers = [
+				"0901234567",
+				"0987654321",
+				"123456789",
+				"02834567890",
+				"555-1234",
+				"(555) 123-4567",
 			];
 
-			for (const phone of validMobileNumbers) {
-				const result = validateVietnamesePhone(phone);
+			for (const phone of validNumbers) {
+				const result = validatePhone(phone);
 				expect(result.isValid).toBe(true);
-				expect(result.type).toBe("mobile");
-				expect(result.carrier).toBeDefined();
 			}
 		});
 
-		it("should validate Vietnamese landline numbers correctly", () => {
-			const validLandlineNumbers = [
-				"02834567890", // Ho Chi Minh City
-				"02436789012", // Hanoi
-				"02363456789", // Da Nang
-				"02563123456", // Can Tho
-				"02943567890", // Long An
-			];
-
-			for (const phone of validLandlineNumbers) {
-				const result = validateVietnamesePhone(phone);
-				expect(result.isValid).toBe(true);
-				expect(result.type).toBe("landline");
-				expect(result.region).toBeDefined();
-			}
-		});
-
-		it("should reject invalid phone number formats", () => {
+		it("should reject empty or whitespace phone numbers", () => {
 			const invalidNumbers = [
-				"123456789", // Too short
-				"09012345678", // Too long
-				"0801234567", // Invalid prefix
-				"abcd1234567", // Contains letters
-				"0901-234-567", // Contains hyphens
-				"0901 234 567", // Contains spaces
-				"+84901234567890", // Too long international
 				"", // Empty string
+				"   ", // Only whitespace
+				"\t\n", // Tabs and newlines
 			];
 
 			for (const phone of invalidNumbers) {
-				const result = validateVietnamesePhone(phone);
+				const result = validatePhone(phone);
 				expect(result.isValid).toBe(false);
 				expect(result.error).toBeDefined();
 			}
 		});
 
-		it("should handle international phone numbers", () => {
-			const internationalNumbers = [
+		it("should handle any phone number format", () => {
+			const phoneNumbers = [
 				"+84901234567", // Vietnam with country code
 				"+1234567890", // US number
-				"+86123456789", // China number
-				"+447123456789", // UK number
-				"+33123456789", // France number
+				"555-CALL-NOW", // Text format
+				"1-800-FLOWERS", // Mixed format
 			];
 
-			for (const phone of internationalNumbers) {
-				const result = validateVietnamesePhone(phone);
+			for (const phone of phoneNumbers) {
+				const result = validatePhone(phone);
 				expect(result.isValid).toBe(true);
-				expect(result.type).toBe("international");
 			}
 		});
 	});
 
 	describe("Phone Number Normalization", () => {
-		it("should normalize phone numbers to standard format", () => {
+		it("should normalize phone numbers by trimming whitespace", () => {
 			const testCases = [
-				{ input: "090 123 4567", expected: "0901234567" },
-				{ input: "090-123-4567", expected: "0901234567" },
-				{ input: "090.123.4567", expected: "0901234567" },
-				{ input: "(090) 123-4567", expected: "0901234567" },
-				{ input: "+84 90 123 4567", expected: "+84901234567" },
-				{ input: "84 90 123 4567", expected: "+84901234567" },
+				{ input: "  0901234567  ", expected: "0901234567" },
+				{ input: "\t555-1234\n", expected: "555-1234" },
+				{ input: "   +84901234567   ", expected: "+84901234567" },
 			];
 
 			for (const { input, expected } of testCases) {
-				const result = normalizePhoneNumber(input);
+				const result = normalizePhone(input);
 				expect(result).toBe(expected);
 			}
 		});
@@ -108,13 +76,13 @@ describe("Epic 2.1.1: Phone-Based Customer Identification System", () => {
 		it("should convert between storage and display formats", () => {
 			const phoneNumber = "0901234567";
 
-			// Storage format (normalized)
-			const storageFormat = toStorageFormat(phoneNumber);
+			// Storage format (just trimmed)
+			const storageFormat = normalizePhone(phoneNumber);
 			expect(storageFormat).toBe("0901234567");
 
-			// Display format (Vietnamese standard)
-			const displayFormat = toDisplayFormat(phoneNumber);
-			expect(displayFormat).toBe("090 123 4567");
+			// Display format (basic spacing)
+			const displayFormat = formatPhoneDisplay(phoneNumber);
+			expect(displayFormat).toBe("0901 234 567");
 		});
 	});
 
