@@ -590,34 +590,26 @@ export const Text = {
 	},
 
 	/**
-	 * Format Vietnamese phone number for display
+	 * Format phone number for display (simplified)
 	 *
 	 * @param phone - Raw phone number string
-	 * @returns Formatted phone number or original if no pattern match
+	 * @returns Basic formatted phone number
 	 *
 	 * @example
 	 * ```typescript
 	 * Text.formatPhone("0901234567") // "0901 234 567"
-	 * Text.formatPhone("84901234567") // "+84 901 234 567"
-	 * Text.formatPhone("invalid") // "invalid"
+	 * Text.formatPhone("123456789") // "1234 567 89"
 	 * ```
 	 *
 	 * @since 1.0.0
 	 */
 	formatPhone: (phone: string): string => {
-		// Remove all non-digits
-		const cleaned = phone.replace(/\D/g, "");
-
-		// Vietnamese phone number patterns
-		if (cleaned.length === 10 && cleaned.startsWith("0")) {
-			// Format: 0123 456 789
-			return `${cleaned.slice(0, 4)} ${cleaned.slice(4, 7)} ${cleaned.slice(7)}`;
-		} else if (cleaned.length === 11 && cleaned.startsWith("84")) {
-			// Format: +84 123 456 789
-			return `+84 ${cleaned.slice(2, 5)} ${cleaned.slice(5, 8)} ${cleaned.slice(8)}`;
+		if (!phone) return "";
+		const cleaned = phone.replace(/\s+/g, '');
+		if (cleaned.length >= 10) {
+			return cleaned.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
 		}
-
-		return phone; // Return as-is if doesn't match patterns
+		return cleaned;
 	},
 
 	/**

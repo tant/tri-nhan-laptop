@@ -16,7 +16,7 @@ import {
 	type EmailValidationResult,
 	validateEmail,
 } from "@/lib/validation/customer-data";
-import { validateVietnamesePhone } from "@/lib/validation/phone-vietnamese";
+import { validatePhone } from "@/lib/phone-utils";
 import {
 	AlertCircle,
 	Check,
@@ -96,7 +96,7 @@ export function ContactManagement({
 			setAlternativePhoneValidation({ isValid: true });
 			return;
 		}
-		const validation = validateVietnamesePhone(phone);
+		const validation = validatePhone(phone);
 		setAlternativePhoneValidation(validation);
 	}, []);
 
@@ -105,7 +105,7 @@ export function ContactManagement({
 			setEmergencyPhoneValidation({ isValid: true });
 			return;
 		}
-		const validation = validateVietnamesePhone(phone);
+		const validation = validatePhone(phone);
 		setEmergencyPhoneValidation(validation);
 	}, []);
 

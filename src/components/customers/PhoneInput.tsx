@@ -1,95 +1,45 @@
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	type PhoneValidationResult,
-	validateVietnamesePhone,
-} from "@/lib/validation/phone-vietnamese";
-import { AlertCircle, Check, Phone } from "lucide-react";
+import { validatePhone, type SimplePhoneValidation } from "@/lib/phone-utils";
+import { AlertCircle, Check } from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface PhoneInputProps {
 	value: string;
-	onChange: (value: string, validation: PhoneValidationResult) => void;
+	onChange: (value: string, validation: SimplePhoneValidation) => void;
 	placeholder?: string;
 	label?: string;
 	disabled?: boolean;
 	required?: boolean;
 	showValidation?: boolean;
-	showCarrier?: boolean;
 }
 
 export function PhoneInput({
 	value,
 	onChange,
-	placeholder = "0901 234 567",
+	placeholder = "Số điện thoại",
 	label = "Số điện thoại",
 	disabled = false,
 	required = false,
 	showValidation = true,
-	showCarrier = true,
 }: PhoneInputProps) {
-	const [, setFocused] = useState(false);
-	const [validation, setValidation] = useState<PhoneValidationResult>({
+	const [validation, setValidation] = useState<SimplePhoneValidation>({
 		isValid: false,
-		formatted: "",
-		type: "invalid",
 	});
 
 	const handleChange = useCallback(
 		(inputValue: string) => {
-			const validationResult = validateVietnamesePhone(inputValue);
+			const validationResult = validatePhone(inputValue);
 			setValidation(validationResult);
 			onChange(inputValue, validationResult);
 		},
 		[onChange],
 	);
 
-	const handleBlur = useCallback(() => {
-		setFocused(false);
-		// Auto-format on blur if valid
-		if (validation.isValid && validation.formatted !== value) {
-			onChange(validation.formatted, validation);
-		}
-	}, [validation, value, onChange]);
-
 	const getValidationColor = () => {
 		if (!value) return "border-input";
 		if (validation.isValid) return "border-green-500";
 		return "border-red-500";
-	};
-
-	const getCarrierBadge = () => {
-		if (!showCarrier || !validation.isValid || !validation.carrier) return null;
-
-		const carrierNames: Record<string, string> = {
-			viettel: "Viettel",
-			vinaphone: "VinaPhone",
-			mobifone: "MobiFone",
-			vietnamobile: "Vietnamobile",
-			gmobile: "GMobile",
-		};
-
-		return (
-			<Badge variant="outline" className="text-xs">
-				{carrierNames[validation.carrier] || validation.carrier}
-			</Badge>
-		);
-	};
-
-	const getTypeIcon = () => {
-		if (!validation.isValid) return null;
-
-		switch (validation.type) {
-			case "mobile":
-				return <Phone className="h-3 w-3 text-green-600" />;
-			case "landline":
-				return <Phone className="h-3 w-3 text-blue-600" />;
-			case "international":
-				return <Phone className="h-3 w-3 text-purple-600" />;
-			default:
-				return null;
-		}
 	};
 
 	return (
@@ -107,8 +57,6 @@ export function PhoneInput({
 					type="tel"
 					value={value}
 					onChange={(e) => handleChange(e.target.value)}
-					onFocus={() => setFocused(true)}
-					onBlur={handleBlur}
 					placeholder={placeholder}
 					disabled={disabled}
 					className={`pr-10 ${getValidationColor()}`}
@@ -125,32 +73,10 @@ export function PhoneInput({
 				</div>
 			</div>
 
-			{showValidation && value && (
-				<div id="phone-validation" className="space-y-1">
-					{validation.isValid ? (
-						<div className="flex items-center gap-2 text-sm text-green-700">
-							{getTypeIcon()}
-							<span>
-								{validation.type === "mobile" && "Số di động hợp lệ"}
-								{validation.type === "landline" && "Số điện thoại bàn hợp lệ"}
-								{validation.type === "international" && "Số quốc tế hợp lệ"}
-							</span>
-							{getCarrierBadge()}
-						</div>
-					) : (
-						validation.error && (
-							<div className="flex items-center gap-2 text-sm text-red-700">
-								<AlertCircle className="h-3 w-3" />
-								<span>{validation.error}</span>
-							</div>
-						)
-					)}
-
-					{validation.isValid && validation.formatted !== value && (
-						<div className="text-xs text-muted-foreground">
-							Định dạng chuẩn: {validation.formatted}
-						</div>
-					)}
+			{showValidation && value && !validation.isValid && validation.error && (
+				<div id="phone-validation" className="flex items-center gap-2 text-sm text-red-700">
+					<AlertCircle className="h-3 w-3" />
+					<span>{validation.error}</span>
 				</div>
 			)}
 		</div>

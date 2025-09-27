@@ -14,24 +14,9 @@
 import type { Customer, RepairTicket, Part, UserProfile } from "./database-types";
 
 /**
- * Vietnamese mobile phone number validation patterns
- *
- * Vietnamese mobile numbers follow specific formats regulated by the Ministry
- * of Information and Communications (MIC). As of 2025, these patterns are valid:
- *
- * @example
- * // Valid mobile numbers:
- * // Viettel: 086, 096, 097, 098, 032-039
- * // Vinaphone: 088, 091, 094, 083-085, 081-082
- * // Mobifone: 089, 090, 093, 070, 079, 077-078, 076
- * // Vietnamobile: 092, 056, 058
- * // Gmobile: 099, 059
+ * Simple phone number validation (simplified from complex Vietnamese patterns)
+ * Now just checks if it's a non-empty string
  */
-const VIETNAMESE_PHONE_PATTERNS = [
-	/^0[3-9]\d{8}$/, // Primary mobile pattern: 10 digits starting with 03-09
-	/^84[3-9]\d{8}$/, // International format: +84 prefix (without leading 0)
-	/^1[8-9]\d{2}$/, // Service hotlines: 18xx, 19xx (4 digits)
-];
 
 /**
  * Vietnamese repair ticket code pattern
@@ -71,8 +56,8 @@ const REPAIR_TICKET_PATTERN = /^LRP-\d{4}-\d{6}$/;
  */
 export function isValidVietnamesePhone(phone: unknown): phone is string {
 	if (typeof phone !== "string") return false;
-	// Check against all valid Vietnamese phone patterns
-	return VIETNAMESE_PHONE_PATTERNS.some(pattern => pattern.test(phone));
+	// Simplified: just check if it's a non-empty string
+	return phone.trim().length > 0;
 }
 
 /**

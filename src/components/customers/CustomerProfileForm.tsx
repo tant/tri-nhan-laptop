@@ -27,7 +27,7 @@ import {
 	validateVietnameseIDCard,
 	validateVietnameseName,
 } from "@/lib/validation/customer-data";
-import type { PhoneValidationResult } from "@/lib/validation/phone-vietnamese";
+import type { SimplePhoneValidation } from "@/lib/phone-utils";
 import {
 	AlertCircle,
 	Building2,
@@ -86,8 +86,8 @@ export function CustomerProfileForm({
 	showValidation = true,
 }: CustomerProfileFormProps) {
 	// Validation states
-	const [phoneValidation, setPhoneValidation] = useState<PhoneValidationResult>(
-		{ isValid: false, formatted: "", type: "invalid" },
+	const [phoneValidation, setPhoneValidation] = useState<SimplePhoneValidation>(
+		{ isValid: false },
 	);
 	const [nameValidation, setNameValidation] = useState<NameValidationResult>({
 		isValid: false,
@@ -124,7 +124,7 @@ export function CustomerProfileForm({
 
 	// Validation handlers
 	const handlePhoneChange = useCallback(
-		(phone: string, validation: PhoneValidationResult) => {
+		(phone: string, validation: SimplePhoneValidation) => {
 			updateField("phone", phone);
 			setPhoneValidation(validation);
 		},

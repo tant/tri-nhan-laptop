@@ -6,10 +6,9 @@
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import {
-	normalizePhoneNumber,
-	toStorageFormat,
-	validateVietnamesePhone,
-} from "@/lib/validation/phone-vietnamese";
+	normalizePhone,
+	validatePhone,
+} from "@/lib/phone-utils";
 import { useCallback, useState } from "react";
 import { useCustomerSearch } from "./use-customer-search";
 import type { CustomerWithStats } from "./use-customer-search";
@@ -47,12 +46,12 @@ export function useCustomerCrud() {
 				setError(null);
 
 				// Validate phone number
-				const validation = validateVietnamesePhone(customerData.phone);
+				const validation = validatePhone(customerData.phone);
 				if (!validation.isValid) {
 					throw new Error(validation.error || "Số điện thoại không hợp lệ");
 				}
 
-				const normalizedPhone = toStorageFormat(customerData.phone);
+				const normalizedPhone = normalizePhone(customerData.phone);
 
 				// Check for duplicate phone number
 				const existingCustomer = await findCustomerByPhone(normalizedPhone);
@@ -152,18 +151,18 @@ export function useCustomerCrud() {
 				setLoading(true);
 				setError(null);
 
-				const normalizedPhone = normalizePhoneNumber(phone);
+				const normalizedPhone = normalizePhone(phone);
 
 				// If updating phone number, validate new number
 				if (updates.phone && updates.phone !== phone) {
-					const validation = validateVietnamesePhone(updates.phone);
+					const validation = validatePhone(updates.phone);
 					if (!validation.isValid) {
 						throw new Error(
 							validation.error || "Số điện thoại mới không hợp lệ",
 						);
 					}
 
-					const newNormalizedPhone = toStorageFormat(updates.phone);
+					const newNormalizedPhone = normalizePhone(updates.phone);
 
 					// Check for duplicate
 					const existingCustomer =
@@ -251,7 +250,7 @@ export function useCustomerCrud() {
 				setLoading(true);
 				setError(null);
 
-				const normalizedPhone = normalizePhoneNumber(phone);
+				const normalizedPhone = normalizePhone(phone);
 
 				// Check if customer has active repairs
 				const { data: activeRepairs, error: repairsError } = await supabase
@@ -313,13 +312,13 @@ export function useCustomerCrud() {
 				setError(null);
 
 				// Validate new phone number
-				const validation = validateVietnamesePhone(newPhone);
+				const validation = validatePhone(newPhone);
 				if (!validation.isValid) {
 					throw new Error(validation.error || "Số điện thoại mới không hợp lệ");
 				}
 
-				const normalizedNewPhone = toStorageFormat(newPhone);
-				const normalizedOldPhone = normalizePhoneNumber(oldPhone);
+				const normalizedNewPhone = normalizePhone(newPhone);
+				const normalizedOldPhone = normalizePhone(oldPhone);
 
 				// Check if new phone already exists
 				const existingCustomer = await findCustomerByPhone(normalizedNewPhone);

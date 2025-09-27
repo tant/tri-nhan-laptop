@@ -1,11 +1,10 @@
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
 import {
-	normalizePhoneNumber,
-	toDisplayFormat,
-	toStorageFormat,
-	validateVietnamesePhone,
-} from "@/lib/validation/phone-vietnamese";
+	normalizePhone,
+	formatPhoneDisplay,
+	validatePhone,
+} from "@/lib/phone-utils";
 import { useCallback, useState } from "react";
 import { useCustomerSearch } from "./use-customer-search";
 import { useCustomerCrud } from "./use-customer-crud";
@@ -106,7 +105,7 @@ export function useCustomers() {
 			const result = await crud.updateCustomer(phone, updates);
 			if (result) {
 				// Update local state
-				const normalizedPhone = normalizePhoneNumber(phone);
+				const normalizedPhone = normalizePhone(phone);
 				setCustomers((prev) =>
 					prev.map((customer) =>
 						customer.phone === normalizedPhone ? result : customer,
@@ -136,14 +135,14 @@ export function useCustomers() {
 	 * Format phone number for display
 	 */
 	const formatPhoneForDisplay = useCallback((phone: string): string => {
-		return toDisplayFormat(phone);
+		return formatPhoneDisplay(phone);
 	}, []);
 
 	/**
 	 * Validate phone number input
 	 */
-	const validatePhone = useCallback((phone: string) => {
-		return validateVietnamesePhone(phone);
+	const validatePhoneInput = useCallback((phone: string) => {
+		return validatePhone(phone);
 	}, []);
 
 
@@ -168,7 +167,7 @@ export function useCustomers() {
 
 		// Utilities
 		formatPhoneForDisplay,
-		validatePhone,
+		validatePhone: validatePhoneInput,
 
 		// CRUD operations (composed from CRUD hook)
 		deleteCustomer: crud.deleteCustomer,
@@ -178,8 +177,8 @@ export function useCustomers() {
 		getPhoneChangeHistory: crud.getPhoneChangeHistory,
 
 		// Utilities for phone number handling
-		normalizePhone: normalizePhoneNumber,
-		toStorageFormat,
-		toDisplayFormat,
+		normalizePhone,
+		toStorageFormat: normalizePhone,
+		toDisplayFormat: formatPhoneDisplay,
 	};
 }

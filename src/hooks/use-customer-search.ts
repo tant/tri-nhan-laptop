@@ -5,7 +5,7 @@
 
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/supabase";
-import { normalizePhoneNumber, validateVietnamesePhone } from "@/lib/validation/phone-vietnamese";
+import { normalizePhone, validatePhone } from "@/lib/phone-utils";
 import { useCallback, useState } from "react";
 
 // Database types
@@ -101,7 +101,7 @@ export function useCustomerSearch() {
 
 				// Apply search filter if provided
 				if (options.query) {
-					const normalizedQuery = normalizePhoneNumber(options.query);
+					const normalizedQuery = normalizePhone(options.query);
 					query = query.or(
 						`phone.ilike.%${normalizedQuery}%,full_name.ilike.%${options.query}%`,
 					);
@@ -178,12 +178,12 @@ export function useCustomerSearch() {
 				setError(null);
 
 				// Validate and normalize phone number
-				const validation = validateVietnamesePhone(phone);
+				const validation = validatePhone(phone);
 				if (!validation.isValid) {
 					throw new Error(validation.error || "Số điện thoại không hợp lệ");
 				}
 
-				const normalizedPhone = normalizePhoneNumber(phone);
+				const normalizedPhone = normalizePhone(phone);
 
 				const { data: customer, error: customerError } = await supabase
 					.from("customers")
@@ -254,7 +254,7 @@ export function useCustomerSearch() {
 			}
 
 			try {
-				const normalizedQuery = normalizePhoneNumber(query);
+				const normalizedQuery = normalizePhone(query);
 
 				const { data: customers, error } = await supabase
 					.from("customers")
