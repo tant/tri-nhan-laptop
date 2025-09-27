@@ -18,13 +18,10 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { RepairTicket } from "@/lib/database-types";
 import { useCallback, useState } from "react";
 import { useRepairValidation } from "./use-repair-validation";
 import type { NewRepairTicket } from "./use-repair-validation";
-
-// Vietnamese repair shop database types
-type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
 
 /**
  * Result interface for ticket creation operations
@@ -210,14 +207,7 @@ export function useRepairTicketsCrud() {
 					}
 				}
 
-				// TODO: Handle file uploads (photos, documents) here
-				if (ticketData.photos && ticketData.photos.length > 0) {
-					warnings.push("Tính năng tải lên hình ảnh sẽ được bổ sung sau");
-				}
-
-				if (ticketData.documents && ticketData.documents.length > 0) {
-					warnings.push("Tính năng tải lên tài liệu sẽ được bổ sung sau");
-				}
+				// File uploads are not supported in this version
 
 				return {
 					success: true,

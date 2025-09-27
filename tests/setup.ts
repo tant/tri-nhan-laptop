@@ -16,7 +16,7 @@ import {
 import type {
 	SupabaseResult,
 	SupabaseArrayResult,
-	VietnameseBusinessError
+	BusinessError
 } from "@/lib/supabase-types";
 import type { Customer, RepairTicket, Part, UserProfile } from "@/lib/database-types";
 

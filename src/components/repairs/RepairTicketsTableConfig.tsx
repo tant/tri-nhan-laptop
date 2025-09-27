@@ -8,6 +8,7 @@ import { StatusChangeDropdown } from "@/components/tickets/StatusChangeDropdown"
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
+import { DateTime } from "@/lib/formatting";
 import { useNavigate } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Edit, Eye } from "lucide-react";
@@ -78,14 +79,8 @@ const formatCurrency = (amount: number | null) => {
 	}).format(amount);
 };
 
-// Format date for Vietnamese locale
-const formatDate = (dateString: string) => {
-	return new Date(dateString).toLocaleDateString("vi-VN", {
-		day: "2-digit",
-		month: "2-digit",
-		year: "numeric",
-	});
-};
+// Use centralized date formatting
+const formatDate = DateTime.formatDate;
 
 export interface RepairTicketsTableProps {
 	onStatusChange: (ticketId: string, newStatus: RepairTicket["status"]) => Promise<void>;

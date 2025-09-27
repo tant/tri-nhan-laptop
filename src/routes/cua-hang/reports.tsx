@@ -11,8 +11,14 @@ function ShopReports() {
 						<CardTitle>Báo cáo & Phân tích</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p>Báo cáo doanh thu và hiệu suất kinh doanh</p>
-						{/* TODO: Implement ShopReportsDashboard component */}
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								Module báo cáo và phân tích chưa được triển khai.
+							</p>
+							<p className="text-sm text-muted-foreground mt-2">
+								Có thể sử dụng trang Analytics để xem thống kê cơ bản.
+							</p>
+						</div>
 					</CardContent>
 				</Card>
 			</div>

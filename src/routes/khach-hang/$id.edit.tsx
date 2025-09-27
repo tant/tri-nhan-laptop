@@ -1,4 +1,4 @@
-import { type CustomerProfileData } from "@/components/customers/CustomerProfileForm";
+import type { CustomerProfileData } from "@/components/customers/CustomerProfileForm";
 import { lazy, Suspense } from "react";
 
 // Lazy load the heavy form component
@@ -8,7 +8,8 @@ const CustomerProfileForm = lazy(() =>
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCustomers } from "@/hooks/use-customers";
+import { useCustomerCrud } from "@/hooks/use-customer-crud";
+import { useCustomerSearch } from "@/hooks/use-customer-search";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -16,7 +17,8 @@ import { useEffect, useState } from "react";
 function ProtectedCustomerEdit() {
 	const { id } = Route.useParams();
 	const navigate = useNavigate();
-	const { getCustomerById, updateCustomer } = useCustomers();
+	const { updateCustomer } = useCustomerCrud();
+	const { findCustomerByPhone } = useCustomerSearch();
 	const [customerData, setCustomerData] = useState<CustomerProfileData | null>(
 		null,
 	);
@@ -28,7 +30,8 @@ function ProtectedCustomerEdit() {
 		async function loadCustomer() {
 			try {
 				setLoading(true);
-				const data = await getCustomerById(id);
+				// Use phone as id since customers are keyed by phone
+				const data = await findCustomerByPhone(id);
 				// Convert database customer to profile data format
 				const profileData: CustomerProfileData = {
 					// Basic info
@@ -82,7 +85,7 @@ function ProtectedCustomerEdit() {
 		}
 
 		loadCustomer();
-	}, [id, getCustomerById]);
+	}, [id, findCustomerByPhone]);
 
 	const handleSave = async (profile: CustomerProfileData) => {
 		try {

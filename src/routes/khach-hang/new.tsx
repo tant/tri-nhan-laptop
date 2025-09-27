@@ -8,14 +8,14 @@ const CustomerProfileForm = lazy(() =>
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useCustomers } from "@/hooks/use-customers";
+import { useCustomerCrud } from "@/hooks/use-customer-crud";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 
 function ProtectedCreateCustomer() {
 	const navigate = useNavigate();
-	const { createCustomer } = useCustomers();
+	const { createCustomer } = useCustomerCrud();
 	const [customerData, setCustomerData] = useState<CustomerProfileData>(
 		createDefaultCustomerProfile(),
 	);

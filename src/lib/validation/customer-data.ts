@@ -42,11 +42,6 @@ export interface IDCardValidationResult {
 	type: "old_format" | "new_format" | "invalid";
 }
 
-export interface DateValidationResult {
-	isValid: boolean;
-	error?: string;
-	age?: number;
-}
 
 /**
  * Validate Vietnamese full name
@@ -120,7 +115,7 @@ export function validateVietnameseName(name: string): NameValidationResult {
 /**
  * Format Vietnamese name with proper capitalization
  */
-export function formatVietnameseName(name: string): string {
+function formatVietnameseName(name: string): string {
 	return name
 		.trim()
 		.split(/\s+/)
@@ -171,7 +166,7 @@ export function validateVietnameseIDCard(
 /**
  * Validate Vietnamese tax code
  */
-export function validateVietnameseTaxCode(taxCode: string): boolean {
+function validateVietnameseTaxCode(taxCode: string): boolean {
 	if (!taxCode?.trim()) return false;
 
 	const trimmed = taxCode.trim().replace(/[\s-]/g, "");
@@ -331,40 +326,6 @@ export function validateDateOfBirth(dateString: string): {
 	};
 }
 
-/**
- * Validate contact preferences
- */
-export function validateContactPreferences(
-	preferences: Partial<ContactPreferences>,
-): { isValid: boolean; errors: string[] } {
-	const errors: string[] = [];
-
-	if (preferences.preferredMethod) {
-		const validMethods = ["phone", "email", "sms"];
-		if (!validMethods.includes(preferences.preferredMethod)) {
-			errors.push("Phương thức liên hệ không hợp lệ");
-		}
-	}
-
-	if (preferences.preferredTime) {
-		const validTimes = ["morning", "afternoon", "evening", "any"];
-		if (!validTimes.includes(preferences.preferredTime)) {
-			errors.push("Thời gian liên hệ không hợp lệ");
-		}
-	}
-
-	if (preferences.language) {
-		const validLanguages = ["vi", "en"];
-		if (!validLanguages.includes(preferences.language)) {
-			errors.push("Ngôn ngữ không hợp lệ");
-		}
-	}
-
-	return {
-		isValid: errors.length === 0,
-		errors,
-	};
-}
 
 /**
  * Generate default contact preferences

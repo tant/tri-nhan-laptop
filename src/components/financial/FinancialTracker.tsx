@@ -54,12 +54,14 @@ import {
 	Users,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { useAuth } from "@/contexts/auth-context";
 
 interface FinancialTrackerProps {
 	repairTicketId?: string;
 }
 
 export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
+	const { profile } = useAuth();
 	const [activeTab, setActiveTab] = useState("summary");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -168,10 +170,14 @@ export function FinancialTracker({ repairTicketId }: FinancialTrackerProps) {
 			setLoading(true);
 			setError(null);
 
-			// In a real app, you'd get the current user ID from auth
+			if (!profile?.id) {
+				setError("No authenticated user found");
+				return;
+			}
+
 			const result = await addRepairCost(repairTicketId, {
 				...newCostData,
-				addedBy: "current-user-id", // Replace with actual user ID
+				addedBy: profile.id,
 			});
 
 			if (result.success) {

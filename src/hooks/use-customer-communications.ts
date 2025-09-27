@@ -4,6 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
+import { Currency } from "@/lib/formatting";
 import type { RepairStatus } from "@/lib/repair-status";
 import { useCallback, useState } from "react";
 
@@ -477,10 +478,8 @@ export function useCustomerCommunications() {
 		[],
 	);
 
-	// Format currency in Vietnamese format
-	const formatCurrency = (amount: number): string => {
-		return `${amount.toLocaleString("vi-VN")}đ`;
-	};
+	// Use centralized currency formatting
+	const formatCurrency = Currency.format;
 
 	// Check if customer can receive notifications
 	const canSendNotification = useCallback(

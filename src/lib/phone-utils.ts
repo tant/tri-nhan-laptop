@@ -11,21 +11,13 @@ export function isValidPhone(phone: string): boolean {
 }
 
 /**
- * Basic phone formatting for display (add spaces for readability)
+ * Basic phone formatting for display (just clean up extra whitespace)
  */
 export function formatPhoneDisplay(phone: string): string {
   if (!phone) return "";
 
-  // Clean the phone number first
-  const cleaned = phone.replace(/\s+/g, '');
-
-  // Add spaces for readability if it looks like a phone number
-  if (cleaned.length >= 10) {
-    // Format: XXXX XXX XXX
-    return cleaned.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
-  }
-
-  return cleaned;
+  // Just clean up excessive whitespace and return as-is
+  return phone.trim().replace(/\s+/g, ' ');
 }
 
 /**

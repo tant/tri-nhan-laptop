@@ -11,8 +11,14 @@ function ShopSettings() {
 						<CardTitle>Cài đặt cửa hàng</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p>Cài đặt và cấu hình thông tin cửa hàng</p>
-						{/* TODO: Implement ShopSettingsForm component */}
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								Trang cài đặt cửa hàng chưa được triển khai.
+							</p>
+							<p className="text-sm text-muted-foreground mt-2">
+								Liên hệ quản trị viên để cấu hình hệ thống.
+							</p>
+						</div>
 					</CardContent>
 				</Card>
 			</div>

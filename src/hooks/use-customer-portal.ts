@@ -1,11 +1,7 @@
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { RepairTicket, Customer, RepairStatus } from "@/lib/database-types";
+import { Currency } from "@/lib/formatting";
 import { useCallback, useState } from "react";
-
-// Database types
-type RepairTicket = Database["public"]["Tables"]["repair_tickets"]["Row"];
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
-type RepairStatus = Database["public"]["Enums"]["repair_status"];
 
 export interface CustomerRepairInfo extends RepairTicket {
 	customer: Customer;
@@ -301,13 +297,8 @@ export function useCustomerPortal() {
 		return statusMap[status] || status;
 	}, []);
 
-	// Format currency
-	const formatCurrency = useCallback((amount: number) => {
-		return new Intl.NumberFormat("vi-VN", {
-			style: "currency",
-			currency: "VND",
-		}).format(amount);
-	}, []);
+	// Use centralized currency formatting
+	const formatCurrency = Currency.format;
 
 	// Validate ticket number format
 	const isValidTicketNumber = useCallback((ticketNumber: string) => {

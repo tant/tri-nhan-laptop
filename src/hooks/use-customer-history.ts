@@ -549,11 +549,7 @@ export function useCustomerHistory() {
 					},
 				};
 
-				if (format === "json") {
-					return { success: true, data: exportData };
-				}
-
-				// TODO: Implement CSV conversion
+				// Only JSON export is supported
 				return { success: true, data: exportData };
 			} catch (err) {
 				const error = err instanceof Error ? err : new Error("Unknown error");

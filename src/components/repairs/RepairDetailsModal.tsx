@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/auth-context";
 import { useCostTracking } from "@/hooks/use-cost-tracking";
 import { usePartsManagement } from "@/hooks/use-parts-management";
 import { formatVND } from "@/lib/currency";
@@ -81,6 +82,7 @@ export function RepairDetailsModal({
 	onClose,
 	onUpdate,
 }: RepairDetailsModalProps) {
+	const { profile } = useAuth();
 	const [isPartsPickerOpen, setIsPartsPickerOpen] = useState(false);
 	const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
 	const [isCostBreakdownOpen, setIsCostBreakdownOpen] = useState(false);
@@ -152,7 +154,11 @@ export function RepairDetailsModal({
 			}));
 
 			// Add parts to repair
-			await addPartsToRepair(repair.id, partsToAdd, "current-user-id"); // TODO: Get real user ID
+			if (!profile?.id) {
+				console.error("No authenticated user found");
+				return;
+			}
+			await addPartsToRepair(repair.id, partsToAdd, profile.id);
 
 			// Reload parts list
 			await loadRepairParts();
@@ -172,11 +178,15 @@ export function RepairDetailsModal({
 		try {
 			// Reserve each part for the repair
 			for (const selected of selectedParts) {
+				if (!profile?.id) {
+					console.error("No authenticated user found for parts reservation");
+					continue;
+				}
 				await reservePartsForRepair(
 					selected.part.id,
 					repair.id,
 					selected.quantity,
-					"current-user-id", // TODO: Get real user ID
+					profile.id,
 					24, // 24 hours reservation
 					selected.notes,
 				);

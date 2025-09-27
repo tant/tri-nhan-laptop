@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
-import { useRepairTickets } from "../../hooks/use-repair-tickets";
+import { useRepairTicketsCrud } from "../../hooks/use-repair-tickets-crud";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
@@ -71,7 +71,8 @@ export const DraftManager: React.FC<DraftManagerProps> = ({
 	currentDraft,
 	showLoadButton = false,
 }) => {
-	const { saveDraft, _getDrafts, deleteDraft } = useRepairTickets();
+	const { saveDraft } = useRepairTicketsCrud();
+	// Note: getDrafts and deleteDraft functions need to be implemented in CRUD hook
 
 	const [drafts, setDrafts] = useState<TicketDraft[]>([]);
 	const [filteredDrafts, setFilteredDrafts] = useState<TicketDraft[]>([]);

@@ -4,12 +4,9 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { Customer } from "@/lib/database-types";
 import { normalizePhone, validatePhone } from "@/lib/phone-utils";
 import { useCallback, useState } from "react";
-
-// Database types
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
 
 export interface CustomerWithStats extends Customer {
 	fullName: string; // Alias for full_name to match test expectations

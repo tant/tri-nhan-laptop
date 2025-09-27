@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRepairTickets } from "@/hooks/use-repair-tickets";
+import { useRepairTicketsCrud } from "@/hooks/use-repair-tickets-crud";
 import { formatVND } from "@/lib/currency";
 import type { Customer, RepairTicket, UserProfile } from "@/lib/database-types";
 import { useNavigate } from "@tanstack/react-router";
@@ -34,7 +34,7 @@ interface TicketDetailViewProps {
 
 export function TicketDetailView({ ticketId }: TicketDetailViewProps) {
 	const navigate = useNavigate();
-	const { getRepairById } = useRepairTickets();
+	const { getRepairById } = useRepairTicketsCrud();
 	const [ticket, setTicket] = useState<RepairWithDetails | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);

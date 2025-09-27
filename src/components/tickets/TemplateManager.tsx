@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { useRepairTickets } from "../../hooks/use-repair-tickets";
+import { useRepairTemplates } from "../../hooks/use-repair-templates";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
@@ -64,7 +64,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({
 	selectedCategory,
 	showSelectButton = false,
 }) => {
-	const { _getRepairTemplates } = useRepairTickets();
+	const { getTemplates } = useRepairTemplates();
 
 	const [templates, setTemplates] = useState<RepairTemplate[]>([]);
 	const [filteredTemplates, setFilteredTemplates] = useState<RepairTemplate[]>(

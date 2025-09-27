@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePartsManagement } from "@/hooks/use-parts-management";
 import { formatVND } from "@/lib/currency";
-import type { Database } from "@/lib/supabase";
 import type { Part } from "@/lib/database-types";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
@@ -16,8 +15,6 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-type Part = Database["public"]["Tables"]["parts"]["Row"];
 
 function ProtectedPartDetail() {
 	const { id } = Route.useParams();

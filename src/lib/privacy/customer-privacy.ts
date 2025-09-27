@@ -177,16 +177,8 @@ export async function logPrivacyAction(
 			});
 		}
 
-		// TODO: Implement privacy audit table
-		// const { error } = await supabase
-		//   .from('privacy_audit_log')
-		//   .insert({
-		//     customer_phone: customerPhone,
-		//     action,
-		//     details,
-		//     performed_by: performedBy,
-		//     created_at: new Date().toISOString()
-		//   });
+		// Privacy audit logging is currently console-based for development
+		// Production version would require implementing privacy_audit_log table
 	} catch (error) {
 		console.error("Error logging privacy action:", error);
 	}

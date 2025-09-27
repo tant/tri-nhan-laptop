@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useCustomers } from "@/hooks/use-customers";
-import { useRepairTickets } from "@/hooks/use-repair-tickets";
+import { useCustomerSearch } from "@/hooks/use-customer-search";
+import { useRepairTicketsCrud } from "@/hooks/use-repair-tickets-crud";
+import { useRepairSearch } from "@/hooks/use-repair-search";
 import { getPopularBrands } from "@/lib/devices/vietnamese-brands";
-import type { Database } from "@/lib/supabase";
+import type { Customer } from "@/lib/database-types";
 import {
 	AlertTriangle,
 	ArrowLeft,
@@ -57,15 +58,15 @@ interface FormData {
 	technician_notes?: string;
 }
 
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
 
 export function CreateTicketForm({
 	customerId,
 	onTicketCreated,
 	onSaveDraft,
 }: CreateTicketFormProps) {
-	const { createRepairTicket, previewNextTicketCode } = useRepairTickets();
-	const { getCustomerById, searchCustomers } = useCustomers();
+	const { createRepairTicket } = useRepairTicketsCrud();
+	const { previewNextTicketCode } = useRepairSearch();
+	const { quickSearch } = useCustomerSearch();
 	const [currentTab, setCurrentTab] = useState("customer");
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [customerSuggestions, setCustomerSuggestions] = useState<Customer[]>(
@@ -126,7 +127,7 @@ export function CreateTicketForm({
 		const searchCustomer = async () => {
 			if (watchedPhone && watchedPhone.length >= 10) {
 				try {
-					const customers = await searchCustomers(watchedPhone);
+					const customers = await quickSearch(watchedPhone);
 					setCustomerSuggestions(customers);
 
 					if (customers.length === 1) {
@@ -146,7 +147,7 @@ export function CreateTicketForm({
 		};
 
 		searchCustomer();
-	}, [watchedPhone, searchCustomers, setValue]);
+	}, [watchedPhone, quickSearch, setValue]);
 
 	// Load customer if customerId is provided
 	useEffect(() => {

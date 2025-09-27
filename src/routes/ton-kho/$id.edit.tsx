@@ -20,8 +20,14 @@ function ProtectedPartEdit() {
 						<CardTitle>Chỉnh sửa linh kiện #{id}</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p>Form chỉnh sửa thông tin linh kiện {id}</p>
-						{/* TODO: Implement EditPartForm component */}
+						<div className="text-center py-8">
+							<p className="text-muted-foreground">
+								Chức năng chỉnh sửa linh kiện chưa được triển khai.
+							</p>
+							<p className="text-sm text-muted-foreground mt-2">
+								Vui lòng quay lại danh sách linh kiện.
+							</p>
+						</div>
 					</CardContent>
 				</Card>
 			</div>

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/auth-context";
 import {
 	type CostBreakdown,
 	type CostSummary,
@@ -73,6 +74,7 @@ export function CostBreakdownModal({
 	repairId,
 	onCostUpdate,
 }: CostBreakdownModalProps) {
+	const { profile } = useAuth();
 	const [costBreakdown, setCostBreakdown] = useState<CostBreakdown[]>([]);
 	const [costSummary, setCostSummary] = useState<CostSummary | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -128,6 +130,11 @@ export function CostBreakdownModal({
 		try {
 			setLoading(true);
 
+			if (!profile?.id) {
+				console.error("No authenticated user found");
+				return;
+			}
+
 			const newItem = await addCostBreakdown(
 				repairId,
 				addItemForm.breakdown_type,
@@ -137,7 +144,7 @@ export function CostBreakdownModal({
 				addItemForm.unit_price,
 				undefined, // item_id
 				addItemForm.notes || undefined,
-				"current-user-id", // TODO: Get real user ID
+				profile.id,
 			);
 
 			if (newItem) {

@@ -27,8 +27,8 @@ import { Currency, DateTime, Text } from "@/lib/formatting";
 import type {
 	SupabaseResult,
 	SupabaseArrayResult,
-	VietnameseBusinessError,
-	VietnameseQueries
+	BusinessError,
+	CustomerQuery
 } from "@/lib/supabase-types";
 import type { Customer, RepairTicket, Part, UserProfile } from "@/lib/database-types";
 

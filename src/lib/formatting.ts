@@ -18,6 +18,9 @@ export const VIETNAMESE_LOCALE = "vi-VN";
 export const VIETNAMESE_CURRENCY = "VND";
 export const VIETNAMESE_TIMEZONE = "Asia/Ho_Chi_Minh";
 
+// Import phone formatting utility
+import { formatPhoneDisplay } from "./phone-utils";
+
 // Currency formatters (cached for performance)
 const currencyFormatter = new Intl.NumberFormat(VIETNAMESE_LOCALE, {
 	style: "currency",
@@ -590,7 +593,7 @@ export const Text = {
 	},
 
 	/**
-	 * Format phone number for display (simplified)
+	 * Format phone number for display (delegated to phone-utils)
 	 *
 	 * @param phone - Raw phone number string
 	 * @returns Basic formatted phone number
@@ -603,14 +606,7 @@ export const Text = {
 	 *
 	 * @since 1.0.0
 	 */
-	formatPhone: (phone: string): string => {
-		if (!phone) return "";
-		const cleaned = phone.replace(/\s+/g, '');
-		if (cleaned.length >= 10) {
-			return cleaned.replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
-		}
-		return cleaned;
-	},
+	formatPhone: formatPhoneDisplay,
 
 	/**
 	 * Format repair ticket code to standard format

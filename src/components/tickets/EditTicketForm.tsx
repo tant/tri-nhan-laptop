@@ -10,7 +10,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useRepairTickets } from "@/hooks/use-repair-tickets";
+import { useRepairTicketsCrud } from "@/hooks/use-repair-tickets-crud";
 import type { Database } from "@/lib/supabase";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Save } from "lucide-react";
@@ -35,7 +35,7 @@ export function EditTicketForm({
 	onTicketUpdated,
 }: EditTicketFormProps) {
 	const navigate = useNavigate();
-	const { getRepairById, updateRepair } = useRepairTickets();
+	const { getRepairById, updateRepair } = useRepairTicketsCrud();
 	const [ticket, setTicket] = useState<RepairWithDetails | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);

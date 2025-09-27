@@ -21,6 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
 import { usePartsManagement } from "@/hooks/use-parts-management";
+import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/lib/supabase";
 import {
 	AlertTriangle,
@@ -67,6 +68,7 @@ export function StockAdjustmentModal({
 	onClose,
 	onSuccess,
 }: StockAdjustmentModalProps) {
+	const { toast } = useToast();
 	const [adjustmentType, setAdjustmentType] =
 		useState<AdjustmentType>("increase");
 	const [quantity, setQuantity] = useState<number>(0);
@@ -140,7 +142,11 @@ export function StockAdjustmentModal({
 			resetForm();
 		} catch (error) {
 			console.error("Stock adjustment failed:", error);
-			// TODO: Show error notification
+			toast({
+				title: "Lỗi điều chỉnh tồn kho",
+				description: "Không thể cập nhật số lượng tồn kho. Vui lòng thử lại.",
+				variant: "destructive",
+			});
 		} finally {
 			setLoading(false);
 		}

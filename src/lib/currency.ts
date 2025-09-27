@@ -142,60 +142,6 @@ export function parseVND(vndString: string): number {
 	return Number.isNaN(parsed) ? 0 : parsed;
 }
 
-/**
- * Format cost breakdown for display
- */
-export function formatCostBreakdown(
-	totalCost: number,
-	totalRevenue: number,
-	options: { detailed?: boolean } = {},
-): {
-	cost: string;
-	revenue: string;
-	profit: string;
-	profitMargin: string;
-} {
-	const { detailed = false } = options;
-	const formatter = detailed ? formatVNDDetailed : formatVNDCompact;
-
-	const profit = totalRevenue - totalCost;
-	const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
-
-	return {
-		cost: formatter(totalCost),
-		revenue: formatter(totalRevenue),
-		profit: formatVNDProfit(profit),
-		profitMargin: formatPercentage(profitMargin),
-	};
-}
-
-/**
- * Format quote total with tax breakdown
- */
-export function formatQuoteTotal(
-	subtotal: number,
-	discountAmount = 0,
-	taxAmount = 0,
-	options: { detailed?: boolean } = {},
-): {
-	subtotal: string;
-	discount: string;
-	tax: string;
-	total: string;
-} {
-	const { detailed = false } = options;
-	const formatter = detailed ? formatVNDDetailed : formatVNDCompact;
-
-	const total = subtotal - discountAmount + taxAmount;
-
-	return {
-		subtotal: formatter(subtotal),
-		discount:
-			discountAmount > 0 ? `-${formatter(discountAmount)}` : formatter(0),
-		tax: formatter(taxAmount),
-		total: formatter(total),
-	};
-}
 
 /**
  * Vietnamese number input formatter (for form inputs)

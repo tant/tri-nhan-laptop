@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabase";
-import type { Database } from "@/lib/supabase";
+import type { Customer, NewCustomer, UpdateCustomer } from "@/lib/database-types";
 import {
 	normalizePhone,
 	validatePhone,
@@ -12,11 +12,6 @@ import {
 import { useCallback, useState } from "react";
 import { useCustomerSearch } from "./use-customer-search";
 import type { CustomerWithStats } from "./use-customer-search";
-
-// Database types
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
-type NewCustomer = Database["public"]["Tables"]["customers"]["Insert"];
-type UpdateCustomer = Database["public"]["Tables"]["customers"]["Update"];
 
 export interface PhoneChangeRecord {
 	oldPhone: string;

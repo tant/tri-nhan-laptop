@@ -1,18 +1,16 @@
 import { ProtectedRoute } from "@/components/protected-route";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCustomers } from "@/hooks/use-customers";
-import type { Database } from "@/lib/supabase";
+import { useCustomerSearch } from "@/hooks/use-customer-search";
+import type { Customer } from "@/lib/database-types";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Edit, Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
-
 function ProtectedCustomerDetail() {
 	const { id } = Route.useParams();
 	const navigate = useNavigate();
-	const { getCustomerById } = useCustomers();
+	const { findCustomerByPhone } = useCustomerSearch();
 	const [customer, setCustomer] = useState<Customer | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -21,7 +19,8 @@ function ProtectedCustomerDetail() {
 		async function loadCustomer() {
 			try {
 				setLoading(true);
-				const data = await getCustomerById(id);
+				// Use phone as id since customers are keyed by phone
+				const data = await findCustomerByPhone(id);
 				setCustomer(data);
 			} catch (err) {
 				setError(
@@ -35,7 +34,7 @@ function ProtectedCustomerDetail() {
 		}
 
 		loadCustomer();
-	}, [id, getCustomerById]);
+	}, [id, findCustomerByPhone]);
 
 	if (loading) {
 		return (
